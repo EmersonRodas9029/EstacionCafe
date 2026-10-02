@@ -98,3 +98,18 @@
     );
   pointer-events: none;
 }
+
+/* Impresión de tickets en térmica de 80 mm */
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+  .ticket {
+    width: 80mm;
+    margin: 0;
+  }
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+}

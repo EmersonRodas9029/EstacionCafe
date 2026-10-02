@@ -3,39 +3,39 @@ import { useListActiveCashRegisters } from '@/api/generated/cash-registers/cash-
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { formatCurrency } from '@/lib/format'
-import { useChargeTable } from '../hooks/use-bill-actions'
-import { usePreferencesStore } from '../preferences-store'
 import { resolveCashRegister } from '../cash-register'
+import { useEditBill } from '../hooks/use-bill-actions'
+import { usePreferencesStore } from '../preferences-store'
 import { CashRegisterSelect } from './cash-register-select'
 import { ChangeCalculator } from './change-calculator'
 
 type Props = {
   open: boolean
   onClose: () => void
-  tableId: string
-  billsCount: number
+  billId: number
+  customer: string
   total: number
+  onCharged?: () => void
 }
 
-/** Cobra todas las cuentas abiertas de la mesa y la libera. */
-export function ChargeTableDialog({ open, onClose, tableId, billsCount, total }: Props) {
+/** Cobra una sola cuenta (status closed + caja). */
+export function ChargeBillDialog({ open, onClose, billId, customer, total, onCharged }: Props) {
   const preferred = usePreferencesStore((s) => s.cashRegisterId)
   const setPreferred = usePreferencesStore((s) => s.setCashRegisterId)
-  const registers = useListActiveCashRegisters({ query: { select: (r) => r.data } })
+  const registers = useListActiveCashRegisters({ query: { enabled: open, select: (r) => r.data } })
   const cashRegisterId = resolveCashRegister(registers.data, preferred)
-  const charge = useChargeTable()
+  const editBill = useEditBill()
 
   const confirm = () => {
     if (!cashRegisterId) return
     setPreferred(cashRegisterId)
-    charge.mutate(
-      { tableId, data: { cashRegisterId } },
+    editBill.mutate(
+      { id: billId, data: { status: 'closed', cashRegisterId } },
       {
-        onSuccess: ({ data }) => {
-          toast.success(
-            `Mesa ${tableId} cobrada (${data.updated} ${data.updated === 1 ? 'cuenta' : 'cuentas'})`,
-          )
+        onSuccess: () => {
+          toast.success(`Cuenta "${customer}" cobrada`)
           onClose()
+          onCharged?.()
         },
       },
     )
@@ -45,14 +45,17 @@ export function ChargeTableDialog({ open, onClose, tableId, billsCount, total }:
     <Dialog
       open={open}
       onClose={onClose}
-      title={`Cobrar mesa ${tableId}`}
-      description={`${billsCount === 1 ? 'Se cerrará 1 cuenta' : `Se cerrarán ${billsCount} cuentas`} y la mesa quedará disponible.`}
+      title={`Cobrar · ${customer}`}
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
             Cancelar
           </Button>
-          <Button variant="accent" onClick={confirm} disabled={!cashRegisterId || charge.isPending}>
+          <Button
+            variant="accent"
+            onClick={confirm}
+            disabled={!cashRegisterId || editBill.isPending}
+          >
             Cobrar {formatCurrency(total)}
           </Button>
         </>
@@ -60,7 +63,7 @@ export function ChargeTableDialog({ open, onClose, tableId, billsCount, total }:
     >
       <div className="space-y-5">
         <div className="flex items-baseline justify-between rounded-lg bg-surface-soft px-4 py-3">
-          <span className="text-muted-foreground">Total de la mesa</span>
+          <span className="text-muted-foreground">Total</span>
           <span className="font-display text-3xl font-semibold text-primary tabular-nums">
             {formatCurrency(total)}
           </span>

@@ -8,4 +8,14 @@ export const BILL_STATUS: Record<BillStatus, { label: string; tone: BadgeTone }>
   closed: { label: 'Cobrada', tone: 'available' },
 }
 
+/** Para llevar: abierta = en preparación → cobrada = por entregar → entregada. */
+export const TAKEAWAY_STAGE: Record<BillStatus, string> = {
+  draft: 'En preparación',
+  open: 'En preparación',
+  closed: 'Por entregar',
+  finished: 'Entregada',
+}
+
+export const isSold = (status: BillStatus) => status === 'closed' || status === 'finished'
+
 export const isEditable = (status: BillStatus) => status === 'open' || status === 'draft'

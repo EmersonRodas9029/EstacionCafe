@@ -47,6 +47,13 @@ export const routes: RouteObject[] = [
             element: <RequireRole roles={OPERATION_ROLES} />,
             children: [
               {
+                // Fuera del layout: página limpia para imprimir
+                path: 'cuentas/:billId/ticket',
+                lazy: async () => ({
+                  Component: (await import('@/features/bills/pages/ticket-page')).TicketPage,
+                }),
+              },
+              {
                 // Cada panel en su propio chunk
                 lazy: async () => ({
                   Component: (await import('./layouts/mesero-layout')).MeseroLayout,
@@ -81,8 +88,20 @@ export const routes: RouteObject[] = [
                         .TakeOrderPage,
                     }),
                   },
-                  soon('para-llevar', 'Para llevar', 4),
-                  soon('historial', 'Historial del turno', 4),
+                  {
+                    path: 'para-llevar',
+                    lazy: async () => ({
+                      Component: (await import('@/features/takeaway/pages/takeaway-page'))
+                        .TakeawayPage,
+                    }),
+                  },
+                  {
+                    path: 'historial',
+                    lazy: async () => ({
+                      Component: (await import('@/features/history/pages/history-page'))
+                        .HistoryPage,
+                    }),
+                  },
                   profile,
                 ],
               },

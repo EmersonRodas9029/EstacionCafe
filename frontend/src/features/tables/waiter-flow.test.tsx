@@ -39,7 +39,7 @@ describe('Flujo del mesero', () => {
     await user.click(within(order).getByRole('button', { name: /enviar · \$9\.00/i }))
 
     expect(await screen.findByText('Orden enviada (3 productos)')).toBeInTheDocument()
-    await waitFor(() => expect(router.state.location.pathname).toBe('/mesero/cuentas/2'))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/mesero/cuentas/4'))
     expect(await screen.findByText('$9.00', { selector: 'span' })).toBeInTheDocument()
     expect(db.tables.find((t) => t.tableId === 'A2')?.status).toBe('ocupada')
   })

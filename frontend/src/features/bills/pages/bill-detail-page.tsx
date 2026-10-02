@@ -1,6 +1,17 @@
-import { ArrowRightLeft, Clock, Pencil, Plus, ShoppingBasket, User } from 'lucide-react'
+import {
+  ArrowRightLeft,
+  CheckCheck,
+  Clock,
+  Pencil,
+  Plus,
+  Printer,
+  ShoppingBasket,
+  User,
+  Wallet,
+} from 'lucide-react'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
+import { toast } from 'sonner'
 import { useGetBill } from '@/api/generated/bills/bills'
 import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
@@ -10,12 +21,14 @@ import { EmptyState, ErrorState } from '@/components/ui/state'
 import { formatCurrency, formatElapsed } from '@/lib/format'
 import { BILL_STATUS, isEditable } from '../bill-status'
 import { BillLines } from '../components/bill-lines'
+import { ChargeBillDialog } from '../components/charge-bill-dialog'
 import { MoveBillDialog } from '../components/move-bill-dialog'
 import { RenameBillDialog } from '../components/rename-bill-dialog'
+import { useEditBill } from '../hooks/use-bill-actions'
 import { useBillLines } from '../hooks/use-bill-lines'
 import { LIVE_REFRESH_MS } from '../invalidate'
 
-type DialogName = 'rename' | 'move' | null
+type DialogName = 'rename' | 'move' | 'charge' | null
 
 export function BillDetailPage() {
   const billId = Number(useParams().billId)
@@ -24,6 +37,8 @@ export function BillDetailPage() {
     query: { refetchInterval: LIVE_REFRESH_MS, select: (r) => r.data },
   })
   const { lines, updateQuantity, removeLine } = useBillLines(billId)
+  const editBill = useEditBill()
+  const navigate = useNavigate()
 
   if (bill.isPending) return <Skeleton className="h-64" />
   if (bill.isError)
@@ -36,6 +51,13 @@ export function BillDetailPage() {
     : '/mesero/para-llevar'
   const items = lines.data ?? []
   const total = items.reduce((acc, l) => acc + l.subTotal, 0)
+  const isTakeaway = data.orderType === 'takeaway'
+
+  const deliver = () =>
+    editBill.mutate(
+      { id: billId, data: { status: 'finished' } },
+      { onSuccess: () => toast.success(`Orden de ${data.customer} entregada`) },
+    )
 
   return (
     <>
@@ -112,13 +134,41 @@ export function BillDetailPage() {
             </span>
           </div>
           {editable ? (
-            <Link
-              to={`/mesero/cuentas/${billId}/orden`}
-              className="flex h-14 items-center justify-center gap-2 rounded-md bg-accent-strong font-semibold text-accent-foreground hover:bg-accent"
-            >
-              <Plus className="size-5" aria-hidden="true" /> Agregar productos
-            </Link>
+            <>
+              <Link
+                to={`/mesero/cuentas/${billId}/orden`}
+                className="flex h-14 items-center justify-center gap-2 rounded-md bg-accent-strong font-semibold text-accent-foreground hover:bg-accent"
+              >
+                <Plus className="size-5" aria-hidden="true" /> Agregar productos
+              </Link>
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full"
+                disabled={items.length === 0}
+                onClick={() => setDialog('charge')}
+              >
+                <Wallet /> Cobrar cuenta
+              </Button>
+            </>
           ) : null}
+          {isTakeaway && data.status === 'closed' ? (
+            <Button
+              variant="accent"
+              size="lg"
+              className="w-full"
+              onClick={deliver}
+              disabled={editBill.isPending}
+            >
+              <CheckCheck /> Marcar entregada
+            </Button>
+          ) : null}
+          <Link
+            to={`/mesero/cuentas/${billId}/ticket`}
+            className="flex h-11 items-center justify-center gap-2 rounded-md border border-primary/30 font-semibold text-primary hover:bg-surface-soft"
+          >
+            <Printer className="size-4" aria-hidden="true" /> {editable ? 'Pre-cuenta' : 'Ticket'}
+          </Link>
         </aside>
       </div>
 
@@ -130,6 +180,16 @@ export function BillDetailPage() {
           currentTableId={data.tableId}
         />
       ) : null}
+      <ChargeBillDialog
+        open={dialog === 'charge'}
+        onClose={() => setDialog(null)}
+        billId={billId}
+        customer={data.customer}
+        total={total}
+        onCharged={() => {
+          if (data.tableId) navigate(backTo)
+        }}
+      />
       <RenameBillDialog
         open={dialog === 'rename'}
         onClose={() => setDialog(null)}

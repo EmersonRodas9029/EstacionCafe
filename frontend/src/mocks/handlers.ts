@@ -56,11 +56,17 @@ export const handlers = [
     const status = query.get('status')
     const tableId = query.get('tableId')
     const orderType = query.get('orderType')
+    const from = query.get('from')
+    const to = query.get('to')
+    const mine = query.get('mine') === 'true' ? userFromRequest(request)?.userId : undefined
     const items = db.bills.filter(
       (b) =>
         (!status || b.status === status) &&
         (!tableId || b.tableId === tableId) &&
-        (!orderType || b.orderType === orderType),
+        (!orderType || b.orderType === orderType) &&
+        (!from || new Date(b.date) >= new Date(from)) &&
+        (!to || new Date(b.date) <= new Date(to)) &&
+        (mine === undefined || b.waiterId === mine),
     )
     return ok(items.map(withWaiter))
   }),

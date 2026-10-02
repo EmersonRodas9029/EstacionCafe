@@ -37,14 +37,38 @@ const seed = () => ({
       total: 5,
       status: 'open',
     },
+    {
+      billId: 2,
+      waiterId: 1,
+      cashRegisterId: 1,
+      tableId: null,
+      orderType: 'takeaway',
+      customer: 'Luis',
+      date: new Date(Date.now() - 10 * 60_000).toISOString(),
+      total: 4,
+      status: 'closed',
+    },
+    {
+      billId: 3,
+      waiterId: 2,
+      cashRegisterId: 1,
+      tableId: 'A2',
+      orderType: 'dine_in',
+      customer: 'Marta',
+      date: new Date(Date.now() - 5 * 60_000).toISOString(),
+      total: 2.5,
+      status: 'closed',
+    },
   ] as Bill[],
   details: [
     { billDetailId: 1, billId: 1, productId: 1, quantity: 2, unitPrice: 2.5 },
+    { billDetailId: 2, billId: 2, productId: 2, quantity: 1, unitPrice: 4 },
+    { billDetailId: 3, billId: 3, productId: 1, quantity: 1, unitPrice: 2.5 },
   ] as DetailRow[],
   /** Unidades disponibles por producto (simula el stock de la receta). */
   stock: { 3: 2 } as Record<number, number>,
-  nextBillId: 2,
-  nextDetailId: 2,
+  nextBillId: 4,
+  nextDetailId: 4,
 })
 
 export let db = seed()
@@ -57,6 +81,7 @@ const ACTIVE = ['open', 'draft']
 export const withWaiter = (bill: Bill): Bill => ({
   ...bill,
   waiter: users.find((u) => u.userId === bill.waiterId),
+  cashRegister: db.cashRegisters.find((c) => c.cashRegisterId === bill.cashRegisterId) ?? null,
 })
 
 export const recalcTotal = (billId: number) => {
