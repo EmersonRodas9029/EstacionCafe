@@ -6,17 +6,10 @@
  * OpenAPI spec version: 2.0.0
  */
 
-/**
- * draft = orden en edición, open = cuenta activa, pending_payment = cerrada por el mesero y esperando cobro, closed = cobrada, finished = para llevar entregada, void = anulada por un admin
- */
-export type BillStatus = typeof BillStatus[keyof typeof BillStatus];
+export type ListBillsActive = typeof ListBillsActive[keyof typeof ListBillsActive];
 
 
-export const BillStatus = {
-  open: 'open',
-  closed: 'closed',
-  draft: 'draft',
-  finished: 'finished',
-  void: 'void',
-  pending_payment: 'pending_payment',
+export const ListBillsActive = {
+  true: 'true',
+  false: 'false',
 } as const;

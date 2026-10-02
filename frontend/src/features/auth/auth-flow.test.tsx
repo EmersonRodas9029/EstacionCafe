@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/render-app'
 import { useSessionStore } from './session-store'
@@ -72,7 +72,11 @@ describe('Autenticación y navegación por rol', () => {
     await screen.findByRole('heading', { name: 'Mesas' })
 
     await user.click(screen.getAllByRole('link', { name: /perfil/i })[0]!)
-    await user.click(await screen.findByRole('button', { name: /cerrar sesión/i }))
+    await user.click(
+      await within(await screen.findByRole('main')).findByRole('button', {
+        name: /cerrar sesión/i,
+      }),
+    )
 
     expect(await screen.findByRole('heading', { name: 'Bienvenido' })).toBeInTheDocument()
     expect(useSessionStore.getState().user).toBeNull()
@@ -83,7 +87,11 @@ describe('Autenticación y navegación por rol', () => {
     const user = await login('mesero.demo')
     await screen.findByRole('heading', { name: 'Mesas' })
     await user.click(screen.getAllByRole('link', { name: /perfil/i })[0]!)
-    await user.click(await screen.findByRole('button', { name: /cerrar sesión/i }))
+    await user.click(
+      await within(await screen.findByRole('main')).findByRole('button', {
+        name: /cerrar sesión/i,
+      }),
+    )
     await screen.findByRole('heading', { name: 'Bienvenido' })
 
     await login('admin.demo')

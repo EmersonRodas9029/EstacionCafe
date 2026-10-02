@@ -19,7 +19,7 @@ import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/ui/state'
 import { Stat } from '@/components/ui/stat'
-import { BILL_STATUS, isSold } from '@/features/bills/bill-status'
+import { BILL_STATUS, isSold, PAYMENT_LABEL } from '@/features/bills/bill-status'
 import { downloadCsv, toCsv, type CsvColumn } from '@/lib/csv'
 import { daysRange } from '@/lib/dates'
 import { formatCurrency, formatDateTime } from '@/lib/format'
@@ -44,6 +44,7 @@ const CSV_COLUMNS: CsvColumn<Bill>[] = [
   { header: 'Mesero', value: (b) => b.waiter?.username },
   { header: 'Caja', value: (b) => b.cashRegister?.number },
   { header: 'Estado', value: (b) => BILL_STATUS[b.status].label },
+  { header: 'Pago', value: (b) => (b.paymentMethod ? PAYMENT_LABEL[b.paymentMethod] : '') },
   { header: 'Total', value: (b) => b.total.toFixed(2) },
 ]
 
@@ -74,6 +75,8 @@ export function InvoicesPage() {
 
   const sold = filtered.filter((b) => isSold(b.status))
   const soldTotal = sold.reduce((acc, b) => acc + b.total, 0)
+  const byMethod = (method: 'cash' | 'card') =>
+    sold.filter((b) => b.paymentMethod === method).reduce((acc, b) => acc + b.total, 0)
   const voided = filtered.filter((b) => b.status === 'void').length
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
@@ -177,7 +180,11 @@ export function InvoicesPage() {
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Facturas" value={String(filtered.length)} />
-        <Stat label="Vendido" value={formatCurrency(soldTotal)} hint={`${sold.length} cobradas`} />
+        <Stat
+          label="Vendido"
+          value={formatCurrency(soldTotal)}
+          hint={`Efectivo ${formatCurrency(byMethod('cash'))} · Tarjeta ${formatCurrency(byMethod('card'))}`}
+        />
         <Stat
           label="Ticket promedio"
           value={formatCurrency(sold.length ? soldTotal / sold.length : 0)}

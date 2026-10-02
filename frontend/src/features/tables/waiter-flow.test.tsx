@@ -71,19 +71,49 @@ describe('Flujo del mesero', () => {
     expect(await screen.findByText('Cuenta vacía')).toBeInTheDocument()
   })
 
-  it('cobra la mesa con la única caja activa y la libera', async () => {
-    renderApp('/mesero/mesas/A1', 'mesero')
+  it('el cajero cobra la mesa con tarjeta y la libera', async () => {
+    renderApp('/mesero/mesas/A1', 'cajero')
     const user = userEvent.setup()
 
     await user.click(await screen.findByRole('button', { name: /cobrar mesa/i }))
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByLabelText('Caja')).toHaveValue('1')
+    // Con tarjeta no se muestra la calculadora de cambio
+    expect(within(dialog).getByLabelText(/efectivo recibido/i)).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('radio', { name: 'Tarjeta' }))
+    expect(within(dialog).queryByLabelText(/efectivo recibido/i)).not.toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: /cobrar \$5\.00/i }))
 
     expect(await screen.findByText(/Mesa A1 cobrada/)).toBeInTheDocument()
-    expect(await screen.findByText('Mesa sin cuentas')).toBeInTheDocument()
-    expect(db.bills[0]).toMatchObject({ status: 'closed', cashRegisterId: 1 })
+    expect(db.bills[0]).toMatchObject({
+      status: 'closed',
+      cashRegisterId: 1,
+      paymentMethod: 'card',
+    })
     expect(db.tables.find((t) => t.tableId === 'A1')?.status).toBe('disponible')
+  })
+
+  it('el mesero no cobra: cierra la cuenta, puede reabrirla y queda por cobrar', async () => {
+    const router = renderApp('/mesero/mesas/A1', 'mesero')
+    const user = userEvent.setup()
+
+    await user.click(await screen.findByRole('link', { name: /Ana/ }))
+    expect(await screen.findByRole('button', { name: /cerrar cuenta/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /cobrar cuenta/i })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /cerrar cuenta/i }))
+
+    expect(await screen.findByText('Cuenta cerrada: el cajero la cobrará')).toBeInTheDocument()
+    await waitFor(() => expect(router.state.location.pathname).toBe('/mesero/mesas/A1'))
+    expect(db.bills[0]!.status).toBe('pending_payment')
+    // La mesa sigue ocupada hasta que el cajero cobre
+    expect(db.tables.find((t) => t.tableId === 'A1')?.status).toBe('ocupada')
+    expect(screen.queryByRole('button', { name: /cobrar mesa/i })).not.toBeInTheDocument()
+    // La fila de la mesa (no el badge de la página de la cuenta, que aún puede estar saliendo)
+    expect(await screen.findByRole('link', { name: /Ana.*Por cobrar/ })).toBeInTheDocument()
+
+    await user.click(await screen.findByRole('link', { name: /Ana/ }))
+    await user.click(await screen.findByRole('button', { name: /reabrir para agregar/i }))
+    await waitFor(() => expect(db.bills[0]!.status).toBe('open'))
   })
 
   it('una cuenta cerrada no acepta productos', async () => {

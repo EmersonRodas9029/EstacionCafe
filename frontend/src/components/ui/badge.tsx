@@ -13,6 +13,8 @@ const badgeVariants = cva(
         reserved: 'bg-primary/10 text-primary',
         solid: 'bg-primary text-primary-foreground',
         void: 'bg-destructive/10 text-destructive',
+        // Por cobrar: contorno naranja, distinto del relleno de 'Abierta'
+        pending: 'bg-card text-accent-text ring-1 ring-accent ring-inset',
       },
     },
     defaultVariants: { tone: 'neutral' },

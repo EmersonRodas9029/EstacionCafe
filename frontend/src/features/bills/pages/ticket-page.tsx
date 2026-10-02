@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { ErrorState } from '@/components/ui/state'
 import { formatCurrency, formatDateTime } from '@/lib/format'
-import { isEditable } from '../bill-status'
+import { isActive, PAYMENT_LABEL } from '../bill-status'
 
 /** Pre-cuenta (abierta) o ticket (cobrada) listo para impresora térmica de 80 mm. */
 export function TicketPage() {
@@ -25,7 +25,8 @@ export function TicketPage() {
 
   const data = bill.data
   const total = lines.data.reduce((acc, l) => acc + l.subTotal, 0)
-  const preBill = isEditable(data.status)
+  // Mientras no se cobre (abierta o por cobrar) es pre-cuenta
+  const preBill = isActive(data.status)
   const voided = data.status === 'void'
 
   return (
@@ -76,6 +77,12 @@ export function TicketPage() {
             <>
               <dt>Caja</dt>
               <dd className="text-right">{data.cashRegister.number}</dd>
+            </>
+          ) : null}
+          {data.paymentMethod ? (
+            <>
+              <dt>Pago</dt>
+              <dd className="text-right">{PAYMENT_LABEL[data.paymentMethod]}</dd>
             </>
           ) : null}
         </dl>

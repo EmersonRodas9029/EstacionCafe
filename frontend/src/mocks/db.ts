@@ -188,6 +188,7 @@ const seed = () => ({
       date: new Date(Date.now() - 10 * 60_000).toISOString(),
       total: 4,
       status: 'closed',
+      paymentMethod: 'cash',
     },
     {
       billId: 3,
@@ -199,6 +200,7 @@ const seed = () => ({
       date: new Date(Date.now() - 5 * 60_000).toISOString(),
       total: 2.5,
       status: 'closed',
+      paymentMethod: 'card',
     },
   ] as Bill[],
   details: [
@@ -217,7 +219,8 @@ export const resetDb = () => {
   db = seed()
 }
 
-const ACTIVE = ['open', 'draft']
+const ACTIVE = ['open', 'draft', 'pending_payment']
+const EDITABLE = ['open', 'draft']
 
 export const withWaiter = (bill: Bill): Bill => ({
   ...bill,
@@ -255,6 +258,7 @@ export const linesOf = (billId: number) =>
     }))
 
 export const isActive = (bill: Bill) => ACTIVE.includes(bill.status)
+export const isEditable = (bill: Bill) => EDITABLE.includes(bill.status)
 
 /** Consumible como lo devuelve la API: con lowStock y sus relaciones. */
 export const consumableView = (c: (typeof db.consumables)[number]) => ({

@@ -12,6 +12,7 @@ import { Stat } from '@/components/ui/stat'
 import { downloadCsv, toCsv } from '@/lib/csv'
 import { formatCurrency } from '@/lib/format'
 import { describePeriod, usePeriod } from '@/lib/period'
+import { PAYMENT_LABEL } from '@/features/bills/bill-status'
 import { grossMargin, salesByDay, share } from '../report-utils'
 import { useSalesReport } from '../use-sales-report'
 
@@ -49,7 +50,8 @@ export function ReportsPage() {
     if (report.isError)
       return <ErrorState message="No pudimos cargar el reporte." onRetry={() => report.refetch()} />
 
-    const { summary, byDay, topProducts, byProductType, byWaiter, byOrderType } = report.data
+    const { summary, byDay, topProducts, byProductType, byWaiter, byOrderType, byPaymentMethod } =
+      report.data
     if (summary.billsCount === 0 && summary.purchasesTotal === 0)
       return (
         <EmptyState
@@ -153,6 +155,17 @@ export function ReportsPage() {
                 label: w.username,
                 value: w.total,
                 detail: w.bills === 1 ? '1 cuenta' : `${w.bills} cuentas`,
+              }))}
+              format={formatCurrency}
+            />
+          </Section>
+          <Section title="Por método de pago">
+            <BarList
+              data={byPaymentMethod.map((p) => ({
+                key: p.paymentMethod ?? 'none',
+                label: p.paymentMethod ? PAYMENT_LABEL[p.paymentMethod] : 'Sin registrar',
+                value: p.total,
+                detail: `${share(p.total, summary.totalSales)} · ${p.bills} cuentas`,
               }))}
               format={formatCurrency}
             />

@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Stat } from '@/components/ui/stat'
 import { EmptyState, ErrorState } from '@/components/ui/state'
 import { useRole } from '@/features/auth/session-store'
-import { BILL_STATUS, isSold } from '@/features/bills/bill-status'
+import { BILL_STATUS, isSold, PAYMENT_LABEL } from '@/features/bills/bill-status'
 import { dayRange, localDay } from '@/lib/dates'
 import { formatCurrency, formatTime } from '@/lib/format'
 
@@ -97,6 +97,7 @@ export function HistoryPage() {
                 <span className="block truncate font-semibold text-primary">{bill.customer}</span>
                 <span className="text-sm text-muted-foreground">
                   {bill.tableId ? `Mesa ${bill.tableId}` : 'Para llevar'}
+                  {bill.paymentMethod ? ` · ${PAYMENT_LABEL[bill.paymentMethod]}` : ''}
                   {bill.waiter && canFilter && !onlyMine ? ` · ${bill.waiter.username}` : ''}
                 </span>
               </Link>

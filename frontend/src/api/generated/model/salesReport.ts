@@ -7,6 +7,7 @@
  */
 import type { SalesReportByDayItem } from './salesReportByDayItem';
 import type { SalesReportByOrderTypeItem } from './salesReportByOrderTypeItem';
+import type { SalesReportByPaymentMethodItem } from './salesReportByPaymentMethodItem';
 import type { SalesReportByProductTypeItem } from './salesReportByProductTypeItem';
 import type { SalesReportByWaiterItem } from './salesReportByWaiterItem';
 import type { SalesReportRange } from './salesReportRange';
@@ -21,4 +22,6 @@ export interface SalesReport {
   byProductType: SalesReportByProductTypeItem[];
   byWaiter: SalesReportByWaiterItem[];
   byOrderType: SalesReportByOrderTypeItem[];
+  /** Para cuadrar caja; paymentMethod null = ventas sin método registrado */
+  byPaymentMethod: SalesReportByPaymentMethodItem[];
 }

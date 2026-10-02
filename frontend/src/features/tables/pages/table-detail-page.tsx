@@ -13,7 +13,8 @@ import { NewBillDialog } from '@/features/bills/components/new-bill-dialog'
 import { useChangeTableStatus } from '@/features/bills/hooks/use-bill-actions'
 import { LIVE_REFRESH_MS } from '@/features/bills/invalidate'
 import { formatCurrency } from '@/lib/format'
-import { useSessionStore } from '@/features/auth/session-store'
+import { useRole, useSessionStore } from '@/features/auth/session-store'
+import { canCharge } from '@/features/bills/bill-status'
 import { TableStatusBadge } from '../components/table-status-badge'
 
 type DialogName = 'new' | 'charge' | null
@@ -27,10 +28,11 @@ export function TableDetailPage() {
     query: { refetchInterval: LIVE_REFRESH_MS, select: (r) => r.data },
   })
   const bills = useListBills(
-    { tableId, status: 'open' },
+    { tableId, active: 'true' },
     { query: { refetchInterval: LIVE_REFRESH_MS, select: (r) => r.data } },
   )
   const changeStatus = useChangeTableStatus()
+  const charges = canCharge(useRole())
   // Quién más atiende la mesa (la API no da montos ni cuentas ajenas al mesero)
   const me = useSessionStore((s) => s.user?.userId)
   const board = useGetTableBoard({
@@ -40,8 +42,6 @@ export function TableDetailPage() {
   const others = (boardTable?.attendedBy ?? [])
     .filter((w) => w.waiterId !== me)
     .map((w) => w.username)
-  // El mesero solo cobra lo suyo; cajero y admin cobran la mesa completa
-  const chargesOwnOnly = boardTable?.all === undefined && others.length > 0
 
   const openBills = bills.data ?? []
   const total = openBills.reduce((acc, b) => acc + b.total, 0)
@@ -85,9 +85,10 @@ export function TableDetailPage() {
                 {status === 'reservada' ? 'Liberar reserva' : 'Reservar'}
               </Button>
             ) : null}
-            {openBills.length > 0 ? (
+            {/* Cobrar es del cajero y el admin; el mesero cierra cada cuenta desde su detalle */}
+            {openBills.length > 0 && charges ? (
               <Button variant="primary" onClick={() => setDialog('charge')}>
-                <Wallet /> {chargesOwnOnly ? 'Cobrar mis cuentas' : 'Cobrar mesa'}
+                <Wallet /> Cobrar mesa
               </Button>
             ) : null}
             <Button variant="accent" onClick={() => setDialog('new')}>
@@ -129,7 +130,7 @@ export function TableDetailPage() {
               id="open-bills"
               className="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
             >
-              {openBills.length} {openBills.length === 1 ? 'cuenta abierta' : 'cuentas abiertas'}
+              {openBills.length} {openBills.length === 1 ? 'cuenta en curso' : 'cuentas en curso'}
             </h2>
             <p className="font-semibold text-primary tabular-nums">Total {formatCurrency(total)}</p>
           </div>

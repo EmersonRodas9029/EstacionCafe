@@ -7,16 +7,12 @@
  */
 
 /**
- * draft = orden en edición, open = cuenta activa, pending_payment = cerrada por el mesero y esperando cobro, closed = cobrada, finished = para llevar entregada, void = anulada por un admin
+ * cash = efectivo, card = tarjeta
  */
-export type BillStatus = typeof BillStatus[keyof typeof BillStatus];
+export type PaymentMethod = typeof PaymentMethod[keyof typeof PaymentMethod];
 
 
-export const BillStatus = {
-  open: 'open',
-  closed: 'closed',
-  draft: 'draft',
-  finished: 'finished',
-  void: 'void',
-  pending_payment: 'pending_payment',
+export const PaymentMethod = {
+  cash: 'cash',
+  card: 'card',
 } as const;

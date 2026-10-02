@@ -26,7 +26,7 @@ export function useTablesBoard() {
     query: { refetchInterval: LIVE_REFRESH_MS, select: (r) => r.data },
   })
   const bills = useListBills(
-    { status: 'open' },
+    { active: 'true' },
     { query: { refetchInterval: LIVE_REFRESH_MS, select: (r) => r.data } },
   )
 

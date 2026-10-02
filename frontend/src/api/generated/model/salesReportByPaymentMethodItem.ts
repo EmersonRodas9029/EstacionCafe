@@ -5,18 +5,10 @@
  * API REST de EstacionCafé. La sesión vive en la cookie httpOnly `auth_token` (el navegador nunca ve el token) y se valida en cada petición contra la tabla de sesiones: logout, baja del usuario, cambio de rol/PIN/contraseña o revocar el dispositivo la cortan al instante. Con la cookie, toda petición que modifica datos exige el header `X-Requested-With: EstacionCafe` (anti-CSRF). Scripts y pruebas pueden usar `Authorization: Bearer <token>` pidiendo el token en el login con `X-Token-In-Body: true`. Los roles permitidos de cada operación están en su descripción y en `x-roles`.
  * OpenAPI spec version: 2.0.0
  */
+import type { PaymentMethod } from './paymentMethod';
 
-/**
- * draft = orden en edición, open = cuenta activa, pending_payment = cerrada por el mesero y esperando cobro, closed = cobrada, finished = para llevar entregada, void = anulada por un admin
- */
-export type BillStatus = typeof BillStatus[keyof typeof BillStatus];
-
-
-export const BillStatus = {
-  open: 'open',
-  closed: 'closed',
-  draft: 'draft',
-  finished: 'finished',
-  void: 'void',
-  pending_payment: 'pending_payment',
-} as const;
+export type SalesReportByPaymentMethodItem = {
+  paymentMethod: PaymentMethod | null;
+  bills: number;
+  total: number;
+};

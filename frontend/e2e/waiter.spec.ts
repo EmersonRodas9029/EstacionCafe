@@ -19,7 +19,10 @@ const sendOrder = async (page: Page) => {
 }
 
 test.describe('Mesero', () => {
-  test('mesa con dos cuentas: ordenar, cobrar la mesa y liberarla', async ({ page, request }) => {
+  test('mesa con dos cuentas: el mesero cierra, el cajero cobra con tarjeta y la mesa se libera', async ({
+    page,
+    request,
+  }) => {
     const admin = await api(request)
     const stockBefore = (await admin.get('/consumable')).find(
       (c: { name: string }) => c.name === 'Café en grano',
@@ -48,13 +51,30 @@ test.describe('Mesero', () => {
     await expect(page.getByText('Ana')).toBeVisible()
     await expect(page.getByText('Luis')).toBeVisible()
     await expect(page.getByText('Ocupada')).toBeVisible()
+    // El mesero no cobra: cierra cada cuenta y queda por cobrar
+    await expect(page.getByRole('button', { name: /cobrar mesa/i })).toHaveCount(0)
+    for (const customer of ['Ana', 'Luis']) {
+      await page.getByRole('link', { name: new RegExp(customer) }).click()
+      await page.getByRole('button', { name: /cerrar cuenta/i }).click()
+      await expect(page).toHaveURL(/\/mesero\/mesas\/M2$/)
+    }
+    await expect(page.getByText('Por cobrar')).toHaveCount(2)
 
+    // El cajero las ve en su cola y cobra la mesa completa con tarjeta
+    await page.getByRole('button', { name: 'Cerrar sesión' }).first().click()
+    await login(page, 'cajero.demo')
+    await page.goto('/mesero/cobros')
+    await expect(page.getByText(/Mesa M2 · Ana/)).toBeVisible()
+    await expect(page.getByText(/Mesa M2 · Luis/)).toBeVisible()
+    await page.goto('/mesero/mesas/M2')
     await page.getByRole('button', { name: /cobrar mesa/i }).click()
     const charge = page.getByRole('dialog')
     await charge.getByLabel(/efectivo recibido/i).fill('20')
     await expect(charge.getByText(/cambio/i)).toBeVisible()
+    await charge.getByRole('radio', { name: 'Tarjeta' }).click()
+    await expect(charge.getByLabel(/efectivo recibido/i)).toHaveCount(0)
     await charge.getByRole('button', { name: /cobrar \$/i }).click()
-    await expect(page.getByText(/cobrad/i).first()).toBeVisible()
+    await expect(page.getByText(/Mesa M2 cobrada/)).toBeVisible()
 
     await page.goto('/mesero/mesas')
     await expect(page.getByRole('link', { name: /Mesa M2/ })).toContainText('Disponible')

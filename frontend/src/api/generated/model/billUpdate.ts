@@ -6,9 +6,10 @@
  * OpenAPI spec version: 2.0.0
  */
 import type { BillStatus } from './billStatus';
+import type { PaymentMethod } from './paymentMethod';
 
 /**
- * Para status=closed la cuenta debe tener cashRegisterId (en el body o ya asignado). Cambiar tableId mueve la cuenta de mesa.
+ * Transiciones: open/draft → pending_payment (cerrar; requiere productos), pending_payment → open (reabrir), open/draft/pending_payment → closed (cobrar), closed → finished (entregar; solo para llevar). Cobrar y fijar cashRegisterId/paymentMethod es solo de cajero y admin (403 para el mesero) y exige ambos. Cambiar tableId mueve la cuenta de mesa.
  */
 export interface BillUpdate {
   /**
@@ -23,5 +24,6 @@ export interface BillUpdate {
   tableId?: string;
   status?: BillStatus;
   cashRegisterId?: number | string;
+  paymentMethod?: PaymentMethod;
   date?: string;
 }

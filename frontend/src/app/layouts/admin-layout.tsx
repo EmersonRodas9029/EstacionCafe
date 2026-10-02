@@ -1,12 +1,12 @@
-import { LogOut, Menu, Utensils, X } from 'lucide-react'
+import { Menu, Utensils, X } from 'lucide-react'
 import { useState, type KeyboardEvent } from 'react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
-import { useLogout } from '@/features/auth/hooks/use-logout'
 import { cn } from '@/lib/utils'
 import { ADMIN_NAV } from '../navigation'
 import { ThemeQuickToggle } from '@/features/theme/theme-toggle'
+import { LogoutButton } from './logout-button'
 import { UserChip } from './user-chip'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -18,8 +18,6 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
   )
 
 function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const logout = useLogout()
-
   return (
     <div className="flex h-full flex-col gap-5 bg-chrome p-4 text-chrome-foreground">
       <Logo className="px-2 pt-2" />
@@ -49,15 +47,7 @@ function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex items-center justify-between px-1">
           <UserChip />
           <ThemeQuickToggle className="ml-auto" />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={logout}
-            aria-label="Cerrar sesión"
-            className="text-chrome-foreground hover:bg-white/10"
-          >
-            <LogOut />
-          </Button>
+          <LogoutButton />
         </div>
       </div>
     </div>

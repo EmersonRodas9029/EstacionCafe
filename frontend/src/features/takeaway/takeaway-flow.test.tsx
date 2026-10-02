@@ -15,7 +15,8 @@ afterEach(() => vi.useRealTimers())
 
 describe('Para llevar, cobro, ticket e historial', () => {
   it('ciclo de una orden para llevar: preparar → cobrar → entregar', async () => {
-    const router = renderApp('/mesero/para-llevar', 'mesero')
+    // El cajero toma la orden y la cobra directo en caja
+    const router = renderApp('/mesero/para-llevar', 'cajero')
     const user = userEvent.setup()
 
     await user.click(await screen.findByRole('button', { name: /nueva orden/i }))
@@ -40,7 +41,7 @@ describe('Para llevar, cobro, ticket e historial', () => {
     await user.click(
       within(await screen.findByRole('dialog')).getByRole('button', { name: /cobrar \$4\.00/i }),
     )
-    expect(await screen.findByText('Cuenta "Sofía" cobrada')).toBeInTheDocument()
+    expect(await screen.findByText('Cuenta "Sofía" cobrada con efectivo')).toBeInTheDocument()
 
     await user.click(await screen.findByRole('button', { name: /marcar entregada/i }))
     await waitFor(() => expect(db.bills.find((b) => b.billId === 4)?.status).toBe('finished'))
@@ -60,7 +61,7 @@ describe('Para llevar, cobro, ticket e historial', () => {
   })
 
   it('cobrar una cuenta de mesa calcula el cambio y vuelve a la mesa', async () => {
-    const router = renderApp('/mesero/cuentas/1', 'mesero')
+    const router = renderApp('/mesero/cuentas/1', 'cajero')
     const user = userEvent.setup()
 
     await user.click(await screen.findByRole('button', { name: /cobrar cuenta/i }))
@@ -103,5 +104,26 @@ describe('Para llevar, cobro, ticket e historial', () => {
     expect(screen.getByText('Marta')).toBeInTheDocument()
     await user.click(screen.getByRole('checkbox', { name: /solo mis cuentas/i }))
     expect(await screen.findByText('Sin ventas')).toBeInTheDocument()
+  })
+
+  it('el cajero cobra desde "Por cobrar" lo que cerró el mesero', async () => {
+    db.bills[0]!.status = 'pending_payment'
+    renderApp('/mesero/cobros', 'cajero')
+    const user = userEvent.setup()
+
+    await user.click(await screen.findByRole('button', { name: /cobrar Ana \$5\.00/i }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('radio', { name: 'Tarjeta' }))
+    await user.click(within(dialog).getByRole('button', { name: /cobrar \$5\.00/i }))
+
+    expect(await screen.findByText('Cuenta "Ana" cobrada con tarjeta')).toBeInTheDocument()
+    expect(db.bills[0]).toMatchObject({ status: 'closed', paymentMethod: 'card' })
+    expect(await screen.findByText('Nada por cobrar')).toBeInTheDocument()
+  })
+
+  it('el mesero no ve la cola de cobro', async () => {
+    const router = renderApp('/mesero/cobros', 'mesero')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/403'))
+    expect(screen.queryByRole('link', { name: 'Por cobrar' })).not.toBeInTheDocument()
   })
 })

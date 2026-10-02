@@ -17,8 +17,9 @@ test.describe('Autenticación y roles', () => {
     await page.goto('/admin/productos')
     await expect(page).not.toHaveURL(/\/admin/)
 
-    await page.goto('/mesero/perfil')
-    await page.getByRole('button', { name: /cerrar sesión/i }).click()
+    // Botón rápido junto al nombre (también para mesero y cajero)
+    await page.goto('/mesero/mesas')
+    await page.getByRole('button', { name: 'Cerrar sesión' }).first().click()
     await expect(page).toHaveURL(/\/login/)
 
     await login(page, 'admin.demo')

@@ -14,13 +14,18 @@ import { LIVE_REFRESH_MS } from '@/features/bills/invalidate'
 import { dayRange, localDay } from '@/lib/dates'
 import { TakeawayCard } from '../components/takeaway-card'
 
-type Stage = 'preparing' | 'ready' | 'delivered'
+type Stage = 'preparing' | 'payment' | 'ready' | 'delivered'
 
 const STAGES: Record<Stage, { label: string; match: (b: Bill) => boolean; empty: string }> = {
   preparing: {
     label: 'En preparación',
     match: (b) => b.status === 'open' || b.status === 'draft',
     empty: 'No hay órdenes en preparación.',
+  },
+  payment: {
+    label: 'Por cobrar',
+    match: (b) => b.status === 'pending_payment',
+    empty: 'No hay órdenes esperando cobro.',
   },
   ready: {
     label: 'Por entregar',

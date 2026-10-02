@@ -1,3 +1,4 @@
+import type { Role } from '@/api/generated/model/role'
 import {
   BarChart3,
   Boxes,
@@ -16,12 +17,20 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-export type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean }
+export type NavItem = {
+  to: string
+  label: string
+  icon: LucideIcon
+  end?: boolean
+  /** Si se indica, solo esos roles ven el enlace */
+  roles?: readonly Role[]
+}
 export type NavGroup = { title: string; items: NavItem[] }
 
 export const MESERO_NAV: NavItem[] = [
   { to: '/mesero/mesas', label: 'Mesas', icon: LayoutGrid },
   { to: '/mesero/para-llevar', label: 'Para llevar', icon: ShoppingBag },
+  { to: '/mesero/cobros', label: 'Por cobrar', icon: Wallet, roles: ['cajero', 'admin'] },
   { to: '/mesero/historial', label: 'Historial', icon: Receipt },
   { to: '/mesero/perfil', label: 'Perfil', icon: User },
 ]

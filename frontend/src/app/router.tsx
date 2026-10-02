@@ -10,7 +10,7 @@ import {
   IdleSession,
   OPERATION_IDLE_MS,
 } from '@/features/auth/components/idle-session'
-import { ADMIN_ROLES, OPERATION_ROLES } from '@/features/auth/roles'
+import { ADMIN_ROLES, CASHIER_ROLES, OPERATION_ROLES } from '@/features/auth/roles'
 import { ForbiddenPage } from './pages/forbidden-page'
 import { NotFoundPage } from './pages/not-found-page'
 import { RouteErrorPage } from './pages/route-error-page'
@@ -97,6 +97,20 @@ export const routes: RouteObject[] = [
                           Component: (await import('@/features/takeaway/pages/takeaway-page'))
                             .TakeawayPage,
                         }),
+                      },
+                      {
+                        path: 'cobros',
+                        element: <RequireRole roles={CASHIER_ROLES} />,
+                        children: [
+                          {
+                            index: true,
+                            lazy: async () => ({
+                              Component: (
+                                await import('@/features/payments/pages/payments-queue-page')
+                              ).PaymentsQueuePage,
+                            }),
+                          },
+                        ],
                       },
                       {
                         path: 'historial',

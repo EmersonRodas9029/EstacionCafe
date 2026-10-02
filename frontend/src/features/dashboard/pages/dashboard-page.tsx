@@ -80,11 +80,14 @@ export function DashboardPage() {
   const monthReport = useSalesReport({ from: monthStart(today), to: today })
   const live = { query: { refetchInterval: LIVE_REFRESH_MS } }
   const tables = useListTables({ query: { ...live.query, select: (r) => r.data } })
-  const open = useListBills({ status: 'open' }, { query: { ...live.query, select: (r) => r.data } })
+  const open = useListBills({ active: 'true' }, { query: { ...live.query, select: (r) => r.data } })
   const lowStock = useListLowStockConsumables({ query: { select: (r) => r.data } })
 
   const occupied = (tables.data ?? []).filter((t) => t.status === 'ocupada').length
-  const openTakeaway = (open.data ?? []).filter((b) => b.orderType === 'takeaway').length
+  const openTakeaway = (open.data ?? []).filter(
+    (b) => b.orderType === 'takeaway' && (b.status === 'open' || b.status === 'draft'),
+  ).length
+  const awaitingPayment = (open.data ?? []).filter((b) => b.status === 'pending_payment').length
   const month = monthReport.data?.summary
   const todaySummary = todayReport.data?.summary
 
@@ -130,9 +133,9 @@ export function DashboardPage() {
         />
         <LiveCount
           icon={ClipboardList}
-          label="Cuentas abiertas"
-          value={open.data ? String(open.data.length) : '—'}
-          to="/admin/facturas"
+          label="Cuentas en curso"
+          value={open.data ? `${open.data.length} · ${awaitingPayment} por cobrar` : '—'}
+          to="/mesero/cobros"
         />
         <LiveCount
           icon={ShoppingBag}

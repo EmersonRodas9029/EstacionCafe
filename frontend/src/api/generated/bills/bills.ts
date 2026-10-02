@@ -585,9 +585,9 @@ export const getCloseTableBillsUrl = (tableId: string,) => {
 }
 
 /**
- * Marca como closed las cuentas open/draft de la mesa con la caja indicada y libera la mesa.
+ * Marca como closed las cuentas open/draft/pending_payment de la mesa con la caja y el método de pago indicados, y libera la mesa.
  *
- * Roles: admin, mesero, cajero.
+ * Roles: admin, cajero.
  * @summary Cobrar todas las cuentas activas de la mesa
  */
 export const closeTableBills = async (tableId: string,

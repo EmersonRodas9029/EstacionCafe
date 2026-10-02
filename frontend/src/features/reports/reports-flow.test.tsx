@@ -24,7 +24,9 @@ describe('Dashboard y reportes', () => {
     // Costo: Cappuccino $1.60 + Espresso $1 → utilidad $3.90 (60%)
     expect(stat('Margen del mes')).toHaveTextContent('60%')
     expect(await screen.findByRole('link', { name: /mesas ocupadas 1 de 3/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /cuentas abiertas 1/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /cuentas en curso 1 · 0 por cobrar/i }),
+    ).toBeInTheDocument()
     expect(await screen.findByText('Caramelo')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Ventas de los últimos 7 días' })).toBeInTheDocument()
   })

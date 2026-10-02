@@ -5,6 +5,7 @@ import { useRole } from '@/features/auth/session-store'
 import { cn } from '@/lib/utils'
 import { MESERO_NAV } from '../navigation'
 import { ThemeQuickToggle } from '@/features/theme/theme-toggle'
+import { LogoutButton } from './logout-button'
 import { UserChip } from './user-chip'
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
@@ -27,6 +28,7 @@ export function MeseroLayout() {
         <div className="flex items-center gap-1">
           <ThemeQuickToggle />
           <UserChip />
+          <LogoutButton />
         </div>
       </header>
 
@@ -37,12 +39,14 @@ export function MeseroLayout() {
         <div className="hidden pb-6 text-chrome-foreground lg:block">
           <Logo />
         </div>
-        {MESERO_NAV.map(({ to, label, icon: Icon }) => (
-          <NavLink key={to} to={to} className={tabClass}>
-            <Icon className="size-6 lg:size-5" aria-hidden="true" />
-            {label}
-          </NavLink>
-        ))}
+        {MESERO_NAV.filter((item) => !item.roles || (role && item.roles.includes(role))).map(
+          ({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} className={tabClass}>
+              <Icon className="size-6 lg:size-5" aria-hidden="true" />
+              {label}
+            </NavLink>
+          ),
+        )}
         {role === 'admin' ? (
           <Link
             to="/admin"
@@ -51,9 +55,15 @@ export function MeseroLayout() {
             <ShieldCheck className="size-5" aria-hidden="true" /> Panel admin
           </Link>
         ) : null}
-        <div className="hidden items-center justify-between gap-2 pt-4 text-chrome-foreground lg:flex">
+        <div
+          className={cn(
+            'hidden items-center gap-1 border-t border-white/10 pt-4 text-chrome-foreground lg:flex',
+            role !== 'admin' && 'mt-auto',
+          )}
+        >
           <UserChip />
-          <ThemeQuickToggle />
+          <ThemeQuickToggle className="ml-auto" />
+          <LogoutButton />
         </div>
       </nav>
 

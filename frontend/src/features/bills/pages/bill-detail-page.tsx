@@ -2,6 +2,8 @@ import {
   ArrowRightLeft,
   CheckCheck,
   Clock,
+  Lock,
+  LockOpen,
   Pencil,
   Plus,
   Printer,
@@ -19,7 +21,8 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/ui/state'
 import { formatCurrency, formatElapsed } from '@/lib/format'
-import { BILL_STATUS, isEditable } from '../bill-status'
+import { useRole } from '@/features/auth/session-store'
+import { BILL_STATUS, canCharge, isEditable } from '../bill-status'
 import { BillLines } from '../components/bill-lines'
 import { ChargeBillDialog } from '../components/charge-bill-dialog'
 import { MoveBillDialog } from '../components/move-bill-dialog'
@@ -39,6 +42,8 @@ export function BillDetailPage() {
   const { lines, updateQuantity, removeLine } = useBillLines(billId)
   const editBill = useEditBill()
   const navigate = useNavigate()
+  const role = useRole()
+  const charges = canCharge(role)
 
   if (bill.isPending) return <Skeleton className="h-64" />
   if (bill.isError)
@@ -52,6 +57,25 @@ export function BillDetailPage() {
   const items = lines.data ?? []
   const total = items.reduce((acc, l) => acc + l.subTotal, 0)
   const isTakeaway = data.orderType === 'takeaway'
+
+  const pending = data.status === 'pending_payment'
+
+  // El mesero cierra; el cajero cobra. Reabrir sirve mientras no esté cobrada.
+  const closeForPayment = () =>
+    editBill.mutate(
+      { id: billId, data: { status: 'pending_payment' } },
+      {
+        onSuccess: () => {
+          toast.success('Cuenta cerrada: el cajero la cobrará')
+          if (data.tableId) navigate(backTo)
+        },
+      },
+    )
+  const reopen = () =>
+    editBill.mutate(
+      { id: billId, data: { status: 'open' } },
+      { onSuccess: () => toast.success('Cuenta reabierta') },
+    )
 
   const deliver = () =>
     editBill.mutate(
@@ -141,14 +165,51 @@ export function BillDetailPage() {
               >
                 <Plus className="size-5" aria-hidden="true" /> Agregar productos
               </Link>
+              {charges ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  disabled={items.length === 0}
+                  onClick={() => setDialog('charge')}
+                >
+                  <Wallet /> Cobrar cuenta
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  disabled={items.length === 0 || editBill.isPending}
+                  onClick={closeForPayment}
+                >
+                  <Lock /> Cerrar cuenta
+                </Button>
+              )}
+            </>
+          ) : null}
+          {pending ? (
+            <>
+              <p className="rounded-md bg-surface-soft px-3 py-2 text-sm text-muted-foreground">
+                Cerrada: {charges ? 'lista para cobrar.' : 'el cajero la cobrará.'}
+              </p>
+              {charges ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  onClick={() => setDialog('charge')}
+                >
+                  <Wallet /> Cobrar cuenta
+                </Button>
+              ) : null}
               <Button
-                variant="primary"
-                size="lg"
+                variant="outline"
                 className="w-full"
-                disabled={items.length === 0}
-                onClick={() => setDialog('charge')}
+                onClick={reopen}
+                disabled={editBill.isPending}
               >
-                <Wallet /> Cobrar cuenta
+                <LockOpen /> Reabrir para agregar
               </Button>
             </>
           ) : null}
@@ -167,7 +228,8 @@ export function BillDetailPage() {
             to={`/mesero/cuentas/${billId}/ticket`}
             className="flex h-11 items-center justify-center gap-2 rounded-md border border-primary/30 font-semibold text-primary hover:bg-surface-soft"
           >
-            <Printer className="size-4" aria-hidden="true" /> {editable ? 'Pre-cuenta' : 'Ticket'}
+            <Printer className="size-4" aria-hidden="true" />{' '}
+            {editable || pending ? 'Pre-cuenta' : 'Ticket'}
           </Link>
         </aside>
       </div>

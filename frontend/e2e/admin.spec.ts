@@ -77,6 +77,7 @@ test.describe('Administración', () => {
     await cashier.put(`/bills/${bill.billId}`, {
       status: 'closed',
       cashRegisterId: register.cashRegisterId,
+      paymentMethod: 'cash',
     })
 
     await login(page, 'admin.demo')
@@ -149,6 +150,7 @@ test.describe('Dashboard y reportes', () => {
     await cashier.put(`/bills/${bill.billId}`, {
       status: 'closed',
       cashRegisterId: register.cashRegisterId,
+      paymentMethod: 'cash',
     })
 
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/El_Salvador' }).format(

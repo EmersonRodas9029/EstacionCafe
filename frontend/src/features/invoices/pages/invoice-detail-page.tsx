@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/ui/state'
-import { BILL_STATUS, isEditable } from '@/features/bills/bill-status'
+import { BILL_STATUS, isEditable, PAYMENT_LABEL } from '@/features/bills/bill-status'
 import { RenameBillDialog } from '@/features/bills/components/rename-bill-dialog'
 import { useCancelBill } from '@/features/bills/hooks/use-bill-actions'
 import { formatCurrency, formatDateTime } from '@/lib/format'
@@ -209,6 +209,9 @@ export function InvoiceDetailPage() {
             <Meta label="Tipo" value={data.tableId ? `En mesa · ${data.tableId}` : 'Para llevar'} />
             <Meta label="Atendió" value={data.waiter?.username ?? '—'} />
             <Meta label="Caja" value={data.cashRegister?.number ?? 'Sin cobrar'} />
+            {data.paymentMethod ? (
+              <Meta label="Pago" value={PAYMENT_LABEL[data.paymentMethod]} />
+            ) : null}
           </dl>
           {voided ? (
             <p className="mt-5 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">

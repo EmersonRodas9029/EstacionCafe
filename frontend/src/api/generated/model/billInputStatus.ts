@@ -7,16 +7,12 @@
  */
 
 /**
- * draft = orden en edición, open = cuenta activa, pending_payment = cerrada por el mesero y esperando cobro, closed = cobrada, finished = para llevar entregada, void = anulada por un admin
+ * Por defecto: open. Una cuenta no puede nacer cobrada
  */
-export type BillStatus = typeof BillStatus[keyof typeof BillStatus];
+export type BillInputStatus = typeof BillInputStatus[keyof typeof BillInputStatus];
 
 
-export const BillStatus = {
+export const BillInputStatus = {
   open: 'open',
-  closed: 'closed',
   draft: 'draft',
-  finished: 'finished',
-  void: 'void',
-  pending_payment: 'pending_payment',
 } as const;

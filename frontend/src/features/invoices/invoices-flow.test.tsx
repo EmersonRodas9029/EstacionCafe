@@ -60,9 +60,9 @@ describe('Facturas del admin', () => {
 
     const text = await blobs[0]!.text()
     const lines = text.replace('﻿', '').split('\r\n')
-    expect(lines[0]).toBe('Factura,Fecha,Cliente,Tipo,Mesa,Mesero,Caja,Estado,Total')
+    expect(lines[0]).toBe('Factura,Fecha,Cliente,Tipo,Mesa,Mesero,Caja,Estado,Pago,Total')
     expect(lines).toHaveLength(4)
-    expect(text).toContain('Luis,Para llevar,,admin.demo,001,Cobrada,4.00')
+    expect(text).toContain('Luis,Para llevar,,admin.demo,001,Cobrada,Efectivo,4.00')
   })
 
   it('anula una factura cobrada desde el detalle', async () => {

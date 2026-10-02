@@ -8,6 +8,7 @@
 import type { BillStatus } from './billStatus';
 import type { CashRegister } from './cashRegister';
 import type { OrderType } from './orderType';
+import type { PaymentMethod } from './paymentMethod';
 import type { Table } from './table';
 import type { User } from './user';
 
@@ -28,6 +29,8 @@ export interface Bill {
   /** Calculado desde los detalles */
   total: number;
   status: BillStatus;
+  /** Cómo se cobró; null mientras no esté cobrada */
+  paymentMethod?: PaymentMethod | null;
   createdAt?: string;
   updatedAt?: string;
   waiter?: User;

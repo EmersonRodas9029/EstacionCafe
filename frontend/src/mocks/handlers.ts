@@ -14,6 +14,7 @@ import {
   consumableView,
   db,
   isActive,
+  isEditable,
   purchaseView,
   linesOf,
   recalcTotal,
@@ -306,6 +307,16 @@ export const handlers = [
           const bills = sold.filter((b) => b.orderType === orderType)
           return {
             orderType,
+            bills: bills.length,
+            total: bills.reduce((acc, b) => acc + b.total, 0),
+          }
+        })
+        .filter((g) => g.bills > 0),
+      byPaymentMethod: (['cash', 'card', null] as const)
+        .map((paymentMethod) => {
+          const bills = sold.filter((b) => (b.paymentMethod ?? null) === paymentMethod)
+          return {
+            paymentMethod,
             bills: bills.length,
             total: bills.reduce((acc, b) => acc + b.total, 0),
           }
@@ -724,6 +735,7 @@ export const handlers = [
       (b) =>
         canSee(b, request) &&
         (!status || b.status === status) &&
+        (query.get('active') !== 'true' || isActive(b)) &&
         (!tableId || b.tableId === tableId) &&
         (!orderType || b.orderType === orderType) &&
         (!from || new Date(b.date) >= new Date(from)) &&
@@ -761,8 +773,29 @@ export const handlers = [
     const bill = findBill(params.id)
     if (!bill || !canSee(bill, request)) return fail(404, 'Factura no encontrada')
     const body = (await request.json()) as Partial<Bill>
-    if (body.status === 'closed' && !(body.cashRegisterId ?? bill.cashRegisterId)) {
-      return fail(400, 'Se requiere cashRegisterId para cerrar la cuenta')
+    // Mismas reglas que la API: el mesero cierra, el cajero/admin cobra
+    const actor = userFromRequest(request)
+    const charging = body.status === 'closed' && bill.status !== 'closed'
+    const touchesPayment = body.cashRegisterId !== undefined || body.paymentMethod !== undefined
+    if ((charging || touchesPayment) && actor?.role === 'mesero')
+      return fail(403, 'Solo el cajero o el administrador pueden cobrar')
+    const allowed: Record<string, string[]> = {
+      draft: ['open', 'pending_payment', 'closed'],
+      open: ['pending_payment', 'closed'],
+      pending_payment: ['open', 'closed'],
+      closed: ['finished'],
+      finished: [],
+      void: [],
+    }
+    if (body.status && body.status !== bill.status && !allowed[bill.status]!.includes(body.status))
+      return fail(409, `La cuenta no puede pasar de ${bill.status} a ${body.status}`)
+    if (body.status === 'pending_payment' && !db.details.some((d) => d.billId === bill.billId))
+      return fail(400, 'La cuenta no tiene productos')
+    if (charging && !(body.cashRegisterId ?? bill.cashRegisterId)) {
+      return fail(400, 'Se requiere cashRegisterId para cobrar la cuenta')
+    }
+    if (charging && !(body.paymentMethod ?? bill.paymentMethod)) {
+      return fail(400, 'Indica el método de pago (efectivo o tarjeta)')
     }
     const previousTable = bill.tableId
     Object.assign(bill, body)
@@ -779,12 +812,19 @@ export const handlers = [
     return ok(withWaiter(bill), 'Factura anulada correctamente')
   }),
   http.post('*/api/bills/table/:tableId/close', async ({ params, request }) => {
-    const { cashRegisterId } = (await request.json()) as { cashRegisterId?: number }
+    if (userFromRequest(request)?.role === 'mesero')
+      return fail(403, 'Solo el cajero o el administrador pueden cobrar')
+    const { cashRegisterId, paymentMethod } = (await request.json()) as {
+      cashRegisterId?: number
+      paymentMethod?: Bill['paymentMethod']
+    }
     if (!cashRegisterId) return fail(400, 'Datos inválidos: cashRegisterId requerido')
+    if (!paymentMethod) return fail(400, 'Datos inválidos: paymentMethod requerido')
     const open = db.bills.filter(
       (b) => b.tableId === params.tableId && isActive(b) && canSee(b, request),
     )
-    for (const bill of open) Object.assign(bill, { status: 'closed', cashRegisterId })
+    for (const bill of open)
+      Object.assign(bill, { status: 'closed', cashRegisterId, paymentMethod })
     syncTable(String(params.tableId))
     return ok({ updated: open.length }, `Se cerraron ${open.length} facturas`)
   }),
@@ -803,7 +843,7 @@ export const handlers = [
     const bill = findBill(String(billId))
     if (!bill) return fail(400, 'Bill no encontrado')
     if (!canSee(bill, request)) return fail(404, 'Factura no encontrada')
-    if (!isActive(bill)) return fail(409, 'La cuenta no se puede modificar')
+    if (!isEditable(bill)) return fail(409, 'La cuenta no se puede modificar')
     for (const item of billDetails) {
       const available = db.stock[item.productId]
       if (available !== undefined && available < item.quantity) {

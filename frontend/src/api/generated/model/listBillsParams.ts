@@ -6,6 +6,7 @@
  * OpenAPI spec version: 2.0.0
  */
 import type { BillStatus } from './billStatus';
+import type { ListBillsActive } from './listBillsActive';
 import type { ListBillsMine } from './listBillsMine';
 import type { OrderType } from './orderType';
 
@@ -14,6 +15,10 @@ export type ListBillsParams = {
  * Estado
  */
 status?: BillStatus;
+/**
+ * Solo en curso (open, draft y pending_payment)
+ */
+active?: ListBillsActive;
 /**
  * Tipo de orden
  */

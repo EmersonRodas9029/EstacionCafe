@@ -3,6 +3,8 @@ import { Role } from '@/api/generated/model/role'
 /** Panel de operación: meseros y cajeros (el admin también puede entrar). */
 export const OPERATION_ROLES: readonly Role[] = [Role.mesero, Role.cajero, Role.admin]
 export const ADMIN_ROLES: readonly Role[] = [Role.admin]
+/** Cobrar: cajero y admin. */
+export const CASHIER_ROLES: readonly Role[] = [Role.cajero, Role.admin]
 
 export const ROLE_LABELS: Record<Role, string> = {
   admin: 'Administrador',
