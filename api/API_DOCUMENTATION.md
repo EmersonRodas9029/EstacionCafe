@@ -52,10 +52,23 @@ Errores:
 
 ## Autenticación y roles
 
-1. `POST /users/login` con `{ "username", "password" }` → `data: { token, expiresIn }` (`expiresIn` en segundos). También fija la cookie httpOnly `auth_token`.
-2. Enviar `Authorization: Bearer <token>` (o la cookie) en el resto de rutas.
-3. `GET /users/me` → usuario actual con `role`.
-4. `POST /users/logout` borra la cookie.
+### Sesión
+
+- `POST /users/login` `{ username, password }` crea una sesión de **12 h**; `POST /auth/pin` `{ pin }` una de **30 min**. Ambas responden `data: { user, expiresIn }` y dejan la sesión en la cookie httpOnly `auth_token` (`SameSite=Strict`). **El token no viaja en el body.**
+- Cada petición valida la sesión en la base: si se revocó, venció, el usuario está inactivo o cambió de rol, responde **401**. El rol se toma siempre de la base.
+- Se revocan sesiones al: cerrar sesión (`POST /users/logout`); desactivar al usuario o cambiarle rol, contraseña o PIN; cambiar el rol de su tipo de usuario; revocar el dispositivo.
+- **Anti-CSRF:** con cookie, `POST`/`PUT`/`PATCH`/`DELETE` exigen el header `X-Requested-With: EstacionCafe` (403 si falta).
+- **Scripts y pruebas:** enviar `X-Token-In-Body: true` al hacer login para recibir `data.token` y usar `Authorization: Bearer <token>`; con Bearer no se exige el header anti-CSRF.
+- `GET /users/me` → usuario actual con `role`.
+
+### PIN y dispositivos
+
+- Solo meseros y cajeros tienen PIN: 4 dígitos, **únicos**. Se guardan como HMAC-SHA256 con `PIN_PEPPER`.
+- El PIN **solo funciona en dispositivos autorizados**. El admin, con sesión iniciada en el equipo, llama a `POST /devices { name }`, que deja la cookie httpOnly `device_token`. En otro equipo `POST /auth/pin` responde 403 y hay que entrar con contraseña.
+- `GET /auth/device` (pública) → `{ authorized, name }`: el login decide si muestra el teclado de PIN. `DELETE /auth/device` olvida el equipo.
+- Admin: `GET /devices`; `PUT /devices/{id}` `{ name?, active? }`; `DELETE /devices/{id}` revoca el dispositivo y corta sus sesiones.
+- Admin: `PUT /users/{id}/pin` `{ pin? }` asigna el PIN, o genera uno libre si no se envía. Lo devuelve **una sola vez** y responde 409 si ya está en uso. `DELETE /users/{id}/pin` lo quita. El listado `GET /users` incluye `hasPin`.
+- **Sin bloqueo por intentos:** un PIN incorrecto responde 401. Con más de 10 fallos en 60 s desde el mismo dispositivo, cada fallo extra tarda +1 s, hasta 3 s. Los aciertos no se demoran.
 
 El rol sale de `user_types.role`: `admin`, `mesero` o `cajero`.
 
@@ -231,7 +244,11 @@ Cuenta como venta: cuentas `closed` o `finished` en el rango.
 
 | Método | Ruta | Roles |
 |---|---|---|
-| POST | `/users/login`, `/users/logout` | pública |
+| POST | `/users/login`, `/users/logout`, `/auth/pin` | pública |
+| GET/DELETE | `/auth/device` | pública |
+| GET/POST | `/devices` | admin |
+| PUT/DELETE | `/devices/{id}` | admin |
+| PUT/DELETE | `/users/{id}/pin` | admin |
 | GET | `/users/me` | todos |
 | GET/POST | `/users` | admin |
 | GET | `/users/type/{typeId}` | admin |

@@ -29,7 +29,7 @@ app.use(
       callback(new Error("Origen no permitido por CORS"));
     },
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Token-In-Body"],
   }),
 );
 app.use(cookieParser());

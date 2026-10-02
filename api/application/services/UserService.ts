@@ -6,6 +6,7 @@ import { IUserService } from "../../core/interfaces/IUserService";
 import { UserType } from "../../core/entities/UserType";
 import { Role } from "../../core/enums/Role";
 import { AppError } from "../errors/AppError";
+import { revokeSessions } from "../../infrastructure/security/sessions";
 
 export class UserService implements IUserService {
   private userRepository: Repository<User>;
@@ -52,6 +53,7 @@ export class UserService implements IUserService {
     user.active = false;
 
     await this.userRepository.save(user);
+    await revokeSessions(this.userRepository.manager, { userId: id });
     return { message: "Usuario desactivado correctamente", id };
   }
 
@@ -95,16 +97,27 @@ export class UserService implements IUserService {
       delete updateData.typeId;
     }
 
+    // Bajas, cambios de rol o de contraseña cierran las sesiones abiertas
+    const mustRevoke =
+      updateData.active === false ||
+      (updateData.userTypeId !== undefined && updateData.userTypeId !== user.userTypeId) ||
+      !!updateData.password;
+
     Object.assign(user, updateData);
-    return this.withoutPassword(await this.userRepository.save(user));
+    const saved = this.withoutPassword(await this.userRepository.save(user));
+    if (mustRevoke) await revokeSessions(this.userRepository.manager, { userId });
+    return saved;
   }
 
+  /** Incluye `hasPin`; el hash del PIN nunca sale de la API. */
   async getAll(): Promise<any[]> {
-    console.log(`Obteniendo usuarios...`);
-    return this.userRepository.find({
-      relations: ["userType"] as any,
-      order: { username: "ASC" },
-    });
+    const users = await this.userRepository
+      .createQueryBuilder("u")
+      .addSelect("u.pinHash")
+      .leftJoinAndSelect("u.userType", "t")
+      .orderBy("u.username", "ASC")
+      .getMany();
+    return users.map(({ pinHash, ...user }) => ({ ...user, hasPin: !!pinHash }));
   }
 
   async getById(id: number): Promise<any> {

@@ -1,6 +1,5 @@
 //Utilitys
 import { IService } from "./interfaces/IService";
-import { ITokenService } from "./interfaces/ITokenService";
 import { IUserService } from "./interfaces/IUserService";
 import { getDataSource } from "../infrastructure/db/Connection";
 
@@ -8,7 +7,8 @@ import { getDataSource } from "../infrastructure/db/Connection";
 import { setService as setBillService } from "../controller/BillController";
 import { setService as setProductService } from "../controller/ProductController";
 import { setService as setBillDetailsService } from "../controller/BillDetailsController";
-import { setServices as setUserServices } from "../controller/UserController";
+import { setService as setUserService } from "../controller/UserController";
+import { setService as setAuthService } from "../controller/AuthController";
 import { setService as setUserTypeService } from "../controller/UserTypeController";
 import { setService as setConsumableService } from "../controller/ConsumableController";
 import { setService as setConsumableTypeService } from "../controller/ConsumableTypeController";
@@ -33,7 +33,7 @@ import { ConsumableTypeService } from "../application/services/ConsumableTypeSer
 import { SupplierService } from "../application/services/SupplierService";
 import { IngredientService } from "../application/services/IngredientService";
 import { PurchaseService } from "../application/services/PurchaseService";
-import { TokenService } from "../infrastructure/security/TokenService";
+import { AuthService } from "../application/services/AuthService";
 import { TableService } from "../application/services/TableService";
 import { ProductTypeService } from "../application/services/ProductTypeService";
 import { CashRegisterService } from "../application/services/CashRegisterService";
@@ -58,7 +58,8 @@ export const initializeDependencies = async () => {
   const AppDataSource = getDataSource();
 
   try {
-    await AppDataSource.initialize();
+    // Las pruebas de integración ya lo inicializan con su propia BD
+    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     console.log("Conexión exitosa a la base de datos");
 
     //Repositories
@@ -97,7 +98,7 @@ export const initializeDependencies = async () => {
     const ingredientService: IService = new IngredientService(
       ingredientRepository,
     );
-    const tokenService: ITokenService = new TokenService(userService);
+    const authService = new AuthService(AppDataSource);
     const tableService: IService = new TableService(tableRepository);
     const productTypeService: IService = new ProductTypeService(
       productTypeRepository,
@@ -111,7 +112,8 @@ export const initializeDependencies = async () => {
     setBillService(billService);
     setProductService(productService);
     setBillDetailsService(billDetailsService);
-    setUserServices(userService, tokenService);
+    setUserService(userService);
+    setAuthService(authService);
     setUserTypeService(userTypeService);
     setConsumableService(consumableService);
     setConsumableTypeService(consumableTypeService);
@@ -124,7 +126,7 @@ export const initializeDependencies = async () => {
     setReportService(new ReportService(AppDataSource));
 
     // Inicializar middleware con el servicio de tokens
-    initializeAuthMiddleware(tokenService);
+    initializeAuthMiddleware(authService);
 
     console.log("Dependencias inicializadas correctamente");
   } catch (error: any) {

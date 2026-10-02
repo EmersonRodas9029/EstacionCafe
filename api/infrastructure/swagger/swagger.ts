@@ -162,12 +162,13 @@ const swaggerDocument: any = {
     title: "EstacionCafe API",
     version: "2.0.0",
     description:
-      "API REST de EstacionCafé. Todas las rutas requieren JWT (header `Authorization: Bearer <token>` o cookie `auth_token`) excepto login y logout. Los roles permitidos de cada operación están en su descripción y en `x-roles`.",
+      "API REST de EstacionCafé. La sesión vive en la cookie httpOnly `auth_token` (el navegador nunca ve el token) y se valida en cada petición contra la tabla de sesiones: logout, baja del usuario, cambio de rol/PIN/contraseña o revocar el dispositivo la cortan al instante. Con la cookie, toda petición que modifica datos exige el header `X-Requested-With: EstacionCafe` (anti-CSRF). Scripts y pruebas pueden usar `Authorization: Bearer <token>` pidiendo el token en el login con `X-Token-In-Body: true`. Los roles permitidos de cada operación están en su descripción y en `x-roles`.",
   },
   servers: [],
-  security: [{ bearerAuth: [] }],
+  security: [{ cookieAuth: [] }, { bearerAuth: [] }],
   tags: [
-    { name: "Auth", description: "Inicio y cierre de sesión" },
+    { name: "Auth", description: "Inicio y cierre de sesión (contraseña o PIN)" },
+    { name: "Devices", description: "Dispositivos del local autorizados para PIN" },
     { name: "Users", description: "Usuarios del sistema" },
     { name: "UserTypes", description: "Tipos de usuario y su rol" },
     { name: "Products", description: "Productos del menú" },
@@ -186,6 +187,7 @@ const swaggerDocument: any = {
   ],
   components: {
     securitySchemes: {
+      cookieAuth: { type: "apiKey", in: "cookie", name: "auth_token" },
       bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
     },
     schemas: {
@@ -239,17 +241,83 @@ const swaggerDocument: any = {
         },
         required: ["username", "password"],
       },
+      SessionUser: {
+        type: "object",
+        properties: {
+          userId: { type: "integer" },
+          username: { type: "string" },
+          email: { type: "string" },
+          role: ref("Role"),
+        },
+        required: ["userId", "username", "email", "role"],
+      },
       LoginData: {
         type: "object",
         properties: {
-          token: { type: "string" },
+          user: ref("SessionUser"),
           expiresIn: {
             type: "integer",
-            description: "Segundos de vigencia del token",
+            description: "Segundos de vigencia de la sesión (contraseña 12 h, PIN 30 min)",
             example: 43200,
           },
+          token: {
+            type: "string",
+            description: "Solo si la petición trae `X-Token-In-Body: true` (scripts con Bearer)",
+          },
         },
-        required: ["token", "expiresIn"],
+        required: ["user", "expiresIn"],
+      },
+      PinLoginRequest: {
+        type: "object",
+        properties: { pin: { type: "string", pattern: "^\\d{4}$" } },
+        required: ["pin"],
+      },
+      PinInput: {
+        type: "object",
+        properties: {
+          pin: {
+            type: "string",
+            pattern: "^\\d{4}$",
+            description: "Opcional: sin él se genera uno libre",
+          },
+        },
+      },
+      PinAssigned: {
+        type: "object",
+        properties: { pin: { type: "string", description: "Se muestra solo esta vez" } },
+        required: ["pin"],
+      },
+      DeviceStatus: {
+        type: "object",
+        properties: {
+          authorized: { type: "boolean" },
+          name: { type: "string", nullable: true },
+        },
+        required: ["authorized", "name"],
+      },
+      Device: {
+        type: "object",
+        properties: {
+          deviceId: { type: "integer" },
+          name: { type: "string", maxLength: 60 },
+          active: { type: "boolean" },
+          createdBy: { type: "integer", nullable: true },
+          createdAt: { type: "string", format: "date-time" },
+          lastSeenAt: { type: "string", format: "date-time", nullable: true },
+        },
+        required: ["deviceId", "name", "active", "createdAt", "lastSeenAt"],
+      },
+      DeviceInput: {
+        type: "object",
+        properties: { name: { type: "string", minLength: 1, maxLength: 60 } },
+        required: ["name"],
+      },
+      DeviceUpdate: {
+        type: "object",
+        properties: {
+          name: { type: "string", minLength: 1, maxLength: 60 },
+          active: { type: "boolean" },
+        },
       },
       UserType: {
         type: "object",
@@ -287,6 +355,7 @@ const swaggerDocument: any = {
           email: { type: "string", format: "email" },
           userTypeId: { type: "integer" },
           active: { type: "boolean" },
+          hasPin: { type: "boolean", description: "Solo en el listado: si tiene PIN asignado" },
           userType: ref("UserType"),
         },
         required: ["userId", "username", "email", "userTypeId", "active"],
@@ -998,7 +1067,7 @@ const swaggerDocument: any = {
         tag: "Auth",
         summary: "Iniciar sesión",
         description:
-          "Devuelve el JWT y también lo establece en la cookie httpOnly `auth_token`.",
+          "Crea una sesión de 12 h en la cookie httpOnly `auth_token`. Si el equipo está autorizado, la sesión queda asociada a él.",
         roles: "public",
         body: "LoginRequest",
         ok: { description: "Inicio de sesión exitoso", schema: ref("LoginData") },
@@ -1012,9 +1081,111 @@ const swaggerDocument: any = {
       post: op({
         id: "logout",
         tag: "Auth",
-        summary: "Cerrar sesión (borra la cookie)",
+        summary: "Cerrar sesión (revoca la sesión y borra la cookie)",
         roles: "public",
         ok: { description: "Sesión cerrada" },
+      }),
+    },
+    "/auth/pin": {
+      post: op({
+        id: "pinLogin",
+        tag: "Auth",
+        summary: "Entrar con PIN (meseros y cajeros)",
+        description:
+          "Solo desde un dispositivo autorizado (cookie `device_token`). Sesión de 30 min. Nunca bloquea por fallos; ante ráfagas desde el mismo dispositivo las respuestas fallidas se demoran hasta 3 s.",
+        roles: "public",
+        body: "PinLoginRequest",
+        ok: { description: "Inicio de sesión exitoso", schema: ref("LoginData") },
+        errors: {
+          400: "PIN con formato inválido",
+          401: "PIN incorrecto",
+          403: "Este dispositivo no está autorizado para entrar con PIN",
+        },
+      }),
+    },
+    "/auth/device": {
+      get: op({
+        id: "getDeviceStatus",
+        tag: "Auth",
+        summary: "¿Este equipo está autorizado para PIN?",
+        roles: "public",
+        ok: { description: "Estado del dispositivo", schema: ref("DeviceStatus") },
+      }),
+      delete: op({
+        id: "forgetThisDevice",
+        tag: "Auth",
+        summary: "Olvidar este equipo (borra su cookie de dispositivo)",
+        roles: "public",
+        ok: { description: "Dispositivo olvidado" },
+      }),
+    },
+
+    // ================= Devices =================
+    "/devices": {
+      get: op({
+        id: "listDevices",
+        tag: "Devices",
+        summary: "Listar dispositivos autorizados",
+        roles: "admin",
+        ok: { description: "Dispositivos", schema: arrayOf("Device") },
+      }),
+      post: op({
+        id: "registerDevice",
+        tag: "Devices",
+        summary: "Autorizar el equipo actual para PIN",
+        description:
+          "Deja la cookie httpOnly `device_token` en el navegador que hace la petición; en la BD solo queda su hash.",
+        roles: "admin",
+        body: "DeviceInput",
+        ok: { code: 201, description: "Dispositivo autorizado", schema: ref("Device") },
+        errors: { 400: "Nombre inválido" },
+      }),
+    },
+    "/devices/{id}": {
+      put: op({
+        id: "updateDevice",
+        tag: "Devices",
+        summary: "Renombrar o activar/desactivar un dispositivo",
+        roles: "admin",
+        parameters: [idParam("dispositivo")],
+        body: "DeviceUpdate",
+        ok: { description: "Dispositivo actualizado", schema: ref("Device") },
+        errors: { 400: "Datos inválidos", 404: "Dispositivo no encontrado" },
+      }),
+      delete: op({
+        id: "revokeDevice",
+        tag: "Devices",
+        summary: "Revocar un dispositivo (corta sus sesiones)",
+        roles: "admin",
+        parameters: [idParam("dispositivo")],
+        ok: { description: "Dispositivo revocado", schema: ref("Device") },
+        errors: { 404: "Dispositivo no encontrado" },
+      }),
+    },
+    "/users/{id}/pin": {
+      put: op({
+        id: "setUserPin",
+        tag: "Users",
+        summary: "Asignar o generar el PIN de un mesero/cajero",
+        description: "Devuelve el PIN una sola vez y cierra las sesiones del usuario.",
+        roles: "admin",
+        parameters: [idParam("usuario")],
+        body: "PinInput",
+        ok: { description: "PIN asignado", schema: ref("PinAssigned") },
+        errors: {
+          400: "Formato inválido o el usuario no es mesero/cajero",
+          404: "Usuario no encontrado",
+          409: "Ese PIN ya está en uso",
+        },
+      }),
+      delete: op({
+        id: "clearUserPin",
+        tag: "Users",
+        summary: "Quitar el PIN de un usuario",
+        roles: "admin",
+        parameters: [idParam("usuario")],
+        ok: { description: "PIN eliminado" },
+        errors: { 404: "Usuario no encontrado" },
       }),
     },
 

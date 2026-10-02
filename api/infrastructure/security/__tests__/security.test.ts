@@ -39,8 +39,8 @@ describe("authorize", () => {
 });
 
 describe("verifyToken", () => {
-  const tokenService = { generateToken: jest.fn(), verifyToken: jest.fn() };
-  beforeAll(() => initializeAuthMiddleware(tokenService));
+  const tokenService = { authenticate: jest.fn() };
+  beforeAll(() => initializeAuthMiddleware(tokenService as any));
 
   it("responde 401 sin token", async () => {
     const res = mockRes();
@@ -50,29 +50,29 @@ describe("verifyToken", () => {
 
   it("acepta Bearer y expone req.user", async () => {
     const user = { userId: 1, username: "a", role: "admin" };
-    tokenService.verifyToken.mockResolvedValue(user);
+    tokenService.authenticate.mockResolvedValue(user);
     const req: any = { headers: { authorization: "Bearer abc" } };
     const next = jest.fn();
     await verifyToken(req, mockRes(), next);
-    expect(tokenService.verifyToken).toHaveBeenCalledWith("abc");
+    expect(tokenService.authenticate).toHaveBeenCalledWith("abc");
     expect(req.user).toEqual(user);
     expect(next).toHaveBeenCalled();
   });
 
   it("acepta la cookie auth_token", async () => {
-    tokenService.verifyToken.mockResolvedValue({ userId: 1, role: "mesero" });
+    tokenService.authenticate.mockResolvedValue({ userId: 1, role: "mesero" });
     const next = jest.fn();
     await verifyToken(
       { headers: {}, cookies: { auth_token: "cookie-token" } } as any,
       mockRes(),
       next,
     );
-    expect(tokenService.verifyToken).toHaveBeenCalledWith("cookie-token");
+    expect(tokenService.authenticate).toHaveBeenCalledWith("cookie-token");
     expect(next).toHaveBeenCalled();
   });
 
   it("responde 401 con token inválido", async () => {
-    tokenService.verifyToken.mockRejectedValue(
+    tokenService.authenticate.mockRejectedValue(
       AppError.unauthorized("Token inválido"),
     );
     const res = mockRes();

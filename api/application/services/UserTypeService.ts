@@ -1,10 +1,11 @@
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { IService } from "../../core/interfaces/IService";
 import { UserType } from "../../core/entities/UserType";
 import { User } from "../../core/entities/User";
 import { Role } from "../../core/enums/Role";
 import { AppError } from "../errors/AppError";
 import { plural } from "../utils/plural";
+import { revokeSessions } from "../../infrastructure/security/sessions";
 
 export class UserTypeService implements IService {
   private typeRepo: Repository<UserType>;
@@ -73,8 +74,21 @@ export class UserTypeService implements IService {
       }
     }
 
+    const roleChanged = updateData.role !== undefined && updateData.role !== userType.role;
     Object.assign(userType, updateData);
-    return await this.typeRepo.save(userType);
+    const saved = await this.typeRepo.save(userType);
+
+    // El rol viaja en cada petición desde la BD, pero quien cambia de acceso debe volver a entrar
+    if (roleChanged) {
+      const users = await this.typeRepo.manager.find(User, {
+        where: { userTypeId },
+        select: { userId: true },
+      });
+      if (users.length) {
+        await revokeSessions(this.typeRepo.manager, { userId: In(users.map((u) => u.userId)) });
+      }
+    }
+    return saved;
   }
 
   async getAll(): Promise<any[]> {

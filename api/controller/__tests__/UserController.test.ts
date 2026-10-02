@@ -1,8 +1,6 @@
 import * as userController from "../UserController";
 import { IService } from "../../core/interfaces/IService";
-import { ITokenService } from "../../core/interfaces/ITokenService";
 import { AppError } from "../../application/errors/AppError";
-import { TOKEN_TTL_MS } from "../../infrastructure/security/TokenService";
 import {
   createUserSchema,
   updateUserSchema,
@@ -27,7 +25,6 @@ const mockedUserIdSchema = userIdSchema as jest.Mocked<typeof userIdSchema>;
 
 describe("UserController", () => {
   let mockService: jest.Mocked<IService>;
-  let mockTokenService: jest.Mocked<ITokenService>;
   let mockReq: any;
   let mockRes: any;
 
@@ -45,14 +42,7 @@ describe("UserController", () => {
     // Añadir métodos específicos del UserService
     (mockService as any).getUsersByType = jest.fn();
 
-    // Crear el mock del servicio de token
-    mockTokenService = {
-      generateToken: jest.fn(),
-      verifyToken: jest.fn(),
-    } as any;
-
-    // Establecer los servicios mock
-    userController.setServices(mockService, mockTokenService);
+    userController.setService(mockService);
 
     mockReq = {
       body: {},
@@ -669,73 +659,6 @@ describe("UserController", () => {
     });
   });
 
-  describe("login", () => {
-    const datosLogin = { username: "admin.demo", password: "password123" };
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-
-    it("debería iniciar sesión exitosamente y generar token", async () => {
-      mockReq.body = datosLogin;
-      mockTokenService.generateToken.mockResolvedValue(token);
-
-      await userController.login(mockReq, mockRes);
-
-      expect(mockTokenService.generateToken).toHaveBeenCalledWith(datosLogin);
-      expect(mockRes.cookie).toHaveBeenCalledWith(
-        "auth_token",
-        token,
-        expect.objectContaining({
-          httpOnly: true,
-          sameSite: "strict",
-          maxAge: TOKEN_TTL_MS,
-        }),
-      );
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: "Inicio de sesión exitoso",
-        data: { token, expiresIn: TOKEN_TTL_MS / 1000 },
-      });
-    });
-
-    it("debería responder 400 si faltan credenciales", async () => {
-      mockReq.body = { username: "" };
-
-      await userController.login(mockReq, mockRes);
-
-      expect(mockTokenService.generateToken).not.toHaveBeenCalled();
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-    });
-
-    it("debería responder 401 con credenciales inválidas", async () => {
-      mockReq.body = datosLogin;
-      mockTokenService.generateToken.mockRejectedValue(
-        AppError.unauthorized("Usuario o contraseña incorrectos"),
-      );
-
-      await userController.login(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "Usuario o contraseña incorrectos",
-      });
-    });
-
-    it("debería manejar errores inesperados con 500", async () => {
-      const errorServidor = new Error("Error al generar token");
-      mockReq.body = datosLogin;
-      mockTokenService.generateToken.mockRejectedValue(errorServidor);
-
-      await userController.login(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: `Error al iniciar sesión: ${errorServidor.message}`,
-      });
-    });
-  });
-
   describe("me", () => {
     it("debería devolver el usuario autenticado con su rol", async () => {
       const usuario = { userId: 1, username: "admin.demo", email: "a@b.c" };
@@ -754,7 +677,7 @@ describe("UserController", () => {
     });
   });
 
-  describe("setServices", () => {
+  describe("setService", () => {
     it("debería establecer los servicios correctamente", async () => {
       const nuevoServicio = {
         getAll: jest.fn(),
@@ -765,14 +688,7 @@ describe("UserController", () => {
         update: jest.fn(),
       } as any;
 
-      const nuevoTokenService = {
-        generateToken: jest.fn(),
-        verifyToken: jest.fn(),
-      } as any;
-
-      expect(() =>
-        userController.setServices(nuevoServicio, nuevoTokenService),
-      ).not.toThrow();
+      expect(() => userController.setService(nuevoServicio)).not.toThrow();
 
       // Verificar que los servicios se establecieron correctamente
       nuevoServicio.getAll.mockResolvedValue([]);

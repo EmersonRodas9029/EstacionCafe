@@ -10,7 +10,9 @@
 | `DATABASE_URL` | sí* | `postgresql://postgres:<pass>@db.<proyecto>.supabase.co:5432/postgres` |
 | `DB_SSL` | con Supabase | `true` |
 | `JWT_SECRET` | sí | cadena aleatoria larga (la API no arranca en producción sin ella) |
-| `JWT_EXPIRES_IN_HOURS` | no | `12` |
+| `JWT_EXPIRES_IN_HOURS` | no | `12` (sesión con contraseña) |
+| `PIN_PEPPER` | sí | cadena aleatoria larga para el hash de los PIN (la API no arranca en producción sin ella; cambiarla invalida todos los PIN) |
+| `PIN_SESSION_MINUTES` | no | `30` (sesión con PIN) |
 
 \* O bien `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`.
 

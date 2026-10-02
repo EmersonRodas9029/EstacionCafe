@@ -26,6 +26,10 @@ export class User {
   @Column()
   email: string = "";
 
+  /** HMAC-SHA256 del PIN (único). Solo meseros y cajeros; nunca se devuelve. */
+  @Column({ name: "pin_hash", type: "varchar", length: 64, unique: true, nullable: true, select: false })
+  pinHash?: string | null;
+
   @Column()
   active: boolean = true;
 

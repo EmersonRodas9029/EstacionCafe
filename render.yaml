@@ -23,6 +23,8 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN_HOURS
         value: 12
+      - key: PIN_PEPPER
+        generateValue: true
 
   - type: web
     name: estacioncafe-web

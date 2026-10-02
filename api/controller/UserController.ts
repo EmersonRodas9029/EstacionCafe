@@ -1,25 +1,16 @@
 import { IService } from "../core/interfaces/IService";
 import {
   createUserSchema,
-  loginSchema,
   updateUserSchema,
   userIdSchema,
 } from "../application/validations/UserValidations";
 import { AppError, sendAppError } from "../application/errors/AppError";
-import { TOKEN_TTL_MS } from "../infrastructure/security/TokenService";
-import { env } from "../infrastructure/config/env";
 import { SaveUserDTO } from "../application/DTOs/UserDTO";
-import { ITokenService } from "../core/interfaces/ITokenService";
 
 let service: IService | null = null;
-let tokenService: ITokenService | null = null;
 
-export const setServices = (
-  userService: IService,
-  securityService: ITokenService,
-) => {
+export const setService = (userService: IService) => {
   service = userService;
-  tokenService = securityService;
 };
 
 const getService = () => {
@@ -215,50 +206,6 @@ export const getUsersByType = async (req: any, res: any) => {
   }
 };
 
-export const login = async (req: any, res: any) => {
-  try {
-    const credentials = loginSchema.parse(req.body);
-    const token = await tokenService!.generateToken(credentials);
-
-    return res
-      .status(200)
-      .cookie("auth_token", token, {
-        httpOnly: true,
-        secure: env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: TOKEN_TTL_MS,
-      })
-      .send({
-        status: "success",
-        message: "Inicio de sesión exitoso",
-        data: {
-          token,
-          expiresIn: TOKEN_TTL_MS / 1000,
-        },
-      });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).send({
-        status: "error",
-        message: "Datos inválidos: " + error.issues[0].message,
-        campo: error.issues[0].path,
-      });
-    }
-
-    if (error instanceof AppError) {
-      return res
-        .status(error.statusCode)
-        .send({ status: "error", message: error.message });
-    }
-
-    return res.status(500).send({
-      status: "error",
-      message: `Error al iniciar sesión: ${error.message}`,
-    });
-  }
-};
-
-/** Usuario autenticado actual (rol incluido). */
 export const me = async (req: any, res: any) => {
   try {
     const user = await (getService() as any).getById(req.user.userId);
@@ -281,21 +228,3 @@ export const me = async (req: any, res: any) => {
   }
 };
 
-export const logout = async (req: any, res: any) => {
-  try {
-    res.clearCookie("auth_token", {
-      httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-    return res.status(200).send({
-      status: "success",
-      message: "Sesión cerrada",
-    });
-  } catch (error: any) {
-    return res.status(500).send({
-      status: "error",
-      message: `Error al cerrar sesión: ${error.message}`,
-    });
-  }
-};

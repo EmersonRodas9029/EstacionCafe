@@ -15,10 +15,15 @@ import { tableRouter } from "./TableRoute";
 import { productTypeRouter } from "./ProductTypeRoute";
 import { reportRouter } from "./ReportRoute";
 import { verifyToken } from "../../infrastructure/security/authMiddleware";
+import { requireCsrfHeader } from "../../infrastructure/security/csrf";
+import { deviceRouter } from "./DeviceRoute";
 
 const mainRouter = express.Router();
 
-// Públicas: login / logout
+// Toda petición que modifica datos con cookie de sesión debe traer el header anti-CSRF
+mainRouter.use(requireCsrfHeader);
+
+// Públicas: login (contraseña y PIN), logout y estado del dispositivo
 mainRouter.use("/", authRouter);
 
 // Todo lo demás requiere token; cada router define los roles permitidos
@@ -38,5 +43,6 @@ mainRouter.use("/", cashRegisterRouter);
 mainRouter.use("/", tableRouter);
 mainRouter.use("/", productTypeRouter);
 mainRouter.use("/", reportRouter);
+mainRouter.use("/", deviceRouter);
 
 export default mainRouter;

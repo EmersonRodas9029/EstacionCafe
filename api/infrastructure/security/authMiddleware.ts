@@ -1,46 +1,35 @@
 import { NextFunction, Request, Response } from "express";
-import { ITokenService } from "../../core/interfaces/ITokenService";
+import type { AuthService } from "../../application/services/AuthService";
+import { AppError } from "../../application/errors/AppError";
+import { AUTH_COOKIE } from "./cookies";
 
-let tokenService: ITokenService | null = null;
+let authService: AuthService | null = null;
 
-export const initializeAuthMiddleware = (service: ITokenService) => {
-  tokenService = service;
+export const initializeAuthMiddleware = (service: AuthService) => {
+  authService = service;
 };
 
-const extractToken = (req: Request): string | undefined => {
+/** Bearer solo para scripts y pruebas de API; el navegador usa la cookie httpOnly. */
+export const extractToken = (req: Request): string | undefined => {
   const header = req.headers.authorization;
   if (header?.startsWith("Bearer ")) return header.slice(7);
-  return req.cookies?.auth_token;
+  return req.cookies?.[AUTH_COOKIE];
 };
 
-/** Exige un JWT válido (header Bearer o cookie auth_token) y expone req.user. */
-export const verifyToken = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+/** Exige una sesión vigente de un usuario activo y expone req.user. */
+export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
   const token = extractToken(req);
-
   if (!token) {
-    return res
-      .status(401)
-      .send({ status: "error", message: "Token no proporcionado" });
+    return res.status(401).send({ status: "error", message: "No autenticado" });
   }
-
-  if (!tokenService) {
-    return res.status(500).send({
-      status: "error",
-      message: "Servicio de tokens no inicializado",
-    });
+  if (!authService) {
+    return res.status(500).send({ status: "error", message: "Autenticación no inicializada" });
   }
-
   try {
-    (req as any).user = await tokenService.verifyToken(token);
+    (req as any).user = await authService.authenticate(token);
     next();
   } catch (error: any) {
-    return res.status(401).send({
-      status: "error",
-      message: error.message || "Token inválido o expirado",
-    });
+    const status = error instanceof AppError ? error.statusCode : 401;
+    return res.status(status).send({ status: "error", message: error.message || "No autenticado" });
   }
 };

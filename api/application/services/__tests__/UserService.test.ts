@@ -28,6 +28,7 @@ describe("UserService", () => {
       exists: jest.fn().mockResolvedValue(false),
       manager: {
         findOne: jest.fn().mockResolvedValue({ userTypeId: 1, role: "mesero" }),
+        update: jest.fn().mockResolvedValue({ affected: 0 }),
       },
     } as any;
 
@@ -179,60 +180,34 @@ describe("UserService", () => {
   });
 
   describe("getAll", () => {
-    it("debería obtener todos los usuarios con relaciones", async () => {
-      const mockUsers = [
-        {
-          userId: 1,
-          username: "johndoe",
-          email: "john@example.com",
-          password: "hashed",
-          userTypeId: 1,
-          active: true,
-        },
-        {
-          userId: 2,
-          username: "janedoe",
-          email: "jane@example.com",
-          password: "hashed",
-          userTypeId: 2,
-          active: true,
-        },
-      ] as User[];
+    const withBuilder = (rows: any[]) => {
+      const qb: any = {
+        addSelect: jest.fn().mockReturnThis(),
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(rows),
+      };
+      (mockRepository as any).createQueryBuilder = jest.fn().mockReturnValue(qb);
+      return qb;
+    };
 
-      mockRepository.find.mockResolvedValue(mockUsers);
+    it("devuelve los usuarios con hasPin y sin el hash del PIN", async () => {
+      withBuilder([
+        { userId: 1, username: "ana", pinHash: "abc" },
+        { userId: 2, username: "luis", pinHash: null },
+      ]);
 
       const result = await userService.getAll();
 
-      expect(mockRepository.find).toHaveBeenCalledWith({
-        relations: ["userType"],
-        order: { username: "ASC" }
-      });
-      expect(result).toEqual(mockUsers);
-      expect(console.log).toHaveBeenCalledWith("Obteniendo usuarios...");
+      expect(result).toEqual([
+        { userId: 1, username: "ana", hasPin: true },
+        { userId: 2, username: "luis", hasPin: false },
+      ]);
     });
 
-    it("debería retornar array vacío cuando no hay usuarios", async () => {
-      mockRepository.find.mockResolvedValue([]);
-
-      const result = await userService.getAll();
-
-      expect(mockRepository.find).toHaveBeenCalledWith({
-        relations: ["userType"],
-        order: { username: "ASC" }
-      });
-      expect(result).toEqual([]);
-      expect(console.log).toHaveBeenCalledWith("Obteniendo usuarios...");
-    });
-
-    it("debería manejar errores del repositorio", async () => {
-      const repositoryError = new Error("Error de conexión a la base de datos");
-      mockRepository.find.mockRejectedValue(repositoryError);
-
-      await expect(userService.getAll()).rejects.toThrow("Error de conexión a la base de datos");
-      expect(mockRepository.find).toHaveBeenCalledWith({
-        relations: ["userType"],
-        order: { username: "ASC" }
-      });
+    it("retorna array vacío cuando no hay usuarios", async () => {
+      withBuilder([]);
+      expect(await userService.getAll()).toEqual([]);
     });
   });
 

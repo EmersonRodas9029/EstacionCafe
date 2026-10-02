@@ -31,6 +31,9 @@ const envSchema = z
 
     JWT_SECRET: z.string().min(1).default("dev-secret-change-me"),
     JWT_EXPIRES_IN_HOURS: z.coerce.number().positive().default(12),
+    /** Secreto para el hash de los PIN: sin él, una BD filtrada no sirve para adivinarlos. */
+    PIN_PEPPER: z.string().min(1).default("dev-pin-pepper-change-me"),
+    PIN_SESSION_MINUTES: z.coerce.number().positive().default(30),
   })
   .superRefine((env, ctx) => {
     if (
@@ -41,6 +44,16 @@ const envSchema = z
         code: "custom",
         path: ["JWT_SECRET"],
         message: "JWT_SECRET es obligatorio en producción",
+      });
+    }
+    if (
+      env.NODE_ENV === "production" &&
+      env.PIN_PEPPER === "dev-pin-pepper-change-me"
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["PIN_PEPPER"],
+        message: "PIN_PEPPER es obligatorio en producción",
       });
     }
   });
