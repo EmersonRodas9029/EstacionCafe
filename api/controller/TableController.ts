@@ -311,3 +311,21 @@ export const updateTableStatus = async (req: any, res: any) => {
     });
   }
 };
+
+/** Mesas con quién las atiende y montos según el rol (ver TableService.board). */
+export const getTableBoard = async (req: any, res: any) => {
+  try {
+    const data = await (getService() as any).board(req.user);
+    return res.status(200).send({
+      status: "success",
+      message: "Mapa de mesas obtenido correctamente",
+      data,
+    });
+  } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
+    return res.status(500).send({
+      status: "error",
+      message: `Error al obtener el mapa de mesas: ${error.message}`,
+    });
+  }
+};

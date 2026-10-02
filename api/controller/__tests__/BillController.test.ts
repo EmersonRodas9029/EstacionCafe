@@ -3,6 +3,8 @@ import { AppError } from "../../application/errors/AppError";
 import { OrderType } from "../../core/enums/OrderType";
 import { Status } from "../../core/enums/Status";
 
+const ACTOR = { userId: 7, username: "mesero.demo", role: "mesero" };
+
 describe("BillController", () => {
   let mockService: any;
   let mockReq: any;
@@ -46,7 +48,7 @@ describe("BillController", () => {
 
       await billController.getBills(mockReq, mockRes);
 
-      expect(mockService.find).toHaveBeenCalledWith({});
+      expect(mockService.find).toHaveBeenCalledWith({}, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
@@ -73,7 +75,7 @@ describe("BillController", () => {
         waiterId: 7,
         page: 2,
         limit: 10,
-      });
+      }, ACTOR);
       expect(mockRes.send).toHaveBeenCalledWith(
         expect.objectContaining({ meta: { page: 2, limit: 10, total: 15 } }),
       );
@@ -108,7 +110,7 @@ describe("BillController", () => {
 
       await billController.getBillById(mockReq, mockRes);
 
-      expect(mockService.getById).toHaveBeenCalledWith(3);
+      expect(mockService.getById).toHaveBeenCalledWith(3, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
 
@@ -207,7 +209,7 @@ describe("BillController", () => {
         billId: 1,
         status: Status.CLOSED,
         cashRegisterId: 2,
-      });
+      }, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
 
@@ -283,7 +285,7 @@ describe("BillController", () => {
 
       expect(mockService.getByDateRange).toHaveBeenCalledWith(
         new Date("2026-01-01"),
-        new Date("2026-01-31"),
+        new Date("2026-01-31"), ACTOR
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
@@ -296,7 +298,7 @@ describe("BillController", () => {
 
       await billController.getBillsByCustomer(mockReq, mockRes);
 
-      expect(mockService.getBillsByCustomer).toHaveBeenCalledWith("Ana");
+      expect(mockService.getBillsByCustomer).toHaveBeenCalledWith("Ana", ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
 
@@ -306,7 +308,7 @@ describe("BillController", () => {
 
       await billController.getBillsByTable(mockReq, mockRes);
 
-      expect(mockService.getBillsByTable).toHaveBeenCalledWith("M1");
+      expect(mockService.getBillsByTable).toHaveBeenCalledWith("M1", ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
   });
@@ -319,7 +321,7 @@ describe("BillController", () => {
 
       await billController.closeBillsByTable(mockReq, mockRes);
 
-      expect(mockService.closeBillsByTable).toHaveBeenCalledWith("M1", 1);
+      expect(mockService.closeBillsByTable).toHaveBeenCalledWith("M1", 1, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",

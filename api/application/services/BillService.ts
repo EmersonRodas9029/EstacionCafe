@@ -9,6 +9,7 @@ import { Status } from "../../core/enums/Status";
 import { OrderType } from "../../core/enums/OrderType";
 import { AppError } from "../errors/AppError";
 import { adjustStockForProducts } from "./StockService";
+import { Actor, assertBillAccess, ownerScope } from "./billAccess";
 
 const ACTIVE_STATUSES = [Status.OPEN, Status.DRAFT];
 const BILL_RELATIONS = ["waiter", "table", "cashRegister"];
@@ -107,13 +108,14 @@ export class BillService implements IService {
     });
   }
 
-  async update(body: UpdateBillDTO): Promise<Bill> {
+  async update(body: UpdateBillDTO, actor?: Actor): Promise<Bill> {
     const { billId, ...data } = body;
     if (!billId) throw new Error("billId es requerido para actualizar");
 
     return this.billRepository.manager.transaction(async (manager) => {
       const bill = await manager.findOne(Bill, { where: { billId } });
       if (!bill) throw new Error(`Factura con ID ${billId} no encontrada`);
+      assertBillAccess(bill, actor);
 
       if (bill.status === Status.VOID) {
         throw AppError.conflict(`La factura ${billId} está anulada`);
@@ -168,9 +170,13 @@ export class BillService implements IService {
   }
 
   /** Listado filtrado; con page/limit pagina y devuelve el total. */
+  /** Con actor mesero el listado se limita a sus cuentas, pida lo que pida. */
   async find(
     filters: BillFiltersDTO,
+    actor?: Actor,
   ): Promise<{ items: Bill[]; total: number }> {
+    const scope = ownerScope(actor);
+    if (scope !== undefined) filters = { ...filters, waiterId: scope };
     const qb = this.billRepository
       .createQueryBuilder("bill")
       .leftJoinAndSelect("bill.waiter", "waiter")
@@ -200,7 +206,7 @@ export class BillService implements IService {
     return { items, total };
   }
 
-  async getById(id: number): Promise<Bill> {
+  async getById(id: number, actor?: Actor): Promise<Bill> {
     const bill = await this.billRepository.findOne({
       where: { billId: id },
       relations: BILL_RELATIONS,
@@ -208,39 +214,51 @@ export class BillService implements IService {
     if (!bill) {
       throw new Error(`Factura con ID ${id} no encontrada`);
     }
+    assertBillAccess(bill, actor);
     return bill;
   }
 
-  async getByDateRange(startDate: Date, endDate: Date): Promise<Bill[]> {
-    return (await this.find({ from: startDate, to: endDate })).items;
+  async getByDateRange(startDate: Date, endDate: Date, actor?: Actor): Promise<Bill[]> {
+    return (await this.find({ from: startDate, to: endDate }, actor)).items;
   }
 
-  async getBillsByCustomer(customer: string): Promise<Bill[]> {
+  async getBillsByCustomer(customer: string, actor?: Actor): Promise<Bill[]> {
+    const waiterId = ownerScope(actor);
     return this.billRepository.find({
-      where: { customer },
+      where: { customer, ...(waiterId !== undefined && { waiterId }) },
       relations: BILL_RELATIONS,
       order: { date: "DESC" },
     });
   }
 
-  async getBillsByTable(tableId: string): Promise<Bill[]> {
+  async getBillsByTable(tableId: string, actor?: Actor): Promise<Bill[]> {
+    const waiterId = ownerScope(actor);
     return this.billRepository.find({
-      where: { tableId },
+      where: { tableId, ...(waiterId !== undefined && { waiterId }) },
       relations: BILL_RELATIONS,
       order: { date: "DESC" },
     });
   }
 
-  /** Cobra todas las cuentas activas de la mesa en la caja indicada y libera la mesa. */
+  /**
+   * Cobra las cuentas activas de la mesa en la caja indicada. El mesero cobra
+   * solo las suyas: si quedan cuentas de otros, la mesa sigue ocupada.
+   */
   async closeBillsByTable(
     tableId: string,
     cashRegisterId: number,
+    actor?: Actor,
   ): Promise<{ updated: number }> {
     return this.billRepository.manager.transaction(async (manager) => {
       await this.ensureActiveCashRegister(manager, cashRegisterId);
 
+      const waiterId = ownerScope(actor);
       const openBills = await manager.find(Bill, {
-        where: { tableId, status: In(ACTIVE_STATUSES) },
+        where: {
+          tableId,
+          status: In(ACTIVE_STATUSES),
+          ...(waiterId !== undefined && { waiterId }),
+        },
       });
 
       for (const bill of openBills) {

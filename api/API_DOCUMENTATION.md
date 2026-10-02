@@ -61,6 +61,14 @@ Errores:
 - **Scripts y pruebas:** enviar `X-Token-In-Body: true` al hacer login para recibir `data.token` y usar `Authorization: Bearer <token>`; con Bearer no se exige el header anti-CSRF.
 - `GET /users/me` → usuario actual con `role`.
 
+### Privacidad de cuentas
+
+- El **mesero** solo ve y opera **sus** cuentas (`waiterId` = su usuario). El **cajero** y el **admin** ven todas.
+- `GET /bills` (y `/date-range`, `/customer/{c}`, `/table/{t}`) filtra por mesero aunque se pida otro `waiterId`.
+- Leer, editar o tocar las líneas de una cuenta ajena responde **404** (no se revela que existe).
+- `POST /bills/table/{id}/close`: el mesero cobra solo sus cuentas de la mesa. Si quedan cuentas de otros, la mesa sigue ocupada.
+- `GET /tables/board` → por mesa: `attendedBy` (quién atiende, sin montos), `mine` (cuentas y total propios) y, para cajero y admin, `all`.
+
 ### PIN y dispositivos
 
 - Solo meseros y cajeros tienen PIN: 4 dígitos, **únicos**. Se guardan como HMAC-SHA256 con `PIN_PEPPER`.
@@ -246,6 +254,7 @@ Cuenta como venta: cuentas `closed` o `finished` en el rango.
 |---|---|---|
 | POST | `/users/login`, `/users/logout`, `/auth/pin` | pública |
 | GET/DELETE | `/auth/device` | pública |
+| GET | `/tables/board` | todos |
 | GET/POST | `/devices` | admin |
 | PUT/DELETE | `/devices/{id}` | admin |
 | PUT/DELETE | `/users/{id}/pin` | admin |

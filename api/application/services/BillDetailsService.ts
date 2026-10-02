@@ -6,6 +6,7 @@ import { Product } from "../../core/entities/Producto";
 import { Status } from "../../core/enums/Status";
 import { SaveBillDetailDTO } from "../DTOs/BillsDTO";
 import { AppError } from "../errors/AppError";
+import { Actor, assertBillAccess } from "./billAccess";
 import { adjustStockForProducts } from "./StockService";
 
 const EDITABLE_STATUSES = [Status.OPEN, Status.DRAFT];
@@ -19,7 +20,12 @@ export class BillDetailsService implements IService {
   ) {}
 
   /** Detalles de una factura (id = billId). */
-  async getById(id: number): Promise<BillDetails[]> {
+  async getById(id: number, actor?: Actor): Promise<BillDetails[]> {
+    if (actor) {
+      const bill = await this.detailRepo.manager.findOne(Bill, { where: { billId: id } });
+      if (!bill) throw AppError.notFound(`Factura con ID ${id} no encontrada`);
+      assertBillAccess(bill, actor);
+    }
     return this.detailRepo.find({
       where: { billId: id },
       relations: ["product"],
@@ -35,9 +41,9 @@ export class BillDetailsService implements IService {
    * Agrega productos a la cuenta. Si el producto ya está en la cuenta
    * suma la cantidad a la línea existente. Descuenta stock y recalcula el total.
    */
-  async saveAll(data: SaveBillDetailDTO): Promise<BillDetails[]> {
+  async saveAll(data: SaveBillDetailDTO, actor?: Actor): Promise<BillDetails[]> {
     return this.detailRepo.manager.transaction(async (manager) => {
-      await this.getEditableBill(manager, data.billId);
+      await this.getEditableBill(manager, data.billId, actor);
 
       const quantities = new Map<number, number>();
       for (const item of data.billDetails) {
@@ -89,10 +95,10 @@ export class BillDetailsService implements IService {
   }
 
   /** Cambia la cantidad de una línea (PATCH). Ajusta stock por la diferencia. */
-  async update(body: { billDetailId: number; quantity: number }) {
+  async update(body: { billDetailId: number; quantity: number }, actor?: Actor) {
     return this.detailRepo.manager.transaction(async (manager) => {
       const detail = await this.getDetail(manager, body.billDetailId);
-      await this.getEditableBill(manager, detail.billId);
+      await this.getEditableBill(manager, detail.billId, actor);
 
       const delta = body.quantity - detail.quantity;
       await adjustStockForProducts(manager, new Map([[detail.productId, delta]]));
@@ -106,10 +112,10 @@ export class BillDetailsService implements IService {
   }
 
   /** Quita la línea, devuelve el stock y recalcula el total. */
-  async delete(id: number): Promise<any> {
+  async delete(id: number, actor?: Actor): Promise<any> {
     await this.detailRepo.manager.transaction(async (manager) => {
       const detail = await this.getDetail(manager, id);
-      await this.getEditableBill(manager, detail.billId);
+      await this.getEditableBill(manager, detail.billId, actor);
 
       await adjustStockForProducts(
         manager,
@@ -133,11 +139,12 @@ export class BillDetailsService implements IService {
     return detail;
   }
 
-  private async getEditableBill(manager: EntityManager, billId: number) {
+  private async getEditableBill(manager: EntityManager, billId: number, actor?: Actor) {
     const bill = await manager.findOne(Bill, { where: { billId } });
     if (!bill) {
       throw AppError.badRequest(`Bill con ID ${billId} no encontrado`);
     }
+    assertBillAccess(bill, actor);
     if (!EDITABLE_STATUSES.includes(bill.status)) {
       throw AppError.conflict(
         `La cuenta ${billId} está ${bill.status} y no se puede modificar`,

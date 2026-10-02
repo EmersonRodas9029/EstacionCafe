@@ -629,6 +629,31 @@ const swaggerDocument: any = {
         type: "string",
         enum: ["disponible", "ocupada", "reservada"],
       },
+      BoardSummary: {
+        type: "object",
+        properties: { bills: { type: "integer" }, total: { type: "number" } },
+        required: ["bills", "total"],
+      },
+      BoardTable: {
+        type: "object",
+        properties: {
+          tableId: { type: "string" },
+          zone: { type: "string" },
+          status: ref("TableStatus"),
+          attendedBy: {
+            type: "array",
+            description: "Meseros con cuentas activas en la mesa (sin montos)",
+            items: {
+              type: "object",
+              properties: { waiterId: { type: "integer" }, username: { type: "string" } },
+              required: ["waiterId", "username"],
+            },
+          },
+          mine: { allOf: [ref("BoardSummary")], description: "Cuentas activas del usuario" },
+          all: { allOf: [ref("BoardSummary")], description: "Todas las cuentas activas: solo cajero y admin" },
+        },
+        required: ["tableId", "zone", "status", "attendedBy", "mine"],
+      },
       Table: {
         type: "object",
         properties: {
@@ -1665,6 +1690,17 @@ const swaggerDocument: any = {
     },
 
     // ================= Tables =================
+    "/tables/board": {
+      get: op({
+        id: "getTableBoard",
+        tag: "Tables",
+        summary: "Mapa de mesas para el panel de operación",
+        description:
+          "Cada mesa con quién la atiende y los montos permitidos: el mesero ve solo los de sus cuentas; cajero y admin reciben además `all`.",
+        roles: "any",
+        ok: { description: "Mapa de mesas", schema: arrayOf("BoardTable") },
+      }),
+    },
     "/tables": {
       get: op({
         id: "listTables",

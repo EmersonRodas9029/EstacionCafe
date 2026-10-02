@@ -19,6 +19,8 @@ jest.mock("../../application/validations/BillDetailsValidations", () => ({
 
 import { BillDetailsSchema } from "../../application/validations/BillDetailsValidations";
 
+const ACTOR = { userId: 2, role: "cajero" };
+
 describe("BillDetailsController", () => {
   let mockService: jest.Mocked<IService>;
   let mockReq: any;
@@ -39,6 +41,7 @@ describe("BillDetailsController", () => {
 
     // Mock request and response objects
     mockReq = {
+      user: ACTOR,
       body: {},
       params: {},
     };
@@ -83,7 +86,7 @@ describe("BillDetailsController", () => {
       await saveDetails(mockReq, mockRes);
 
       expect(BillDetailsSchema.parse).toHaveBeenCalledWith(validData);
-      expect(mockService.saveAll).toHaveBeenCalledWith(validData);
+      expect(mockService.saveAll).toHaveBeenCalledWith(validData, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(201);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
@@ -219,7 +222,7 @@ describe("BillDetailsController", () => {
 
       await deleteDetail(mockReq, mockRes);
 
-      expect(mockService.delete).toHaveBeenCalledWith(1);
+      expect(mockService.delete).toHaveBeenCalledWith(1, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(202);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
@@ -247,7 +250,7 @@ describe("BillDetailsController", () => {
 
       await deleteDetail(mockReq, mockRes);
 
-      expect(mockService.delete).toHaveBeenCalledWith(999);
+      expect(mockService.delete).toHaveBeenCalledWith(999, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(404);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "error",
@@ -297,7 +300,7 @@ describe("BillDetailsController", () => {
 
       await getDetailsByBillId(mockReq, mockRes);
 
-      expect(mockService.getById).toHaveBeenCalledWith(1);
+      expect(mockService.getById).toHaveBeenCalledWith(1, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
@@ -342,7 +345,7 @@ describe("BillDetailsController", () => {
 
       await getDetailsByBillId(mockReq, mockRes);
 
-      expect(mockService.getById).toHaveBeenCalledWith(999);
+      expect(mockService.getById).toHaveBeenCalledWith(999, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
@@ -398,7 +401,7 @@ describe("BillDetailsController", () => {
 
       await saveDetails(emptyReq, mockRes);
 
-      expect(mockService.saveAll).toHaveBeenCalledWith({});
+      expect(mockService.saveAll).toHaveBeenCalledWith({}, undefined);
       expect(mockRes.status).toHaveBeenCalledWith(201);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
@@ -418,7 +421,7 @@ describe("BillDetailsController", () => {
 
       await saveDetails(mockReq, mockRes);
 
-      expect(mockService.saveAll).toHaveBeenCalledWith(multipleDetails);
+      expect(mockService.saveAll).toHaveBeenCalledWith(multipleDetails, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(201);
     });
 
@@ -445,7 +448,7 @@ describe("BillDetailsController", () => {
 
       await deleteDetail(mockReqWithNumericId, mockRes);
 
-      expect(mockService.delete).toHaveBeenCalledWith(123);
+      expect(mockService.delete).toHaveBeenCalledWith(123, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(202);
     });
 
@@ -512,7 +515,7 @@ describe("BillDetailsController", () => {
       expect(mockService.update).toHaveBeenCalledWith({
         billDetailId: 5,
         quantity: 3,
-      });
+      }, ACTOR);
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
 

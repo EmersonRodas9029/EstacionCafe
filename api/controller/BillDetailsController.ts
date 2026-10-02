@@ -20,7 +20,7 @@ export const saveDetails = async (req: any, res: any) => {
 
     console.log(validatedData);
 
-    const result = await service.saveAll(validatedData);
+    const result = await (service as any).saveAll(validatedData, req.user);
 
     console.log("Factura y detalles guardados correctamente");
     return res.status(201).send({
@@ -110,7 +110,7 @@ export const deleteDetail = async (req: any, res: any) => {
       });
     }
 
-    await service.delete(detailId);
+    await (service as any).delete(detailId, req.user);
     console.log("Detalle eliminado correctamente");
     return res.status(202).send({
       status: "success",
@@ -144,7 +144,7 @@ export const getDetailsByBillId = async (req: any, res: any) => {
       });
     }
 
-    const details = await service.getById(parsedBillId);
+    const details = await (service as any).getById(parsedBillId, req.user);
 
     const data: BillDetailResponse[] = details.map((i: any) => ({
       billDetailId: i.billDetailId,
@@ -176,7 +176,7 @@ export const updateDetail = async (req: any, res: any) => {
     const { id } = billDetailIdSchema.parse(req.params);
     const { quantity } = updateBillDetailSchema.parse(req.body);
 
-    const result = await service.update({ billDetailId: id, quantity });
+    const result = await (service as any).update({ billDetailId: id, quantity }, req.user);
     return res.status(200).send({
       status: "success",
       message: "Detalle actualizado correctamente",

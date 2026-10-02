@@ -5,6 +5,25 @@ import { SaveTableDTO, UpdateTableDTO } from "../DTOs/TableDTO";
 import { Bill } from "../../core/entities/Bill";
 import { AppError } from "../errors/AppError";
 import { plural } from "../utils/plural";
+import { Status } from "../../core/enums/Status";
+import { Actor, ownerScope } from "./billAccess";
+
+export interface BoardSummary {
+  bills: number;
+  total: number;
+}
+
+export interface BoardTable {
+  tableId: string;
+  zone: string;
+  status: TableStatus;
+  /** Quiénes tienen cuentas activas en la mesa (sin montos) */
+  attendedBy: { waiterId: number; username: string }[];
+  /** Cuentas activas propias */
+  mine: BoardSummary;
+  /** Todas las cuentas activas: solo cajero y admin */
+  all?: BoardSummary;
+}
 
 export class TableService implements IService {
   public constructor(private tableRepository: Repository<Table>) {
@@ -78,6 +97,48 @@ export class TableService implements IService {
     Object.assign(table, updateData);
 
     return await this.tableRepository.save(table);
+  }
+
+  /**
+   * Mapa de mesas para el panel de operación. El mesero ve quién atiende cada
+   * mesa pero solo los montos de sus cuentas; cajero y admin ven el total.
+   */
+  async board(actor: Actor): Promise<BoardTable[]> {
+    const tables = await this.tableRepository.find({ order: { zone: "ASC", tableId: "ASC" } });
+    const rows: { tableId: string; waiterId: number; username: string; bills: string; total: string }[] =
+      await this.tableRepository.manager
+        .createQueryBuilder(Bill, "b")
+        .innerJoin("b.waiter", "w")
+        .select('b.table_id', "tableId")
+        .addSelect('b.waiter_id', "waiterId")
+        .addSelect("w.username", "username")
+        .addSelect("COUNT(*)", "bills")
+        .addSelect("COALESCE(SUM(b.total), 0)", "total")
+        .where("b.table_id IS NOT NULL")
+        .andWhere("b.status IN (:...statuses)", { statuses: [Status.OPEN, Status.DRAFT] })
+        .groupBy("b.table_id")
+        .addGroupBy("b.waiter_id")
+        .addGroupBy("w.username")
+        .orderBy("w.username", "ASC")
+        .getRawMany();
+
+    const seesAll = ownerScope(actor) === undefined;
+    const sum = (list: typeof rows): BoardSummary => ({
+      bills: list.reduce((acc, r) => acc + Number(r.bills), 0),
+      total: Math.round(list.reduce((acc, r) => acc + Number(r.total), 0) * 100) / 100,
+    });
+
+    return tables.map((table) => {
+      const here = rows.filter((r) => r.tableId === table.tableId);
+      return {
+        tableId: table.tableId,
+        zone: table.zone,
+        status: table.status,
+        attendedBy: here.map((r) => ({ waiterId: Number(r.waiterId), username: r.username })),
+        mine: sum(here.filter((r) => Number(r.waiterId) === actor.userId)),
+        ...(seesAll && { all: sum(here) }),
+      };
+    });
   }
 
   async getAll(): Promise<any[]> {

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getTables,
+  getTableBoard,
   getTableById,
   saveTable,
   updateTable,
@@ -15,6 +16,7 @@ import { adminOnly, anyRole, staff } from "../../infrastructure/security/rbacMid
 export const tableRouter = Router();
 
 tableRouter.get("/tables", anyRole, getTables);
+tableRouter.get("/tables/board", anyRole, getTableBoard);
 tableRouter.get("/tables/available", anyRole, getAvailableTables);
 tableRouter.get("/tables/zone/:zone", anyRole, getTablesByZone);
 tableRouter.get("/tables/status/:status", anyRole, getTablesByStatus);

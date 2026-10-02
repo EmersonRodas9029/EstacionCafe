@@ -30,7 +30,7 @@ export const getBills = async (req: any, res: any) => {
     const { mine, ...filters } = billFiltersSchema.parse(req.query ?? {});
     if (mine) filters.waiterId = req.user?.userId;
 
-    const { items, total } = await (getService() as any).find(filters);
+    const { items, total } = await (getService() as any).find(filters, req.user);
 
     return res.status(200).send({
       status: "success",
@@ -60,7 +60,7 @@ export const getBillById = async (req: any, res: any) => {
     const { id } = billIdSchema.parse(req.params);
     const billService = getService() as any;
 
-    const data = await billService.getById(id);
+    const data = await billService.getById(id, req.user);
     console.log("Factura obtenida correctamente");
 
     return res.status(200).send({
@@ -130,10 +130,13 @@ export const updateBill = async (req: any, res: any) => {
     const updateData = updateBillSchema.parse(req.body);
 
     const billService = getService() as any;
-    const result = await billService.update({
-      billId: id,
-      ...updateData,
-    });
+    const result = await billService.update(
+      {
+        billId: id,
+        ...updateData,
+      },
+      req.user,
+    );
 
     console.log("Factura actualizada correctamente");
     return res.status(200).send({
@@ -243,6 +246,7 @@ export const getBillsByDateRange = async (req: any, res: any) => {
     const data = await billService.getByDateRange(
       new Date(startDate),
       new Date(endDate),
+      req.user,
     );
 
     return res.status(200).send({
@@ -264,7 +268,7 @@ export const getBillsByCustomer = async (req: any, res: any) => {
     const { customer } = req.params;
     const billService = getService() as any;
 
-    const data = await billService.getBillsByCustomer(customer);
+    const data = await billService.getBillsByCustomer(customer, req.user);
 
     return res.status(200).send({
       status: "success",
@@ -285,7 +289,7 @@ export const getBillsByTable = async (req: any, res: any) => {
     const { tableId } = req.params;
     const billService = getService() as any;
 
-    const data = await billService.getBillsByTable(tableId);
+    const data = await billService.getBillsByTable(tableId, req.user);
 
     return res.status(200).send({
       status: "success",
@@ -307,7 +311,7 @@ export const closeBillsByTable = async (req: any, res: any) => {
     const { cashRegisterId } = closeTableBillsSchema.parse(req.body ?? {});
 
     const billService = getService() as any;
-    const result = await billService.closeBillsByTable(tableId, cashRegisterId);
+    const result = await billService.closeBillsByTable(tableId, cashRegisterId, req.user);
 
     return res.status(200).send({
       status: "success",
