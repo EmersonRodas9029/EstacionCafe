@@ -1,83 +1,59 @@
-//Cargamos variables de entorno PRIMERO
-import "./infrastructure/db/loadEnv";
+import "reflect-metadata";
+import { corsOrigins, env } from "./infrastructure/config/env";
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import routes from "./application/Routes/routes";
+import { setupSwagger } from "./infrastructure/swagger/swagger";
+import { getDataSource } from "./infrastructure/db/Connection";
+import { initializeDependencies } from "./core/dependencyInjection";
+import { startAllJobs } from "./infrastructure/jobs";
 
-//Cargamos dependencias
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-const routes = require("./application/Routes/routes").default;
-const { setupSwagger } = require("./infrastructure/swagger/swagger");
+export const app = express();
 
-//Creamos el servidor
-const app = express();
-const port = parseInt(process.env.PORT || "3484", 10);
-
-// Trust proxy - required for req.protocol to work correctly behind reverse proxies (Render, Heroku, etc.)
+// Necesario detrás de proxies (Render, Railway) para req.protocol/secure cookies
 app.set("trust proxy", 1);
-const corsOrigins = (process.env.CORS_ORIGIN || "http://localhost:3484/*")
-  .split(",")
-  .map((origin: string) => origin.trim())
-  .filter(Boolean);
 
-
-  console.log(process.env.NODE_ENV, process.env.CORS_ORIGIN)
-//Configuramos CORS
 app.use(
   cors({
-    origin: (origin: string | undefined, callback: any) => {
-      // Allow requests with no origin (like mobile apps, curl, Postman)
-      if (!origin) {
+    origin: (origin, callback) => {
+      // Sin Origin: curl, Postman, apps móviles
+      if (!origin || corsOrigins.includes("*") || corsOrigins.includes(origin)) {
         callback(null, true);
         return;
       }
-      
-      // Allow all origins in development or if wildcard is set
-      if (corsOrigins.includes("*") || process.env.NODE_ENV === "development") {
-        callback(null, true);
-        return;
-      }
-      
-      // Check if origin is in the allowed list
-      if (corsOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-      
       callback(new Error("Origen no permitido por CORS"));
     },
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
-
-//Parsear cookies
 app.use(cookieParser());
-
-//Covertimos datos del body a objetos
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-setupSwagger(app);
 
-// Usar las rutas del router
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    status: "success",
+    database: getDataSource().isInitialized ? "connected" : "disconnected",
+  });
+});
+
+setupSwagger(app);
 app.use("/api", routes);
 
-//Inyectamos dependencias
-const { initializeDependencies } = require("./core/dependencyInjection");
-const { startAllJobs } = require("./infrastructure/jobs");
+const start = async () => {
+  await initializeDependencies();
+  app.listen(env.PORT, () => {
+    console.log(`API escuchando en http://localhost:${env.PORT}/api`);
+    console.log(`Documentación en http://localhost:${env.PORT}/api/docs`);
+    startAllJobs();
+  });
+};
 
-initializeDependencies()
-  .then(() => {
-    console.log("Iniciando servidor...");
-
-    //Poner a escuchar el servidor solo después de que las dependencias estén listas
-    app.listen(port, () => {
-      console.log(`Servidor corriendo en puerto ${port}`);
-
-      // Iniciar jobs programados después de que el servidor esté listo
-      startAllJobs();
-    });
-  })
-  .catch((error: any) => {
-    console.error("Error al inicializar la aplicación:", error);
+if (require.main === module) {
+  start().catch((error: Error) => {
+    console.error("No se pudo iniciar la API:", error.message);
     process.exit(1);
   });
+}

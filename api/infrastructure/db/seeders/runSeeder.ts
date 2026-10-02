@@ -1,4 +1,4 @@
-import "../../supabase/loadEnv";
+import "../../config/env";
 import * as bcrypt from "bcrypt";
 import { AppDataSource } from "../Connection";
 import { Bill } from "../../../core/entities/Bill";

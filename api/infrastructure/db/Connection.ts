@@ -1,36 +1,27 @@
-import "../supabase/loadEnv";
+import "reflect-metadata";
 import { DataSource, DataSourceOptions } from "typeorm";
 import { join } from "path";
+import { env } from "../config/env";
 
-const databaseUrl = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
-const useSsl = process.env.DB_SSL !== "false";
+const ssl = env.DB_SSL ? { rejectUnauthorized: false } : false;
 
-if (!databaseUrl && (!process.env.DB_HOST || !process.env.DB_USERNAME)) {
-  throw new Error(
-    "Falta la conexión PostgreSQL. Define SUPABASE_DB_URL en api/.env.",
-  );
-}
-
-const connectionOptions: DataSourceOptions = databaseUrl
-  ? {
-      type: "postgres",
-      url: databaseUrl,
-      ssl: useSsl ? { rejectUnauthorized: false } : false,
-    }
+// DATABASE_URL (Supabase/producción) tiene prioridad sobre los campos sueltos (Postgres local)
+const connectionOptions: DataSourceOptions = env.DATABASE_URL
+  ? { type: "postgres", url: env.DATABASE_URL, ssl }
   : {
       type: "postgres",
-      host: process.env.SUPABASE_DB_HOST || process.env.DB_HOST,
-      port: Number(process.env.SUPABASE_DB_PORT || process.env.DB_PORT || 5432),
-      username: process.env.SUPABASE_DB_USER || process.env.DB_USERNAME,
-      password: process.env.SUPABASE_DB_PASSWORD || process.env.DB_PASSWORD,
-      database: process.env.SUPABASE_DB_NAME || process.env.DB_DATABASE || "postgres",
-      ssl: useSsl ? { rejectUnauthorized: false } : false,
+      host: env.DB_HOST,
+      port: env.DB_PORT,
+      username: env.DB_USERNAME,
+      password: env.DB_PASSWORD,
+      database: env.DB_DATABASE,
+      ssl,
     };
 
 export const AppDataSource = new DataSource({
   ...connectionOptions,
   synchronize: false,
-  logging: process.env.DB_LOGGING === "true",
+  logging: env.DB_LOGGING,
   entities: [join(__dirname, "../../core/entities/*{.ts,.js}")],
   migrations: [join(__dirname, "./migrations/*{.ts,.js}")],
   subscribers: [],

@@ -1,0 +1,18 @@
+# Compilado
+dist/
+src/compiled/
+*.js.map
+
+# Dependencias
+node_modules/
+
+# Entorno
+.env
+.env.local
+
+# Logs / cache
+*.log
+logs/
+.cache/
+.tmp/
+coverage/

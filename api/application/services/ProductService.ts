@@ -15,7 +15,7 @@ export class ProductService implements IService {
       product.description = data.description;
       product.price = data.price;
       product.cost = data.cost;
-      product.productTypeId = data.productTypeId;
+      if (data.productTypeId !== undefined) product.productTypeId = data.productTypeId;
       product.active = data.active !== undefined ? data.active : true;
       return product;
     });
@@ -30,7 +30,7 @@ export class ProductService implements IService {
     product.description = data.description;
     product.price = data.price;
     product.cost = data.cost;
-    product.productTypeId = data.productTypeId;
+    if (data.productTypeId !== undefined) product.productTypeId = data.productTypeId;
     product.active = data.active !== undefined ? data.active : true;
 
     console.log("Guardando producto...");
