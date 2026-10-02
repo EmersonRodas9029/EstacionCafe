@@ -234,6 +234,8 @@ export class BillService implements IService {
 
     if (filters.status)
       qb.andWhere("bill.status = :status", { status: filters.status });
+    if (filters.active)
+      qb.andWhere("bill.status IN (:...active)", { active: ACTIVE_STATUSES });
     if (filters.orderType)
       qb.andWhere("bill.orderType = :orderType", {
         orderType: filters.orderType,

@@ -1510,6 +1510,10 @@ const swaggerDocument: any = {
         roles: "any",
         parameters: [
           queryParam("status", "Estado", ref("BillStatus")),
+          queryParam("active", "Solo en curso (open, draft y pending_payment)", {
+            type: "string",
+            enum: ["true", "false"],
+          }),
           queryParam("orderType", "Tipo de orden", ref("OrderType")),
           queryParam("tableId", "Mesa", { type: "string", maxLength: 10 }),
           queryParam("waiterId", "Mesero", { type: "integer", minimum: 1 }),

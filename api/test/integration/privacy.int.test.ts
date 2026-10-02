@@ -180,6 +180,19 @@ describe("Cerrar (mesero) y cobrar (cajero)", () => {
     expect(reopened.status).toBe(Status.OPEN);
   });
 
+  it("el filtro active trae abiertas y por cobrar, pero no cobradas", async () => {
+    const a = await withLatte(ana);
+    await bills.update({ billId: a.billId, status: Status.PENDING_PAYMENT }, ana);
+    await withLatte(ana);
+    const paid = await withLatte(caja, "M2");
+    await bills.update(
+      { billId: paid.billId, status: Status.CLOSED, cashRegisterId: register.cashRegisterId, paymentMethod: PaymentMethod.CASH },
+      caja,
+    );
+    const { items } = await bills.find({ active: true }, caja);
+    expect(items.map((b) => b.status).sort()).toEqual([Status.OPEN, Status.PENDING_PAYMENT]);
+  });
+
   it("no se cierra una cuenta vacía", async () => {
     const bill = await open(ana, "Vacía");
     await expect(

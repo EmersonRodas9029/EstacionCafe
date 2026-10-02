@@ -166,6 +166,7 @@ Usuarios demo del seeder (`npm run seed:run`): `admin.demo`, `mesero.demo`, `caj
 | Query | Descripción |
 |---|---|
 | `status` | Estado |
+| `active=true` | Solo en curso: `open`, `draft` y `pending_payment` |
 | `orderType` | `dine_in` / `takeaway` |
 | `tableId` | Mesa |
 | `waiterId` | Mesero |

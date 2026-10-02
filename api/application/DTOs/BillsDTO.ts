@@ -24,6 +24,7 @@ export interface UpdateBillDTO {
 
 export interface BillFiltersDTO {
   status?: Status;
+  active?: boolean;
   orderType?: OrderType;
   tableId?: string;
   waiterId?: number;

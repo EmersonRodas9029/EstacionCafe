@@ -100,6 +100,11 @@ export const billFiltersSchema = z.object({
     .enum(["true", "false"])
     .transform((v) => v === "true")
     .optional(),
+  /** Solo cuentas en curso: open, draft y pending_payment */
+  active: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .optional(),
   from: dateField.optional(),
   to: dateField.optional(),
   page: positiveInt("page inválido").optional(),
