@@ -2,6 +2,7 @@ import { Repository } from "typeorm";
 import { Product } from "../../core/entities/Producto";
 import { IService } from "../../core/interfaces/IService";
 import { SaveProductDTO, UpdateProductDTO } from "../DTOs/ProductDTO";
+import { AppError } from "../errors/AppError";
 
 export class ProductService implements IService {
   constructor(private productRepository: Repository<Product>) {
@@ -67,6 +68,12 @@ export class ProductService implements IService {
     if (updateData.cost !== undefined) product.cost = updateData.cost;
     if (updateData.productTypeId !== undefined)
       product.productTypeId = updateData.productTypeId;
+    if (updateData.active !== undefined) product.active = updateData.active;
+
+    // Misma regla que al crear, contra los valores resultantes
+    if (product.price <= product.cost) {
+      throw AppError.badRequest("El precio debe ser mayor al costo");
+    }
 
     return await this.productRepository.save(product);
   }

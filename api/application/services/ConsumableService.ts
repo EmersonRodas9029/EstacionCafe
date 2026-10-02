@@ -6,7 +6,6 @@ import {
   SaveConsumableDTO,
   UpdateConsumableDTO,
 } from "../DTOs/ConsumableDTO";
-import { email, object } from "zod";
 
 export class ConsumableService implements IService {
   constructor(private consumableRepository: Repository<Consumable>) {
@@ -17,10 +16,11 @@ export class ConsumableService implements IService {
     const consumable = new Consumable();
     consumable.supplierId = body.supplierId;
     consumable.name = body.name;
-    consumable.cosumableTypeId = body.cosumableTypeId;
+    consumable.consumableTypeId = body.consumableTypeId;
     consumable.cost = body.cost;
     consumable.quantity = body.quantity;
     consumable.unitMeasurement = body.unitMeasurement;
+    consumable.minStock = body.minStock ?? 0;
 
     return await this.consumableRepository.save(consumable);
   }
@@ -30,10 +30,11 @@ export class ConsumableService implements IService {
       const consumable = new Consumable();
       consumable.supplierId = body.supplierId;
       consumable.name = body.name;
-      consumable.cosumableTypeId = body.cosumableTypeId;
+      consumable.consumableTypeId = body.consumableTypeId;
       consumable.cost = body.cost;
       consumable.quantity = body.quantity;
       consumable.unitMeasurement = body.unitMeasurement;
+      consumable.minStock = body.minStock ?? 0;
       return consumable;
     });
 
@@ -63,16 +64,21 @@ export class ConsumableService implements IService {
       throw new Error(`Consumible con ID ${consumableId} no encontrado`);
     }
 
-    if (updateData.supplier !== undefined)
-      consumable.supplierId = updateData.supplier;
-    if (updateData.name !== undefined) consumable.name = updateData.name;
-    if (updateData.TypeId !== undefined)
-      consumable.cosumableTypeId = updateData.TypeId;
-    if (updateData.cost !== undefined) consumable.cost = updateData.cost;
-    if (updateData.quantity !== undefined)
-      consumable.quantity = updateData.quantity;
-    if (updateData.unitMeasurement !== undefined)
-      consumable.unitMeasurement = updateData.unitMeasurement;
+    const fields = [
+      "supplierId",
+      "name",
+      "consumableTypeId",
+      "cost",
+      "quantity",
+      "unitMeasurement",
+      "minStock",
+      "active",
+    ] as const;
+    for (const field of fields) {
+      if (updateData[field] !== undefined) {
+        (consumable as any)[field] = updateData[field];
+      }
+    }
 
     return await this.consumableRepository.save(consumable);
   }
@@ -87,11 +93,13 @@ export class ConsumableService implements IService {
         consumableId: x.consumableId,
         name: x.name,
         supplierId: x.supplierId,
-        cosumableTypeId: x.cosumableTypeId,
+        consumableTypeId: x.consumableTypeId,
 
         quantity: x.quantity,
         unitMeasurement: x.unitMeasurement,
         cost: x.cost,
+        minStock: x.minStock,
+        lowStock: x.quantity <= x.minStock,
         consumableType: x.consumableType,
         supplier: x.supplier,
 
@@ -124,18 +132,20 @@ export class ConsumableService implements IService {
 
   async getByConsumableType(consumableTypeId: number): Promise<Consumable[]> {
     return await this.consumableRepository.find({
-      where: { cosumableTypeId: consumableTypeId },
+      where: { consumableTypeId: consumableTypeId },
       relations: ["consumableType", "supplier"] as any,
       order: { name: "ASC" },
     });
   }
 
-  async getLowStockConsumables(threshold: number = 10): Promise<Consumable[]> {
+  /** Consumibles activos con quantity <= minStock (umbral por consumible). */
+  async getLowStockConsumables(): Promise<Consumable[]> {
     return await this.consumableRepository
       .createQueryBuilder("consumable")
       .leftJoinAndSelect("consumable.consumableType", "consumableType")
       .leftJoinAndSelect("consumable.supplier", "supplier")
-      .where("consumable.quantity <= :threshold", { threshold })
+      .where("consumable.active = true")
+      .andWhere("consumable.quantity <= consumable.min_stock")
       .orderBy("consumable.quantity", "ASC")
       .getMany();
   }

@@ -121,8 +121,9 @@ const seed = async () => {
     const coffee = await findOrCreate<Consumable>(consumableRepository, { name: "Café en grano" }, {
       supplierId: supplier.supplierId,
       name: "Café en grano",
-      cosumableTypeId: coffeeType.consumableTypeId,
+      consumableTypeId: coffeeType.consumableTypeId,
       quantity: 5000,
+      minStock: 1000,
       unitMeasurement: UnitMeasurement.GRAM,
       cost: 0.08,
       active: true,
@@ -130,8 +131,9 @@ const seed = async () => {
     const milk = await findOrCreate<Consumable>(consumableRepository, { name: "Leche entera" }, {
       supplierId: supplier.supplierId,
       name: "Leche entera",
-      cosumableTypeId: milkType.consumableTypeId,
+      consumableTypeId: milkType.consumableTypeId,
       quantity: 20,
+      minStock: 5,
       unitMeasurement: UnitMeasurement.LITER,
       cost: 1.2,
       active: true,

@@ -18,7 +18,7 @@ export const ConsumableSchema = z.object({
         .max(255, "El nombre no puede exceder 255 caracteres")
         .trim(),
 
-    cosumableTypeId: z
+    consumableTypeId: z
         .union([
             z.string().transform((val) => parseInt(val, 10)),
             z.number().int("El ID del tipo de consumible debe ser un número entero"),
@@ -40,6 +40,15 @@ export const ConsumableSchema = z.object({
     cost: z
         .union([z.string().transform((val) => parseFloat(val)), z.number()])
         .refine((val) => !isNaN(val) && val >= 0, "El costo no puede ser negativo"),
+
+    minStock: z
+        .union([z.string().transform((val) => parseFloat(val)), z.number()])
+        .refine(
+            (val) => !isNaN(val) && val >= 0,
+            "El stock mínimo no puede ser negativo"
+        )
+        .optional()
+        .default(0),
 });
 
 export const createConsumableSchema = ConsumableSchema;
@@ -63,7 +72,7 @@ export const updateConsumableSchema = z.object({
         .trim()
         .optional(),
 
-    cosumableTypeId: z
+    consumableTypeId: z
         .union([
             z.string().transform((val) => parseInt(val, 10)),
             z.number().int("El ID del tipo de consumible debe ser un número entero"),
@@ -88,6 +97,16 @@ export const updateConsumableSchema = z.object({
         .union([z.string().transform((val) => parseFloat(val)), z.number()])
         .refine((val) => !isNaN(val) && val >= 0, "El costo no puede ser negativo")
         .optional(),
+
+    minStock: z
+        .union([z.string().transform((val) => parseFloat(val)), z.number()])
+        .refine(
+            (val) => !isNaN(val) && val >= 0,
+            "El stock mínimo no puede ser negativo"
+        )
+        .optional(),
+
+    active: z.boolean().optional(),
 });
 
 export const consumableIdSchema = z.object({

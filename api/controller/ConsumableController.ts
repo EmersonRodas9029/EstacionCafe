@@ -210,3 +210,19 @@ export const getConsumablesBySupplier = async (req: any, res: any) => {
     });
   }
 };
+
+export const getLowStockConsumables = async (req: any, res: any) => {
+  try {
+    const data = await (getService() as any).getLowStockConsumables();
+    return res.status(200).send({
+      status: "success",
+      message: "Consumibles con stock bajo obtenidos correctamente",
+      data,
+    });
+  } catch (error: any) {
+    return res.status(500).send({
+      status: "error",
+      message: `Error al obtener consumibles con stock bajo: ${error.message}`,
+    });
+  }
+};

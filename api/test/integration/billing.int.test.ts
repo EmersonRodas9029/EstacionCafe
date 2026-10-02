@@ -87,7 +87,7 @@ beforeEach(async () => {
   milk = await ds.getRepository(Consumable).save({
     name: "Leche",
     supplierId: supplier.supplierId,
-    cosumableTypeId: consumableType.consumableTypeId,
+    consumableTypeId: consumableType.consumableTypeId,
     quantity: 1,
     unitMeasurement: UnitMeasurement.LITER,
     cost: 1,

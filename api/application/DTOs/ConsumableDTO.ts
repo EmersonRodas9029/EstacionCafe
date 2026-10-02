@@ -3,20 +3,23 @@ import { UnitMeasurement } from "../../core/enums/UnitMeasurement";
 export interface SaveConsumableDTO {
   supplierId: number;
   name: string;
-  cosumableTypeId: number;
+  consumableTypeId: number;
   quantity: number;
   unitMeasurement: UnitMeasurement;
   cost: number;
+  minStock?: number;
 }
 
 export interface ConsumableItemDTO {
   consumableId: number;
   name: string;
   supplierId: number;
-  cosumableTypeId: number;
+  consumableTypeId: number;
   quantity: number;
   unitMeasurement: UnitMeasurement;
   cost: number;
+  minStock: number;
+  lowStock: boolean;
   supplier?: {
     supplierId: number;
     name: string;
@@ -32,12 +35,14 @@ export interface ConsumableItemDTO {
 
 export interface UpdateConsumableDTO {
   consumableId?: number;
-  supplier?: number;
+  supplierId?: number;
   name?: string;
-  TypeId?: number;
+  consumableTypeId?: number;
   quantity?: number;
   unitMeasurement?: UnitMeasurement;
   cost?: number;
+  minStock?: number;
+  active?: boolean;
 }
 
 export interface SaveConsumableTypeDTO {

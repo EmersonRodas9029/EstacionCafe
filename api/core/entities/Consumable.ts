@@ -20,7 +20,7 @@ export class Consumable {
   @Column()
   name: string = "";
   @Column({ name: "consumable_type_id" })
-  cosumableTypeId: number = 0;
+  consumableTypeId: number = 0;
 
   @ManyToOne(() => ConsumableType, (type: ConsumableType) => type)
   @JoinColumn({ name: "consumable_type_id" })
@@ -29,8 +29,19 @@ export class Consumable {
   quantity: number = 0;
   @Column({ name: "unitMeasurement", type: "varchar", length: 20 })
   unitMeasurement!: UnitMeasurement;
-  @Column("numeric", { precision: 10, scale: 2 })
+  @Column("numeric", {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
   cost: number = 0;
+
+  /** Umbral de alerta: stock bajo cuando quantity <= minStock. */
+  @Column("float", { name: "min_stock", default: 0 })
+  minStock: number = 0;
 
   @Column({default:true})
   active!:boolean;

@@ -62,7 +62,7 @@ describe("ConsumableController", () => {
       const datosConsumible = {
         supplierId: 1,
         name: "Azúcar",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         quantity: 100,
         unitMeasurement: UnitMeasurement.KILOGRAM,
         cost: 25.5,
@@ -90,7 +90,7 @@ describe("ConsumableController", () => {
       const datosInvalidos = {
         supplierId: -1,
         name: "Azúcar",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         quantity: 100,
         unitMeasurement: UnitMeasurement.KILOGRAM,
         cost: 25.5,
@@ -129,7 +129,7 @@ describe("ConsumableController", () => {
       const datosInvalidos = {
         supplierId: 1,
         name: "",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         quantity: 100,
         unitMeasurement: UnitMeasurement.KILOGRAM,
         cost: 25.5,
@@ -167,7 +167,7 @@ describe("ConsumableController", () => {
       const datosInvalidos = {
         supplierId: 1,
         name: "Azúcar",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         quantity: -10,
         unitMeasurement: UnitMeasurement.KILOGRAM,
         cost: 25.5,
@@ -205,7 +205,7 @@ describe("ConsumableController", () => {
       const datosInvalidos = {
         supplierId: 1,
         name: "Azúcar",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         quantity: 100,
         unitMeasurement: UnitMeasurement.KILOGRAM,
         cost: -5.5,
@@ -243,7 +243,7 @@ describe("ConsumableController", () => {
       const datosInvalidos = {
         supplierId: 1,
         name: "Azúcar",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         quantity: 100,
         unitMeasurement: "invalid_unit" as any,
         cost: 25.5,
@@ -281,7 +281,7 @@ describe("ConsumableController", () => {
       const datosConsumible = {
         supplierId: 1,
         name: "Azúcar",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         quantity: 100,
         unitMeasurement: UnitMeasurement.KILOGRAM,
         cost: 25.5,
@@ -311,7 +311,7 @@ describe("ConsumableController", () => {
       const datosConsumible = {
         supplierId: 1,
         name: "Azúcar",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         quantity: 100,
         unitMeasurement: UnitMeasurement.KILOGRAM,
         cost: 25.5,
@@ -339,7 +339,7 @@ describe("ConsumableController", () => {
           consumableId: 1,
           supplierId: 1,
           name: "Azúcar",
-          cosumableTypeId: 1,
+          consumableTypeId: 1,
           quantity: 100,
           unitMeasurement: UnitMeasurement.KILOGRAM,
           cost: 25.5,
@@ -348,7 +348,7 @@ describe("ConsumableController", () => {
           consumableId: 2,
           supplierId: 2,
           name: "Café",
-          cosumableTypeId: 2,
+          consumableTypeId: 2,
           quantity: 50,
           unitMeasurement: UnitMeasurement.KILOGRAM,
           cost: 150.0,
@@ -528,7 +528,7 @@ describe("ConsumableController", () => {
         const datosConsumible = {
           supplierId: 1,
           name: `Ingrediente con ${unidad}`,
-          cosumableTypeId: 1,
+          consumableTypeId: 1,
           quantity: 50,
           unitMeasurement: unidad,
           cost: 10.99,

@@ -34,7 +34,7 @@ describe("ConsumableService", () => {
       const saveConsumableDTO: SaveConsumableDTO = {
         supplierId: 1,
         name: "Café Molido",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         cost: 15.50,
         quantity: 100,
         unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -44,7 +44,7 @@ describe("ConsumableService", () => {
       expectedConsumable.consumableId = 1;
       expectedConsumable.supplierId = saveConsumableDTO.supplierId;
       expectedConsumable.name = saveConsumableDTO.name;
-      expectedConsumable.cosumableTypeId = saveConsumableDTO.cosumableTypeId;
+      expectedConsumable.consumableTypeId = saveConsumableDTO.consumableTypeId;
       expectedConsumable.cost = saveConsumableDTO.cost;
       expectedConsumable.quantity = saveConsumableDTO.quantity;
       expectedConsumable.unitMeasurement = saveConsumableDTO.unitMeasurement;
@@ -57,7 +57,7 @@ describe("ConsumableService", () => {
       expect(mockRepository.save).toHaveBeenCalledWith(expect.objectContaining({
         supplierId: saveConsumableDTO.supplierId,
         name: saveConsumableDTO.name,
-        cosumableTypeId: saveConsumableDTO.cosumableTypeId,
+        consumableTypeId: saveConsumableDTO.consumableTypeId,
         cost: saveConsumableDTO.cost,
         quantity: saveConsumableDTO.quantity,
         unitMeasurement: saveConsumableDTO.unitMeasurement,
@@ -69,7 +69,7 @@ describe("ConsumableService", () => {
       const saveConsumableDTO: SaveConsumableDTO = {
         supplierId: 1,
         name: "Café Molido",
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         cost: 15.50,
         quantity: 100,
         unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -89,7 +89,7 @@ describe("ConsumableService", () => {
         {
           supplierId: 1,
           name: "Café Molido",
-          cosumableTypeId: 1,
+          consumableTypeId: 1,
           cost: 15.50,
           quantity: 100,
           unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -97,7 +97,7 @@ describe("ConsumableService", () => {
         {
           supplierId: 2,
           name: "Leche",
-          cosumableTypeId: 2,
+          consumableTypeId: 2,
           cost: 2.75,
           quantity: 50,
           unitMeasurement: UnitMeasurement.LITER,
@@ -109,7 +109,7 @@ describe("ConsumableService", () => {
         consumable.consumableId = index + 1;
         consumable.supplierId = dto.supplierId;
         consumable.name = dto.name;
-        consumable.cosumableTypeId = dto.cosumableTypeId;
+        consumable.consumableTypeId = dto.consumableTypeId;
         consumable.cost = dto.cost;
         consumable.quantity = dto.quantity;
         consumable.unitMeasurement = dto.unitMeasurement;
@@ -125,12 +125,12 @@ describe("ConsumableService", () => {
         expect.objectContaining({
           supplierId: saveConsumableDTOs[0].supplierId,
           name: saveConsumableDTOs[0].name,
-          cosumableTypeId: saveConsumableDTOs[0].cosumableTypeId,
+          consumableTypeId: saveConsumableDTOs[0].consumableTypeId,
         }),
         expect.objectContaining({
           supplierId: saveConsumableDTOs[1].supplierId,
           name: saveConsumableDTOs[1].name,
-          cosumableTypeId: saveConsumableDTOs[1].cosumableTypeId,
+          consumableTypeId: saveConsumableDTOs[1].consumableTypeId,
         }),
       ]));
       expect(result).toEqual(expectedConsumables);
@@ -153,7 +153,7 @@ describe("ConsumableService", () => {
         {
           supplierId: 1,
           name: "Café Molido",
-          cosumableTypeId: 1,
+          consumableTypeId: 1,
           cost: 15.50,
           quantity: 100,
           unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -174,7 +174,7 @@ describe("ConsumableService", () => {
       expectedConsumable.consumableId = consumableId;
       expectedConsumable.name = "Café Molido";
       expectedConsumable.supplierId = 1;
-      expectedConsumable.cosumableTypeId = 1;
+      expectedConsumable.consumableTypeId = 1;
       expectedConsumable.cost = 15.50;
       expectedConsumable.quantity = 100;
       expectedConsumable.unitMeasurement = UnitMeasurement.KILOGRAM;
@@ -217,7 +217,7 @@ describe("ConsumableService", () => {
           consumableId: 1,
           name: "Café Molido",
           supplierId: 1,
-          cosumableTypeId: 1,
+          consumableTypeId: 1,
           cost: 15.50,
           quantity: 100,
           unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -229,7 +229,7 @@ describe("ConsumableService", () => {
           consumableId: 2,
           name: "Leche",
           supplierId: 2,
-          cosumableTypeId: 2,
+          consumableTypeId: 2,
           cost: 2.75,
           quantity: 50,
           unitMeasurement: UnitMeasurement.LITER,
@@ -252,7 +252,7 @@ describe("ConsumableService", () => {
         consumableId: 1,
         name: "Café Molido",
         supplierId: 1,
-        cosumableTypeId: 1,
+        consumableTypeId: 1,
         cost: 15.50,
         quantity: 100,
         unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -292,7 +292,7 @@ describe("ConsumableService", () => {
       existingConsumable.consumableId = 1;
       existingConsumable.name = "Café Molido";
       existingConsumable.supplierId = 1;
-      existingConsumable.cosumableTypeId = 1;
+      existingConsumable.consumableTypeId = 1;
       existingConsumable.cost = 15.50;
       existingConsumable.quantity = 100;
       existingConsumable.unitMeasurement = UnitMeasurement.KILOGRAM;
@@ -322,8 +322,8 @@ describe("ConsumableService", () => {
     it("should update only specified fields", async () => {
       const updateConsumableDTO: UpdateConsumableDTO = {
         consumableId: 1,
-        supplier: 2,
-        TypeId: 3,
+        supplierId: 2,
+        consumableTypeId: 3,
         unitMeasurement: UnitMeasurement.GRAM,
       };
 
@@ -331,14 +331,14 @@ describe("ConsumableService", () => {
       existingConsumable.consumableId = 1;
       existingConsumable.name = "Café Molido";
       existingConsumable.supplierId = 1;
-      existingConsumable.cosumableTypeId = 1;
+      existingConsumable.consumableTypeId = 1;
       existingConsumable.cost = 15.50;
       existingConsumable.quantity = 100;
       existingConsumable.unitMeasurement = UnitMeasurement.KILOGRAM;
 
       const updatedConsumable = { ...existingConsumable };
       updatedConsumable.supplierId = 2;
-      updatedConsumable.cosumableTypeId = 3;
+      updatedConsumable.consumableTypeId = 3;
       updatedConsumable.unitMeasurement = UnitMeasurement.GRAM;
 
       mockRepository.findOne.mockResolvedValue(existingConsumable);
@@ -347,7 +347,7 @@ describe("ConsumableService", () => {
       const result = await consumableService.update(updateConsumableDTO);
 
       expect(result.supplierId).toBe(2);
-      expect(result.cosumableTypeId).toBe(3);
+      expect(result.consumableTypeId).toBe(3);
       expect(result.unitMeasurement).toBe(UnitMeasurement.GRAM);
       expect(result.name).toBe("Café Molido"); // Should remain unchanged
     });
@@ -449,7 +449,7 @@ describe("ConsumableService", () => {
           consumableId: 1,
           name: "Café Molido",
           supplierId: supplierId,
-          cosumableTypeId: 1,
+          consumableTypeId: 1,
           cost: 15.50,
           quantity: 100,
           unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -458,7 +458,7 @@ describe("ConsumableService", () => {
           consumableId: 3,
           name: "Azúcar",
           supplierId: supplierId,
-          cosumableTypeId: 2,
+          consumableTypeId: 2,
           cost: 3.25,
           quantity: 50,
           unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -508,7 +508,7 @@ describe("ConsumableService", () => {
           consumableId: 1,
           name: "Café Molido",
           supplierId: 1,
-          cosumableTypeId: consumableTypeId,
+          consumableTypeId: consumableTypeId,
           cost: 15.50,
           quantity: 100,
           unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -517,7 +517,7 @@ describe("ConsumableService", () => {
           consumableId: 2,
           name: "Café en Grano",
           supplierId: 2,
-          cosumableTypeId: consumableTypeId,
+          consumableTypeId: consumableTypeId,
           cost: 20.00,
           quantity: 75,
           unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -529,7 +529,7 @@ describe("ConsumableService", () => {
       const result = await consumableService.getByConsumableType(consumableTypeId);
 
       expect(mockRepository.find).toHaveBeenCalledWith({
-        where: { cosumableTypeId: consumableTypeId },
+        where: { consumableTypeId: consumableTypeId },
         relations: ["consumableType", "supplier"],
         order: { name: "ASC" },
       });
@@ -544,7 +544,7 @@ describe("ConsumableService", () => {
 
       expect(result).toEqual([]);
       expect(mockRepository.find).toHaveBeenCalledWith({
-        where: { cosumableTypeId: consumableTypeId },
+        where: { consumableTypeId: consumableTypeId },
         relations: ["consumableType", "supplier"],
         order: { name: "ASC" },
       });
@@ -560,13 +560,13 @@ describe("ConsumableService", () => {
   });
 
   describe("getLowStockConsumables", () => {
-    it("should get low stock consumables with default threshold", async () => {
+    it("should get low stock consumables using minStock", async () => {
       const lowStockConsumables = [
         {
           consumableId: 1,
           name: "Café Molido",
           supplierId: 1,
-          cosumableTypeId: 1,
+          consumableTypeId: 1,
           cost: 15.50,
           quantity: 5,
           unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -575,7 +575,7 @@ describe("ConsumableService", () => {
           consumableId: 2,
           name: "Azúcar",
           supplierId: 2,
-          cosumableTypeId: 2,
+          consumableTypeId: 2,
           cost: 3.25,
           quantity: 8,
           unitMeasurement: UnitMeasurement.KILOGRAM,
@@ -585,6 +585,7 @@ describe("ConsumableService", () => {
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue(lowStockConsumables),
       };
@@ -596,44 +597,35 @@ describe("ConsumableService", () => {
       expect(mockRepository.createQueryBuilder).toHaveBeenCalledWith("consumable");
       expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith("consumable.consumableType", "consumableType");
       expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith("consumable.supplier", "supplier");
-      expect(mockQueryBuilder.where).toHaveBeenCalledWith("consumable.quantity <= :threshold", { threshold: 10 });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith("consumable.quantity <= consumable.min_stock");
       expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith("consumable.quantity", "ASC");
       expect(result).toEqual(lowStockConsumables);
     });
 
-    it("should get low stock consumables with custom threshold", async () => {
-      const customThreshold = 20;
-      const lowStockConsumables = [
-        {
-          consumableId: 1,
-          name: "Café Molido",
-          supplierId: 1,
-          cosumableTypeId: 1,
-          cost: 15.50,
-          quantity: 15,
-          unitMeasurement: UnitMeasurement.KILOGRAM,
-        },
-      ] as Consumable[];
-
+    it("should compare quantity against each consumable minStock", async () => {
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(lowStockConsumables),
+        getMany: jest.fn().mockResolvedValue([]),
       };
 
       mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
 
-      const result = await consumableService.getLowStockConsumables(customThreshold);
+      await consumableService.getLowStockConsumables();
 
-      expect(mockQueryBuilder.where).toHaveBeenCalledWith("consumable.quantity <= :threshold", { threshold: customThreshold });
-      expect(result).toEqual(lowStockConsumables);
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith("consumable.active = true");
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        "consumable.quantity <= consumable.min_stock",
+      );
     });
 
     it("should return empty array when no low stock consumables found", async () => {
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([]),
       };
@@ -651,6 +643,7 @@ describe("ConsumableService", () => {
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockRejectedValue(databaseError),
       };
