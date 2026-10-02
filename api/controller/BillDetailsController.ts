@@ -1,5 +1,10 @@
 import { IService } from "../core/interfaces/IService";
-import { BillDetailsSchema } from "../application/validations/BillDetailsValidations";
+import { AppError, sendAppError } from "../application/errors/AppError";
+import {
+  BillDetailsSchema,
+  billDetailIdSchema,
+  updateBillDetailSchema,
+} from "../application/validations/BillDetailsValidations";
 import { BillDetailResponse } from "../application/DTOs/BillsDTO";
 
 let service: IService;
@@ -24,6 +29,7 @@ export const saveDetails = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -81,6 +87,7 @@ export const getDetails = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     console.log(error);
 
     return res.status(500).send({
@@ -110,6 +117,7 @@ export const deleteDetail = async (req: any, res: any) => {
       message: "Detalle eliminado correctamente",
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.message.includes("no encontrado")) {
       return res.status(404).send({
         status: "error",
@@ -137,38 +145,59 @@ export const getDetailsByBillId = async (req: any, res: any) => {
     }
 
     const details = await service.getById(parsedBillId);
-    if (!details || details.length === 0) {
-      return res.status(404).send({
-        status: "error",
-        message: `No se encontraron detalles para la factura con ID ${parsedBillId}`,
-      });
-    }
 
-    let data: BillDetailResponse[] = details;
-    data = data.map((i: any) => {
-      return {
-        productId: i.productId,
-        name: i.product.name,
-        quantity: i.quantity,
-        price: i.product.price,
-        subTotal: i.subTotal,
-      };
-    });
+    const data: BillDetailResponse[] = details.map((i: any) => ({
+      billDetailId: i.billDetailId,
+      productId: i.productId,
+      name: i.product?.name,
+      quantity: i.quantity,
+      price: i.unitPrice,
+      subTotal: i.subTotal,
+    }));
 
-    console.log(
-      `Detalles de la factura ${parsedBillId} obtenidos correctamente`,
-    );
     return res.status(200).send({
       status: "success",
       message: "Detalles obtenidos correctamente",
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     console.log(error);
     return res.status(500).send({
       status: "error",
       message: "Hubo un error en el servidor al obtener los detalles",
       errors: error.error || error,
+    });
+  }
+};
+
+export const updateDetail = async (req: any, res: any) => {
+  try {
+    const { id } = billDetailIdSchema.parse(req.params);
+    const { quantity } = updateBillDetailSchema.parse(req.body);
+
+    const result = await service.update({ billDetailId: id, quantity });
+    return res.status(200).send({
+      status: "success",
+      message: "Detalle actualizado correctamente",
+      data: result,
+    });
+  } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
+    if (error.name === "ZodError") {
+      return res.status(400).send({
+        status: "error",
+        message: "Datos inválidos: " + error.issues[0].message,
+        campo: error.issues[0].path,
+        error: error.issues[0].code,
+      });
+    }
+    if (error.message?.includes("no encontrado")) {
+      return res.status(404).send({ status: "error", message: error.message });
+    }
+    return res.status(500).send({
+      status: "error",
+      message: `Error interno del servidor: ${error.message}`,
     });
   }
 };

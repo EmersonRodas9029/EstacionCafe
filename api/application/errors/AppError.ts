@@ -27,3 +27,11 @@ export class AppError extends Error {
     return new AppError(409, message);
   }
 }
+
+/** Respuesta estándar para AppError dentro de los controladores. */
+export const sendAppError = (res: any, error: AppError) =>
+  res.status(error.statusCode).send({
+    status: "error",
+    message: error.message,
+    ...(error.type && { type: error.type }),
+  });

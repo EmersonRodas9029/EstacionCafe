@@ -21,7 +21,8 @@
     "migration:revert": "npm run typeorm -- migration:revert",
     "migration:generate": "npm run typeorm -- migration:generate",
     "seed:run": "ts-node --transpile-only infrastructure/db/seeders/runSeeder.ts",
-    "seed:revert": "ts-node --transpile-only infrastructure/db/seeders/runSeeder.ts revert"
+    "seed:revert": "ts-node --transpile-only infrastructure/db/seeders/runSeeder.ts revert",
+    "test:int": "jest -c jest.integration.config.js"
   },
   "author": "EstacionCafé",
   "license": "ISC",
@@ -51,6 +52,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.20.5",
     "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
     "@typescript-eslint/eslint-plugin": "^8.71.0",
     "@typescript-eslint/parser": "^8.71.0",

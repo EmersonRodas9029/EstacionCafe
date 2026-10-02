@@ -1,9 +1,12 @@
 import { IService } from "../core/interfaces/IService";
+import { AppError, sendAppError } from "../application/errors/AppError";
 import {
   createBillSchema,
   updateBillSchema,
   billIdSchema,
   tableIdSchema,
+  billFiltersSchema,
+  closeTableBillsSchema,
 } from "../application/validations/BillValidations";
 import { SaveBillDTO } from "../application/DTOs/BillsDTO";
 
@@ -24,15 +27,27 @@ const getService = () => {
 
 export const getBills = async (req: any, res: any) => {
   try {
-    const data = await service!.getAll();
-    console.log("Facturas obtenidas correctamente");
+    const { mine, ...filters } = billFiltersSchema.parse(req.query ?? {});
+    if (mine) filters.waiterId = req.user?.userId;
+
+    const { items, total } = await (getService() as any).find(filters);
 
     return res.status(200).send({
       status: "success",
       message: "Facturas obtenidas correctamente",
-      data: data,
+      data: items,
+      ...(filters.page && {
+        meta: { page: filters.page, limit: filters.limit ?? 20, total },
+      }),
     });
   } catch (error: any) {
+    if (error.name === "ZodError") {
+      return res.status(400).send({
+        status: "error",
+        message: "Filtros inválidos: " + error.issues[0].message,
+        campo: error.issues[0].path,
+      });
+    }
     return res.status(500).send({
       status: "error",
       message: `Error al obtener las facturas: ${error.message}`,
@@ -54,6 +69,7 @@ export const getBillById = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -77,8 +93,11 @@ export const getBillById = async (req: any, res: any) => {
 
 export const saveBill = async (req: any, res: any) => {
   try {
-    const billData: SaveBillDTO = req.body;
-    const result = await service!.save(createBillSchema.parse(billData));
+    const billData: SaveBillDTO = createBillSchema.parse(req.body);
+    const result = await service!.save({
+      ...billData,
+      waiterId: req.user.userId,
+    });
 
     console.log("Factura creada correctamente");
     return res.status(201).send({
@@ -87,6 +106,7 @@ export const saveBill = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -122,6 +142,7 @@ export const updateBill = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -157,6 +178,7 @@ export const deleteBill = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -202,6 +224,7 @@ export const getBillsByDateRange = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener las facturas por rango de fecha: ${error.message}`,
@@ -222,6 +245,7 @@ export const getBillsByCustomer = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener las facturas del cliente: ${error.message}`,
@@ -242,6 +266,7 @@ export const getBillsByTable = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener las facturas de la mesa: ${error.message}`,
@@ -252,9 +277,10 @@ export const getBillsByTable = async (req: any, res: any) => {
 export const closeBillsByTable = async (req: any, res: any) => {
   try {
     const { tableId } = tableIdSchema.parse(req.params);
+    const { cashRegisterId } = closeTableBillsSchema.parse(req.body ?? {});
 
     const billService = getService() as any;
-    const result = await billService.closeBillsByTable(tableId);
+    const result = await billService.closeBillsByTable(tableId, cashRegisterId);
 
     return res.status(200).send({
       status: "success",
@@ -262,6 +288,7 @@ export const closeBillsByTable = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",

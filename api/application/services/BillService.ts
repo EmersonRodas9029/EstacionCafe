@@ -1,90 +1,166 @@
-import { Repository, In } from "typeorm";
+import { EntityManager, In, Repository } from "typeorm";
 import { IService } from "../../core/interfaces/IService";
 import { Bill } from "../../core/entities/Bill";
-import { SaveBillDTO, UpdateBillDTO } from "../DTOs/BillsDTO";
+import { BillDetails } from "../../core/entities/BillDetails";
+import { Table, TableStatus } from "../../core/entities/Table";
+import { CashRegister } from "../../core/entities/CashRegister";
+import { BillFiltersDTO, SaveBillDTO, UpdateBillDTO } from "../DTOs/BillsDTO";
 import { Status } from "../../core/enums/Status";
+import { OrderType } from "../../core/enums/OrderType";
+import { AppError } from "../errors/AppError";
+import { adjustStockForProducts } from "./StockService";
+
+const ACTIVE_STATUSES = [Status.OPEN, Status.DRAFT];
+const BILL_RELATIONS = ["waiter", "table", "cashRegister"];
 
 export class BillService implements IService {
-  public constructor(private billRepository: Repository<Bill>) {
-    this.billRepository = billRepository;
+  public constructor(private billRepository: Repository<Bill>) {}
+
+  async saveAll(
+    body: (SaveBillDTO & { waiterId: number })[],
+  ): Promise<Bill[]> {
+    const saved: Bill[] = [];
+    for (const data of body) saved.push(await this.save(data));
+    return saved;
   }
 
-  async saveAll(body: SaveBillDTO[]): Promise<Bill[]> {
-    const bills = body.map((data) => {
-      const bill = new Bill();
-      bill.cashRegisterId = data.cashRegister;
-      bill.tableId = data.tableId;
-      if ((data as any).status) {
-        bill.status = (data as any).status;
+  async save(data: SaveBillDTO & { waiterId: number }): Promise<Bill> {
+    return this.billRepository.manager.transaction(async (manager) => {
+      if (data.orderType === OrderType.DINE_IN) {
+        await this.occupyTable(manager, data.tableId!);
       }
-      bill.total = data.total;
+      if (data.cashRegisterId) {
+        await this.ensureActiveCashRegister(manager, data.cashRegisterId);
+      }
+
+      const bill = new Bill();
+      bill.waiterId = data.waiterId;
       bill.customer = data.customer;
-      bill.date = data.date;
-      return bill;
+      bill.orderType = data.orderType;
+      bill.tableId = data.orderType === OrderType.DINE_IN ? data.tableId : null;
+      bill.cashRegisterId = data.cashRegisterId ?? null;
+      bill.status = data.status ?? Status.OPEN;
+      bill.total = 0;
+      bill.date = data.date ?? new Date();
+
+      return manager.save(bill);
     });
-    return await this.billRepository.save(bills);
   }
 
-  async save(body: SaveBillDTO): Promise<any> {
-    const data: SaveBillDTO = body;
-    const bill: Bill = new Bill();
-    bill.cashRegisterId = data.cashRegister;
-    bill.tableId = data.tableId;
-    if ((data as any).status) {
-      bill.status = (data as any).status;
-    }
-    bill.total = data.total;
-    bill.customer = data.customer;
-    bill.date = data.date;
-    console.log("Guardando factura...");
-    return await this.billRepository.save(bill);
-  }
-
+  /** Anula la factura. Si seguía activa, devuelve el stock consumido. */
   async delete(id: number): Promise<any> {
-    const result = await this.billRepository.delete(id);
-    if (result.affected === 0) {
-      throw new Error(`Factura con ID ${id} no encontrada`);
-    }
+    await this.billRepository.manager.transaction(async (manager) => {
+      const bill = await manager.findOne(Bill, { where: { billId: id } });
+      if (!bill) throw new Error(`Factura con ID ${id} no encontrada`);
+
+      const details = await manager.find(BillDetails, {
+        where: { billId: id },
+      });
+      if (ACTIVE_STATUSES.includes(bill.status) && details.length > 0) {
+        const deltas = new Map<number, number>();
+        for (const d of details) {
+          deltas.set(d.productId, (deltas.get(d.productId) ?? 0) - d.quantity);
+        }
+        await adjustStockForProducts(manager, deltas);
+      }
+
+      await manager.delete(BillDetails, { billId: id });
+      await manager.delete(Bill, { billId: id });
+      if (bill.tableId) await this.releaseTableIfFree(manager, bill.tableId);
+    });
     return { message: "Factura eliminada correctamente", id };
   }
-  async update(body: UpdateBillDTO): Promise<any> {
-    const { billId, ...updateData } = body;
 
-    if (!billId) {
-      throw new Error("billId es requerido para actualizar");
-    }
+  async update(body: UpdateBillDTO): Promise<Bill> {
+    const { billId, ...data } = body;
+    if (!billId) throw new Error("billId es requerido para actualizar");
 
-    const bill = await this.billRepository.findOne({
-      where: { billId },
+    return this.billRepository.manager.transaction(async (manager) => {
+      const bill = await manager.findOne(Bill, { where: { billId } });
+      if (!bill) throw new Error(`Factura con ID ${billId} no encontrada`);
+
+      const previousTable = bill.tableId ?? null;
+
+      if (data.tableId !== undefined && data.tableId !== bill.tableId) {
+        if (bill.orderType === OrderType.TAKEAWAY) {
+          throw AppError.badRequest("Una orden para llevar no lleva mesa");
+        }
+        await this.occupyTable(manager, data.tableId);
+        bill.tableId = data.tableId;
+      }
+
+      if (data.cashRegisterId !== undefined) {
+        await this.ensureActiveCashRegister(manager, data.cashRegisterId);
+        bill.cashRegisterId = data.cashRegisterId;
+      }
+
+      if (data.status === Status.CLOSED && !bill.cashRegisterId) {
+        throw AppError.badRequest(
+          "Se requiere cashRegisterId para cerrar la cuenta",
+        );
+      }
+
+      if (data.customer !== undefined) bill.customer = data.customer;
+      if (data.status !== undefined) bill.status = data.status;
+      if (data.date !== undefined) bill.date = data.date;
+      if (data.total !== undefined) bill.total = data.total;
+
+      const saved = await manager.save(bill);
+
+      if (previousTable && previousTable !== saved.tableId) {
+        await this.releaseTableIfFree(manager, previousTable);
+      }
+      if (saved.tableId && !ACTIVE_STATUSES.includes(saved.status)) {
+        await this.releaseTableIfFree(manager, saved.tableId);
+      }
+      return saved;
     });
+  }
 
-    console.log(bill);
+  async getAll(): Promise<Bill[]> {
+    return this.billRepository.find({
+      relations: BILL_RELATIONS,
+      order: { date: "DESC" },
+    });
+  }
 
-    if (!bill) {
-      throw new Error(`Factura con ID ${billId} no encontrada`);
+  /** Listado filtrado; con page/limit pagina y devuelve el total. */
+  async find(
+    filters: BillFiltersDTO,
+  ): Promise<{ items: Bill[]; total: number }> {
+    const qb = this.billRepository
+      .createQueryBuilder("bill")
+      .leftJoinAndSelect("bill.waiter", "waiter")
+      .leftJoinAndSelect("bill.table", "table")
+      .leftJoinAndSelect("bill.cashRegister", "cashRegister")
+      .orderBy("bill.date", "DESC");
+
+    if (filters.status)
+      qb.andWhere("bill.status = :status", { status: filters.status });
+    if (filters.orderType)
+      qb.andWhere("bill.orderType = :orderType", {
+        orderType: filters.orderType,
+      });
+    if (filters.tableId)
+      qb.andWhere("bill.tableId = :tableId", { tableId: filters.tableId });
+    if (filters.waiterId)
+      qb.andWhere("bill.waiterId = :waiterId", { waiterId: filters.waiterId });
+    if (filters.from) qb.andWhere("bill.date >= :from", { from: filters.from });
+    if (filters.to) qb.andWhere("bill.date <= :to", { to: filters.to });
+
+    if (filters.page) {
+      const limit = filters.limit ?? 20;
+      qb.skip((filters.page - 1) * limit).take(limit);
     }
 
-    Object.assign(bill, updateData);
-    return await this.billRepository.save(bill);
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total };
   }
 
-  async getAll(): Promise<any[]> {
-    console.log(`Obteniendo facturas...`);
-    return this.billRepository
-      .find({
-        relations: ["cashRegister", "table"] as any,
-        order: { date: "DESC" },
-      })
-      .catch((error: any) => {
-        console.log(error);
-        throw error;
-      });
-  }
-
-  async getById(id: number): Promise<any> {
+  async getById(id: number): Promise<Bill> {
     const bill = await this.billRepository.findOne({
       where: { billId: id },
-      relations: ["cashRegister", "table"] as any,
+      relations: BILL_RELATIONS,
     });
     if (!bill) {
       throw new Error(`Factura con ID ${id} no encontrada`);
@@ -93,54 +169,81 @@ export class BillService implements IService {
   }
 
   async getByDateRange(startDate: Date, endDate: Date): Promise<Bill[]> {
-    return await this.billRepository
-      .createQueryBuilder("bill")
-      .leftJoinAndSelect("bill.cashRegister", "cashRegister")
-      .leftJoinAndSelect("bill.table", "table")
-      .where("bill.date >= :startDate", { startDate })
-      .andWhere("bill.date <= :endDate", { endDate })
-      .orderBy("bill.date", "DESC")
-      .getMany();
+    return (await this.find({ from: startDate, to: endDate })).items;
   }
 
   async getBillsByCustomer(customer: string): Promise<Bill[]> {
-    return await this.billRepository.find({
+    return this.billRepository.find({
       where: { customer },
-      relations: ["cashRegister", "table"] as any,
+      relations: BILL_RELATIONS,
       order: { date: "DESC" },
     });
   }
 
   async getBillsByTable(tableId: string): Promise<Bill[]> {
-    return await this.billRepository.find({
+    return this.billRepository.find({
       where: { tableId },
-      relations: ["cashRegister", "table"] as any,
+      relations: BILL_RELATIONS,
       order: { date: "DESC" },
     });
   }
 
-  /**
-   * Cierra (marca como CLOSED) todas las facturas con status OPEN o DRAFT que pertenezcan a la mesa indicada.
-   * Usa `save` para que los subscribers de TypeORM se disparen correctamente.
-   */
-  async closeBillsByTable(tableId: string): Promise<{ updated: number }> {
-    const openBills = await this.billRepository.find({
-      where: {
-        tableId,
-        status: In([Status.OPEN, Status.DRAFT]),
-      },
+  /** Cobra todas las cuentas activas de la mesa en la caja indicada y libera la mesa. */
+  async closeBillsByTable(
+    tableId: string,
+    cashRegisterId: number,
+  ): Promise<{ updated: number }> {
+    return this.billRepository.manager.transaction(async (manager) => {
+      await this.ensureActiveCashRegister(manager, cashRegisterId);
+
+      const openBills = await manager.find(Bill, {
+        where: { tableId, status: In(ACTIVE_STATUSES) },
+      });
+
+      for (const bill of openBills) {
+        bill.status = Status.CLOSED;
+        bill.cashRegisterId = cashRegisterId;
+      }
+      if (openBills.length > 0) await manager.save(openBills);
+
+      await this.releaseTableIfFree(manager, tableId);
+      return { updated: openBills.length };
     });
+  }
 
-    if (!openBills || openBills.length === 0) {
-      return { updated: 0 };
+  private async occupyTable(manager: EntityManager, tableId: string) {
+    const table = await manager.findOne(Table, { where: { tableId } });
+    if (!table) throw AppError.badRequest(`Mesa ${tableId} no encontrada`);
+    if (table.status !== TableStatus.OCUPADA) {
+      table.status = TableStatus.OCUPADA;
+      await manager.save(table);
     }
+  }
 
-    for (const b of openBills) {
-      b.status = Status.CLOSED;
+  private async releaseTableIfFree(manager: EntityManager, tableId: string) {
+    const stillActive = await manager.count(Bill, {
+      where: { tableId, status: In(ACTIVE_STATUSES) },
+    });
+    if (stillActive > 0) return;
+
+    const table = await manager.findOne(Table, { where: { tableId } });
+    if (table && table.status === TableStatus.OCUPADA) {
+      table.status = TableStatus.DISPONIBLE;
+      await manager.save(table);
     }
+  }
 
-    const saved = await this.billRepository.save(openBills);
-
-    return { updated: Array.isArray(saved) ? saved.length : 1 };
+  private async ensureActiveCashRegister(
+    manager: EntityManager,
+    cashRegisterId: number,
+  ) {
+    const register = await manager.findOne(CashRegister, {
+      where: { cashRegisterId },
+    });
+    if (!register || !register.active) {
+      throw AppError.badRequest(
+        `Caja registradora ${cashRegisterId} no existe o está inactiva`,
+      );
+    }
   }
 }

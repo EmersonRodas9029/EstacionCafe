@@ -18,6 +18,18 @@ export class BillDetails {
   productId: number = 0;
   @Column("integer")
   quantity: number = 0;
+  /** Precio unitario al momento de la venta (no cambia si luego cambia el producto). */
+  @Column("decimal", {
+    name: "unit_price",
+    precision: 10,
+    scale: 2,
+    default: 0,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
+  unitPrice: number = 0;
   @Column("decimal", {
     name: "sub_total",
     precision: 10,

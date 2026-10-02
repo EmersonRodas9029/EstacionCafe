@@ -1,4 +1,5 @@
 import { IService } from "../core/interfaces/IService";
+import { AppError, sendAppError } from "../application/errors/AppError";
 import {
   createPurchaseSchema,
   updatePurchaseSchema,
@@ -32,6 +33,7 @@ export const getPurchases = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener las compras: ${error.message}`,
@@ -51,6 +53,7 @@ export const getPurchaseById = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -86,6 +89,7 @@ export const createPurchase = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -118,6 +122,7 @@ export const updatePurchase = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -152,6 +157,7 @@ export const deletePurchase = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -186,6 +192,7 @@ export const getPurchasesBySupplier = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener las compras del proveedor: ${error.message}`,
@@ -216,6 +223,7 @@ export const getPurchasesByDateRange = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener las compras por rango de fecha: ${error.message}`,

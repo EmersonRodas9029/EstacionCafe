@@ -3,12 +3,15 @@ import {
   getDetails,
   deleteDetail,
   getDetailsByBillId,
+  updateDetail,
   setService,
 } from "../BillDetailsController";
+import { AppError } from "../../application/errors/AppError";
 import { IService } from "../../core/interfaces/IService";
 
 // Mock del esquema de validación
 jest.mock("../../application/validations/BillDetailsValidations", () => ({
+  ...jest.requireActual("../../application/validations/BillDetailsValidations"),
   BillDetailsSchema: {
     parse: jest.fn((data) => data),
   },
@@ -276,14 +279,16 @@ describe("BillDetailsController", () => {
           billId: 1,
           productId: 1,
           quantity: 2,
+          unitPrice: 30,
           subTotal: 60.0,
-          product: { productId: 1, name: "Café Americano", price: 30 },
+          product: { productId: 1, name: "Café Americano", price: 32 },
         },
         {
           billDetailId: 2,
           billId: 1,
           productId: 2,
           quantity: 1,
+          unitPrice: 45,
           subTotal: 45.0,
           product: { productId: 2, name: "Capuccino", price: 45 },
         },
@@ -299,6 +304,7 @@ describe("BillDetailsController", () => {
         message: "Detalles obtenidos correctamente",
         data: [
           {
+            billDetailId: 1,
             productId: 1,
             name: "Café Americano",
             quantity: 2,
@@ -306,6 +312,7 @@ describe("BillDetailsController", () => {
             subTotal: 60,
           },
           {
+            billDetailId: 2,
             productId: 2,
             name: "Capuccino",
             quantity: 1,
@@ -329,31 +336,18 @@ describe("BillDetailsController", () => {
       expect(mockService.getById).not.toHaveBeenCalled();
     });
 
-    it("should return error 404 when no details are found", async () => {
+    it("should return an empty list when the bill has no details", async () => {
       mockReq.params = { billId: "999" };
       mockService.getById.mockResolvedValue([]);
 
       await getDetailsByBillId(mockReq, mockRes);
 
       expect(mockService.getById).toHaveBeenCalledWith(999);
-      expect(mockRes.status).toHaveBeenCalledWith(404);
+      expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "No se encontraron detalles para la factura con ID 999",
-      });
-    });
-
-    it("should return error 404 when details is null", async () => {
-      mockReq.params = { billId: "10" };
-      mockService.getById.mockResolvedValue(null);
-
-      await getDetailsByBillId(mockReq, mockRes);
-
-      expect(mockService.getById).toHaveBeenCalledWith(10);
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "No se encontraron detalles para la factura con ID 10",
+        status: "success",
+        message: "Detalles obtenidos correctamente",
+        data: [],
       });
     });
 
@@ -504,6 +498,59 @@ describe("BillDetailsController", () => {
         campo: ["billId"],
         error: "invalid_type",
       });
+    });
+  });
+
+  describe("updateDetail", () => {
+    it("should update the quantity of a line", async () => {
+      mockReq.params = { id: "5" };
+      mockReq.body = { quantity: 3 };
+      mockService.update.mockResolvedValue({ billDetailId: 5, quantity: 3 });
+
+      await updateDetail(mockReq, mockRes);
+
+      expect(mockService.update).toHaveBeenCalledWith({
+        billDetailId: 5,
+        quantity: 3,
+      });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+    });
+
+    it("should reject a non positive quantity", async () => {
+      mockReq.params = { id: "5" };
+      mockReq.body = { quantity: 0 };
+
+      await updateDetail(mockReq, mockRes);
+
+      expect(mockService.update).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+    });
+
+    it("should return stock errors with type", async () => {
+      mockReq.params = { id: "5" };
+      mockReq.body = { quantity: 50 };
+      mockService.update.mockRejectedValue(
+        AppError.badRequest("Stock insuficiente para \"Leche\"", "stock_error"),
+      );
+
+      await updateDetail(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.send).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "stock_error" }),
+      );
+    });
+
+    it("should return 409 when the bill is closed", async () => {
+      mockReq.params = { id: "5" };
+      mockReq.body = { quantity: 2 };
+      mockService.update.mockRejectedValue(
+        AppError.conflict("La cuenta 1 está closed y no se puede modificar"),
+      );
+
+      await updateDetail(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(409);
     });
   });
 });

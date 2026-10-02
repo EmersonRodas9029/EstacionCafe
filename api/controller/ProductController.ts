@@ -1,4 +1,5 @@
 import { IService } from "../core/interfaces/IService";
+import { AppError, sendAppError } from "../application/errors/AppError";
 import {
   createProductSchema,
   updateProductSchema,
@@ -46,6 +47,7 @@ export const getProducts = async (req: any, res: any) => {
       data: productDTOs,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: "Error al obtener los productos: " + error.message,
@@ -67,6 +69,7 @@ export const getProductById = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -103,6 +106,7 @@ export const saveProduct = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -138,6 +142,7 @@ export const updateProduct = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -174,6 +179,7 @@ export const deleteProduct = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -208,6 +214,7 @@ export const getActiveProducts = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener los productos activos: ${error.message}`,

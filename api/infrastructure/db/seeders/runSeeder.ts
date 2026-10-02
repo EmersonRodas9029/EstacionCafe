@@ -16,6 +16,8 @@ import { UserType } from "../../../core/entities/UserType";
 import { Status } from "../../../core/enums/Status";
 import { UnitMeasurement } from "../../../core/enums/UnitMeasurement";
 import { Role } from "../../../core/enums/Role";
+import { OrderType } from "../../../core/enums/OrderType";
+import { CashRegister } from "../../../core/entities/CashRegister";
 
 const DEMO_CUSTOMER = "Cliente demo EstacionCafe";
 const DEMO_USERNAME = "admin.demo";
@@ -41,6 +43,12 @@ const seed = async () => {
     const purchaseRepository = AppDataSource.getRepository(Purchase);
     const billRepository = AppDataSource.getRepository(Bill);
     const billDetailsRepository = AppDataSource.getRepository(BillDetails);
+    const cashRegisterRepository = AppDataSource.getRepository(CashRegister);
+
+    const register = await findOrCreate<CashRegister>(cashRegisterRepository, { number: "001" }, {
+      number: "001",
+      active: true,
+    });
 
     const adminType = await findOrCreate<UserType>(userTypeRepository, { name: "Administrador" }, {
       name: "Administrador",
@@ -175,7 +183,7 @@ const seed = async () => {
 
     await findOrCreate<Purchase>(purchaseRepository, { total: 640 }, {
       date: new Date(),
-      cashRegister: user.userId,
+      cashRegister: register.cashRegisterId,
       supplierId: supplier.supplierId,
       total: 640,
     });
@@ -183,24 +191,28 @@ const seed = async () => {
     let bill = await billRepository.findOneBy({ customer: DEMO_CUSTOMER });
     if (!bill) {
       bill = await billRepository.save({
-        cashRegisterId: user.userId,
+        waiterId: user.userId,
+        cashRegisterId: register.cashRegisterId,
         tableId: "M1",
+        orderType: OrderType.DINE_IN,
         customer: DEMO_CUSTOMER,
         date: new Date(),
-        total: 6,
-        status: Status.FINISHED,
+        total: americano.price + latte.price,
+        status: Status.CLOSED,
       });
       await billDetailsRepository.save([
         {
           billId: bill.billId,
           productId: americano.productId,
           quantity: 1,
+          unitPrice: americano.price,
           subTotal: americano.price,
         },
         {
           billId: bill.billId,
           productId: latte.productId,
           quantity: 1,
+          unitPrice: latte.price,
           subTotal: latte.price,
         },
       ]);

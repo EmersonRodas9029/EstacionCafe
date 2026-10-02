@@ -1,4 +1,5 @@
 import { IService } from "../core/interfaces/IService";
+import { AppError, sendAppError } from "../application/errors/AppError";
 import {
   ConsumableSchema,
   createConsumableSchema,
@@ -35,6 +36,7 @@ export const getConsumables = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     console.error("Error al obtener los consumibles:", error);
     return res.status(500).send({
       status: "error",
@@ -57,6 +59,7 @@ export const getConsumableById = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -91,6 +94,7 @@ export const saveConsumable = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -126,6 +130,7 @@ export const updateConsumable = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -162,6 +167,7 @@ export const deleteConsumable = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -197,6 +203,7 @@ export const getConsumablesBySupplier = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener los consumibles del proveedor: ${error.message}`,

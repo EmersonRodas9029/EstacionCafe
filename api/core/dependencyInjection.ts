@@ -36,6 +36,7 @@ import { PurchaseService } from "../application/services/PurchaseService";
 import { TokenService } from "../infrastructure/security/TokenService";
 import { TableService } from "../application/services/TableService";
 import { ProductTypeService } from "../application/services/ProductTypeService";
+import { CashRegisterService } from "../application/services/CashRegisterService";
 
 //Entitys
 import { Bill } from "./entities/Bill";
@@ -50,6 +51,7 @@ import { Supplier } from "./entities/Supplier";
 import { Purchase } from "./entities/Purchase";
 import { Table } from "./entities/Table";
 import { ProductType } from "./entities/ProductType";
+import { CashRegister } from "./entities/CashRegister";
 export const initializeDependencies = async () => {
   const AppDataSource = getDataSource();
 
@@ -71,6 +73,7 @@ export const initializeDependencies = async () => {
     const purchaseRepository = AppDataSource.getRepository(Purchase);
     const tableRepository = AppDataSource.getRepository(Table);
     const productTypeRepository = AppDataSource.getRepository(ProductType);
+    const cashRegisterRepository = AppDataSource.getRepository(CashRegister);
 
     //Services
     const billService: IService = new BillService(billRepository);
@@ -98,6 +101,10 @@ export const initializeDependencies = async () => {
       productTypeRepository,
     );
 
+    const cashRegisterService: IService = new CashRegisterService(
+      cashRegisterRepository,
+    );
+
     //Set Services to Controllers
     setBillService(billService);
     setProductService(productService);
@@ -111,6 +118,7 @@ export const initializeDependencies = async () => {
     setPurchaseService(purchaseService);
     setTableService(tableService);
     setProductTypeService(productTypeService);
+    setCashRegisterService(cashRegisterService);
 
     // Inicializar middleware con el servicio de tokens
     initializeAuthMiddleware(tokenService);
@@ -124,4 +132,3 @@ export const initializeDependencies = async () => {
   }
 };
 
-module.exports = { initializeDependencies };

@@ -1,22 +1,12 @@
 import { Status } from "../../core/enums/Status";
+import { OrderType } from "../../core/enums/OrderType";
 
 export interface SaveBillDTO {
-  billId?: number;
   customer: string;
-  cashRegister: number;
   tableId?: string;
+  orderType: OrderType;
   status?: Status;
-  total: number;
-  date: Date;
-}
-
-export interface BillItemDTO {
-  billId: number;
-  customer: string;
-  cashRegisterId?: string;
-  tableId?: string;
-  total: number;
-  status: Status;
+  cashRegisterId?: number;
   date?: Date;
 }
 
@@ -30,29 +20,27 @@ export interface UpdateBillDTO {
   date?: Date;
 }
 
+export interface BillFiltersDTO {
+  status?: Status;
+  orderType?: OrderType;
+  tableId?: string;
+  waiterId?: number;
+  from?: Date;
+  to?: Date;
+  page?: number;
+  limit?: number;
+}
+
 export interface SaveBillDetailDTO {
   billId: number;
   billDetails: {
     productId: number;
-    name: string;
     quantity: number;
-    price: number;
-    subTotal: number;
-  }[];
-}
-
-export interface SaveBillDetailRequestDTO {
-  billId: number;
-  billDetails: {
-    productId: number;
-    name: string;
-    quantity: number;
-    price: number;
-    subTotal: number;
   }[];
 }
 
 export interface BillDetailResponse {
+  billDetailId: number;
   productId: number;
   name: string;
   quantity: number;

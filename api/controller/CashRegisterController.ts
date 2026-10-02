@@ -1,4 +1,5 @@
 import { IService } from "../core/interfaces/IService";
+import { AppError, sendAppError } from "../application/errors/AppError";
 import {
   createCashRegisterSchema,
   updateCashRegisterSchema,
@@ -32,6 +33,7 @@ export const getCashRegisters = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener las cajas registradoras: ${error.message}`,
@@ -53,6 +55,7 @@ export const getCashRegisterById = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -88,6 +91,7 @@ export const saveCashRegister = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -123,6 +127,7 @@ export const updateCashRegister = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -158,6 +163,7 @@ export const deleteCashRegister = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -192,6 +198,7 @@ export const getActiveCashRegisters = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener las cajas registradoras activas: ${error.message}`,
@@ -212,6 +219,7 @@ export const getCashRegisterByNumber = async (req: any, res: any) => {
       data: data,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     return res.status(500).send({
       status: "error",
       message: `Error al obtener la caja registradora por número: ${error.message}`,

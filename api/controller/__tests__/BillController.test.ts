@@ -1,34 +1,14 @@
 import * as billController from "../BillController";
-import { IService } from "../../core/interfaces/IService";
-import {
-  createBillSchema,
-  updateBillSchema,
-  billIdSchema,
-  tableIdSchema,
-} from "../../application/validations/BillValidations";
-
-jest.mock("../../application/validations/BillValidations", () => ({
-  createBillSchema: { parse: jest.fn() },
-  updateBillSchema: { parse: jest.fn() },
-  billIdSchema: { parse: jest.fn() },
-  tableIdSchema: { parse: jest.fn() },
-}));
-const mockedCreateBillSchema = createBillSchema as jest.Mocked<
-  typeof createBillSchema
->;
-const mockedUpdateBillSchema = updateBillSchema as jest.Mocked<
-  typeof updateBillSchema
->;
-const mockedBillIdSchema = billIdSchema as jest.Mocked<typeof billIdSchema>;
-const mockedTableIdSchema = tableIdSchema as jest.Mocked<typeof tableIdSchema>;
+import { AppError } from "../../application/errors/AppError";
+import { OrderType } from "../../core/enums/OrderType";
+import { Status } from "../../core/enums/Status";
 
 describe("BillController", () => {
-  let mockService: jest.Mocked<IService>;
+  let mockService: any;
   let mockReq: any;
   let mockRes: any;
 
   beforeEach(() => {
-    // Crear el mock del servicio
     mockService = {
       getAll: jest.fn(),
       getById: jest.fn(),
@@ -36,23 +16,20 @@ describe("BillController", () => {
       saveAll: jest.fn(),
       delete: jest.fn(),
       update: jest.fn(),
-    } as any;
-
-    // Añadir métodos específicos del BillService
-    (mockService as any).getByDateRange = jest.fn();
-    (mockService as any).getBillsByCustomer = jest.fn();
-    (mockService as any).getBillsByTable = jest.fn();
-    (mockService as any).closeBillsByTable = jest.fn();
-
-    // Establecer el servicio mock
+      find: jest.fn(),
+      getByDateRange: jest.fn(),
+      getBillsByCustomer: jest.fn(),
+      getBillsByTable: jest.fn(),
+      closeBillsByTable: jest.fn(),
+    };
     billController.setService(mockService);
 
     mockReq = {
       body: {},
       params: {},
       query: {},
+      user: { userId: 7, username: "mesero.demo", role: "mesero" },
     };
-
     mockRes = {
       status: jest.fn().mockReturnThis(),
       send: jest.fn().mockReturnThis(),
@@ -62,795 +39,302 @@ describe("BillController", () => {
     jest.spyOn(console, "error").mockImplementation();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe("getBills", () => {
-    it("deberia retornar las facturas exitosamente", async () => {
-      const facturasSimuladas = [
-        { billId: 1, customer: "Cliente 1", total: 100 },
-        { billId: 2, customer: "Cliente 2", total: 300 },
-      ];
-
-      mockService.getAll.mockResolvedValue(facturasSimuladas);
+    it("lista facturas sin paginación", async () => {
+      const items = [{ billId: 1 }, { billId: 2 }];
+      mockService.find.mockResolvedValue({ items, total: 2 });
 
       await billController.getBills(mockReq, mockRes);
 
-      expect(mockService.getAll).toHaveBeenCalledTimes(1);
+      expect(mockService.find).toHaveBeenCalledWith({});
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
         message: "Facturas obtenidas correctamente",
-        data: facturasSimuladas,
+        data: items,
       });
-      expect(console.log).toHaveBeenCalledWith(
-        "Facturas obtenidas correctamente",
-      );
     });
 
-    it("deberia manejar errores al obtener las facturas", async () => {
-      const mensajeError = "Error de conexión a la base de datos";
-      mockService.getAll.mockRejectedValue(new Error(mensajeError));
+    it("aplica filtros, mine=true y devuelve meta al paginar", async () => {
+      mockReq.query = {
+        status: "open",
+        orderType: "takeaway",
+        mine: "true",
+        page: "2",
+        limit: "10",
+      };
+      mockService.find.mockResolvedValue({ items: [], total: 15 });
 
       await billController.getBills(mockReq, mockRes);
 
-      expect(mockService.getAll).toHaveBeenCalledTimes(1);
+      expect(mockService.find).toHaveBeenCalledWith({
+        status: Status.OPEN,
+        orderType: OrderType.TAKEAWAY,
+        waiterId: 7,
+        page: 2,
+        limit: 10,
+      });
+      expect(mockRes.send).toHaveBeenCalledWith(
+        expect.objectContaining({ meta: { page: 2, limit: 10, total: 15 } }),
+      );
+    });
+
+    it("responde 400 con filtros inválidos", async () => {
+      mockReq.query = { status: "pagada" };
+
+      await billController.getBills(mockReq, mockRes);
+
+      expect(mockService.find).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+    });
+
+    it("responde 500 si falla el servicio", async () => {
+      mockService.find.mockRejectedValue(new Error("db caída"));
+
+      await billController.getBills(mockReq, mockRes);
+
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "error",
-        message: "Error al obtener las facturas: " + mensajeError,
+        message: "Error al obtener las facturas: db caída",
       });
-    });
-
-    it("debería retornar un array vacío cuando no hay facturas", async () => {
-      const facturasVacias: any[] = [];
-
-      mockService.getAll.mockResolvedValue(facturasVacias);
-
-      await billController.getBills(mockReq, mockRes);
-
-      expect(mockService.getAll).toHaveBeenCalledTimes(1);
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: "Facturas obtenidas correctamente",
-        data: [],
-      });
-      expect(console.log).toHaveBeenCalledWith(
-        "Facturas obtenidas correctamente",
-      );
     });
   });
 
   describe("getBillById", () => {
-    it("debería obtener una factura por ID exitosamente", async () => {
-      const factura = {
-        billId: 1,
-        customer: "Juan Pérez",
-        total: 250,
-        date: new Date(),
-      };
-
-      mockReq.params = { id: "1" };
-      mockedBillIdSchema.parse.mockReturnValue({ id: 1 });
-      mockService.getById.mockResolvedValue(factura);
+    it("devuelve la factura", async () => {
+      mockReq.params = { id: "3" };
+      mockService.getById.mockResolvedValue({ billId: 3 });
 
       await billController.getBillById(mockReq, mockRes);
 
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "1" });
-      expect(mockService.getById).toHaveBeenCalledWith(1);
+      expect(mockService.getById).toHaveBeenCalledWith(3);
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: "Factura obtenida correctamente",
-        data: factura,
-      });
-      expect(console.log).toHaveBeenCalledWith(
-        "Factura obtenida correctamente",
-      );
     });
 
-    it("debería manejar errores de validación ZodError para ID inválido", async () => {
-      const errorZod = {
-        name: "ZodError",
-        issues: [
-          {
-            message: "El ID debe ser un número positivo",
-            path: ["id"],
-            code: "custom",
-          },
-        ],
-      };
-
-      mockReq.params = { id: "invalid" };
-      mockedBillIdSchema.parse.mockImplementation(() => {
-        throw errorZod;
-      });
+    it("responde 400 con ID inválido", async () => {
+      mockReq.params = { id: "abc" };
 
       await billController.getBillById(mockReq, mockRes);
 
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "invalid" });
-      expect(mockService.getById).not.toHaveBeenCalled();
       expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "ID inválido: El ID debe ser un número positivo",
-      });
-      expect(console.log).not.toHaveBeenCalledWith(
-        "Factura obtenida correctamente",
+    });
+
+    it("responde 404 si no existe", async () => {
+      mockReq.params = { id: "99" };
+      mockService.getById.mockRejectedValue(
+        new Error("Factura con ID 99 no encontrada"),
       );
-    });
-
-    it("debería manejar error cuando la factura no existe", async () => {
-      const errorNoEncontrada = new Error("Factura no encontrada");
-
-      mockReq.params = { id: "999" };
-      mockedBillIdSchema.parse.mockReturnValue({ id: 999 });
-      mockService.getById.mockRejectedValue(errorNoEncontrada);
 
       await billController.getBillById(mockReq, mockRes);
 
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "999" });
-      expect(mockService.getById).toHaveBeenCalledWith(999);
       expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: errorNoEncontrada.message,
-      });
-    });
-
-    it("debería manejar errores generales del servidor", async () => {
-      const errorServidor = new Error("Error interno del servidor");
-
-      mockReq.params = { id: "1" };
-      mockedBillIdSchema.parse.mockReturnValue({ id: 1 });
-      mockService.getById.mockRejectedValue(errorServidor);
-
-      await billController.getBillById(mockReq, mockRes);
-
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "1" });
-      expect(mockService.getById).toHaveBeenCalledWith(1);
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: `Error al obtener la factura: ${errorServidor.message}`,
-      });
     });
   });
 
   describe("saveBill", () => {
-    it("deberia guardar la factura exitosamente", async () => {
-      const datosFactura = {
-        cashRegister: 1,
-        customer: "Juan Pérez",
-        total: 200,
-        date: new Date(),
-      };
-
-      const facturaGuardada = { billId: 1, ...datosFactura };
-
-      mockReq.body = datosFactura;
-      mockedCreateBillSchema.parse.mockReturnValue(datosFactura);
-      mockService.save.mockResolvedValue(facturaGuardada);
+    it("crea una cuenta en mesa con el mesero del token", async () => {
+      mockReq.body = { customer: "Cuenta 1", tableId: "M1" };
+      mockService.save.mockResolvedValue({ billId: 1 });
 
       await billController.saveBill(mockReq, mockRes);
 
-      expect(mockedCreateBillSchema.parse).toHaveBeenCalledWith(datosFactura);
-      expect(mockService.save).toHaveBeenCalledWith(datosFactura);
-      expect(mockRes.status).toHaveBeenCalledWith(201);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: "Factura creada correctamente",
-        data: facturaGuardada,
-      });
-      expect(console.log).toHaveBeenCalledWith("Factura creada correctamente");
-    });
-
-    it("debería manejar errores de validación ZodError", async () => {
-      const datosInvalidos = { customer: "" };
-      const errorZod = {
-        name: "ZodError",
-        issues: [
-          {
-            message: "El nombre del cliente es requerido",
-            path: ["customer"],
-            code: "invalid_type",
-          },
-        ],
-      };
-
-      mockReq.body = datosInvalidos;
-      mockedCreateBillSchema.parse.mockImplementation(() => {
-        throw errorZod;
-      });
-
-      await billController.saveBill(mockReq, mockRes);
-
-      expect(mockedCreateBillSchema.parse).toHaveBeenCalledWith(datosInvalidos);
-      expect(mockService.save).not.toHaveBeenCalled();
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "Datos inválidos: El nombre del cliente es requerido",
-        campo: ["customer"],
-        error: "invalid_type",
-      });
-    });
-
-    it("debería manejar errores generales del servidor", async () => {
-      const datosFactura = { customer: "Juan Pérez" };
-      const errorServidor = new Error("Error interno del servidor");
-
-      mockReq.body = datosFactura;
-      mockedCreateBillSchema.parse.mockReturnValue({
-        cashRegister: 1,
-        customer: datosFactura.customer,
-        total: 0,
-        date: new Date(),
-      });
-      mockService.save.mockRejectedValue(errorServidor);
-
-      await billController.saveBill(mockReq, mockRes);
-
-      expect(mockedCreateBillSchema.parse).toHaveBeenCalledWith(datosFactura);
       expect(mockService.save).toHaveBeenCalledWith({
-        cashRegister: 1,
-        customer: datosFactura.customer,
-        total: 0,
-        date: expect.any(Date),
+        customer: "Cuenta 1",
+        tableId: "M1",
+        orderType: OrderType.DINE_IN,
+        waiterId: 7,
       });
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "Error interno del servidor: Error interno del servidor",
-      });
-      expect(console.error).toHaveBeenCalledWith(
-        "Error al crear factura:",
-        errorServidor,
+      expect(mockRes.status).toHaveBeenCalledWith(201);
+    });
+
+    it("sin mesa deduce orden para llevar", async () => {
+      mockReq.body = { customer: "Ana" };
+      mockService.save.mockResolvedValue({ billId: 2 });
+
+      await billController.saveBill(mockReq, mockRes);
+
+      expect(mockService.save).toHaveBeenCalledWith(
+        expect.objectContaining({ orderType: OrderType.TAKEAWAY }),
       );
     });
 
-    it("debería manejar errores sin mensaje específico", async () => {
-      const datosFactura = { customer: "Juan Pérez" };
-      const errorSinMensaje = {};
-
-      mockReq.body = datosFactura;
-      mockedCreateBillSchema.parse.mockReturnValue({
-        cashRegister: 1,
-        customer: datosFactura.customer,
-        total: 0,
-        date: new Date(),
-      });
-      mockService.save.mockRejectedValue(errorSinMensaje);
+    it("rechaza dine_in sin mesa", async () => {
+      mockReq.body = { customer: "Ana", orderType: "dine_in" };
 
       await billController.saveBill(mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockService.save).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.send).toHaveBeenCalledWith(
+        expect.objectContaining({ campo: ["tableId"] }),
+      );
+    });
+
+    it("rechaza para llevar con mesa", async () => {
+      mockReq.body = { customer: "Ana", orderType: "takeaway", tableId: "M1" };
+
+      await billController.saveBill(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+    });
+
+    it("propaga AppError del servicio (mesa inexistente)", async () => {
+      mockReq.body = { customer: "Ana", tableId: "Z9" };
+      mockService.save.mockRejectedValue(
+        AppError.badRequest("Mesa Z9 no encontrada"),
+      );
+
+      await billController.saveBill(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "error",
-        message: "Error interno del servidor: undefined",
+        message: "Mesa Z9 no encontrada",
       });
     });
   });
 
   describe("updateBill", () => {
-    it("debería actualizar una factura exitosamente", async () => {
-      const datosActualizacion = {
-        customer: "Juan Pérez Actualizado",
-        total: 350,
-      };
-
-      const facturaActualizada = {
-        billId: 1,
-        customer: "Juan Pérez Actualizado",
-        total: 350,
-        date: new Date(),
-      };
-
+    it("actualiza estado y caja", async () => {
       mockReq.params = { id: "1" };
-      mockReq.body = datosActualizacion;
-      mockedBillIdSchema.parse.mockReturnValue({ id: 1 });
-      mockedUpdateBillSchema.parse.mockReturnValue(datosActualizacion);
-      mockService.update.mockResolvedValue(facturaActualizada);
+      mockReq.body = { status: "closed", cashRegisterId: 2 };
+      mockService.update.mockResolvedValue({ billId: 1, status: "closed" });
 
       await billController.updateBill(mockReq, mockRes);
 
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "1" });
-      expect(mockedUpdateBillSchema.parse).toHaveBeenCalledWith(
-        datosActualizacion,
-      );
       expect(mockService.update).toHaveBeenCalledWith({
         billId: 1,
-        ...datosActualizacion,
+        status: Status.CLOSED,
+        cashRegisterId: 2,
       });
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: "Factura actualizada correctamente",
-        data: facturaActualizada,
-      });
-      expect(console.log).toHaveBeenCalledWith(
-        "Factura actualizada correctamente",
-      );
     });
 
-    it("debería manejar errores de validación ZodError para ID inválido", async () => {
-      const errorZod = {
-        name: "ZodError",
-        issues: [
-          {
-            message: "El ID debe ser un número positivo",
-            path: ["id"],
-            code: "custom",
-          },
-        ],
-      };
-
-      mockReq.params = { id: "invalid" };
-      mockReq.body = { customer: "Test" };
-      mockedBillIdSchema.parse.mockImplementation(() => {
-        throw errorZod;
-      });
+    it("no permite modificar el total directamente", async () => {
+      mockReq.params = { id: "1" };
+      mockReq.body = { total: 5 };
 
       await billController.updateBill(mockReq, mockRes);
 
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "invalid" });
-      expect(mockedUpdateBillSchema.parse).not.toHaveBeenCalled();
       expect(mockService.update).not.toHaveBeenCalled();
       expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "Datos inválidos: El ID debe ser un número positivo",
-        campo: ["id"],
-      });
     });
 
-    it("debería manejar error cuando la factura no existe", async () => {
-      const errorNoEncontrada = new Error("Factura no encontrada");
-
-      mockReq.params = { id: "999" };
-      mockReq.body = { customer: "Test" };
-      mockedBillIdSchema.parse.mockReturnValue({ id: 999 });
-      mockedUpdateBillSchema.parse.mockReturnValue({ customer: "Test" });
-      mockService.update.mockRejectedValue(errorNoEncontrada);
-
-      await billController.updateBill(mockReq, mockRes);
-
-      expect(mockService.update).toHaveBeenCalledWith({
-        billId: 999,
-        customer: "Test",
-      });
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: errorNoEncontrada.message,
-      });
-    });
-
-    it("debería manejar errores generales del servidor", async () => {
-      const errorServidor = new Error("Error interno del servidor");
-
+    it("responde 400 si se cierra sin caja", async () => {
       mockReq.params = { id: "1" };
-      mockReq.body = { customer: "Test" };
-      mockedBillIdSchema.parse.mockReturnValue({ id: 1 });
-      mockedUpdateBillSchema.parse.mockReturnValue({ customer: "Test" });
-      mockService.update.mockRejectedValue(errorServidor);
+      mockReq.body = { status: "closed" };
+      mockService.update.mockRejectedValue(
+        AppError.badRequest("Se requiere cashRegisterId para cerrar la cuenta"),
+      );
 
       await billController.updateBill(mockReq, mockRes);
 
-      expect(mockService.update).toHaveBeenCalledWith({
-        billId: 1,
-        customer: "Test",
-      });
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: `Error interno del servidor: ${errorServidor.message}`,
-      });
-      expect(console.error).toHaveBeenCalledWith(
-        "Error al actualizar factura:",
-        errorServidor,
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+    });
+
+    it("responde 404 si no existe", async () => {
+      mockReq.params = { id: "9" };
+      mockReq.body = { customer: "X" };
+      mockService.update.mockRejectedValue(
+        new Error("Factura con ID 9 no encontrada"),
       );
+
+      await billController.updateBill(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(404);
     });
   });
 
   describe("deleteBill", () => {
-    it("debería eliminar una factura exitosamente", async () => {
-      const facturaEliminada = {
-        billId: 1,
-        customer: "Juan Pérez",
-        total: 200,
-      };
-
-      mockReq.params = { id: "1" };
-      mockedBillIdSchema.parse.mockReturnValue({ id: 1 });
-      mockService.delete.mockResolvedValue(facturaEliminada);
+    it("elimina la factura", async () => {
+      mockReq.params = { id: "4" };
+      mockService.delete.mockResolvedValue({ id: 4 });
 
       await billController.deleteBill(mockReq, mockRes);
 
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "1" });
-      expect(mockService.delete).toHaveBeenCalledWith(1);
+      expect(mockService.delete).toHaveBeenCalledWith(4);
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: "Factura eliminada correctamente",
-        data: facturaEliminada,
-      });
-      expect(console.log).toHaveBeenCalledWith(
-        "Factura eliminada correctamente",
-      );
     });
 
-    it("debería manejar errores de validación ZodError para ID inválido", async () => {
-      const errorZod = {
-        name: "ZodError",
-        issues: [
-          {
-            message: "El ID debe ser un número positivo",
-            path: ["id"],
-            code: "custom",
-          },
-        ],
-      };
-
-      mockReq.params = { id: "invalid" };
-      mockedBillIdSchema.parse.mockImplementation(() => {
-        throw errorZod;
-      });
+    it("responde 404 si no existe", async () => {
+      mockReq.params = { id: "4" };
+      mockService.delete.mockRejectedValue(
+        new Error("Factura con ID 4 no encontrada"),
+      );
 
       await billController.deleteBill(mockReq, mockRes);
 
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "invalid" });
-      expect(mockService.delete).not.toHaveBeenCalled();
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "ID inválido: El ID debe ser un número positivo",
-      });
-      expect(console.log).not.toHaveBeenCalledWith(
-        "Factura eliminada correctamente",
-      );
-    });
-
-    it("debería manejar error cuando la factura no existe", async () => {
-      const errorNoEncontrada = new Error("Factura no encontrada");
-
-      mockReq.params = { id: "999" };
-      mockedBillIdSchema.parse.mockReturnValue({ id: 999 });
-      mockService.delete.mockRejectedValue(errorNoEncontrada);
-
-      await billController.deleteBill(mockReq, mockRes);
-
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "999" });
-      expect(mockService.delete).toHaveBeenCalledWith(999);
       expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: errorNoEncontrada.message,
-      });
-    });
-
-    it("debería manejar errores generales del servidor", async () => {
-      const errorServidor = new Error("Error interno del servidor");
-
-      mockReq.params = { id: "1" };
-      mockedBillIdSchema.parse.mockReturnValue({ id: 1 });
-      mockService.delete.mockRejectedValue(errorServidor);
-
-      await billController.deleteBill(mockReq, mockRes);
-
-      expect(mockedBillIdSchema.parse).toHaveBeenCalledWith({ id: "1" });
-      expect(mockService.delete).toHaveBeenCalledWith(1);
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: `Error interno del servidor: ${errorServidor.message}`,
-      });
-      expect(console.error).toHaveBeenCalledWith(
-        "Error al eliminar factura:",
-        errorServidor,
-      );
     });
   });
 
   describe("getBillsByDateRange", () => {
-    it("debería obtener facturas por rango de fechas exitosamente", async () => {
-      const facturas = [
-        {
-          billId: 1,
-          customer: "Cliente 1",
-          total: 100,
-          date: new Date("2023-01-01"),
-        },
-        {
-          billId: 2,
-          customer: "Cliente 2",
-          total: 200,
-          date: new Date("2023-01-02"),
-        },
-      ];
-
-      mockReq.query = { startDate: "2023-01-01", endDate: "2023-01-31" };
-      (mockService as any).getByDateRange.mockResolvedValue(facturas);
-
+    it("exige startDate y endDate", async () => {
       await billController.getBillsByDateRange(mockReq, mockRes);
-
-      expect((mockService as any).getByDateRange).toHaveBeenCalledWith(
-        new Date("2023-01-01"),
-        new Date("2023-01-31"),
-      );
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: "Facturas obtenidas por rango de fecha correctamente",
-        data: facturas,
-      });
-    });
-
-    it("debería manejar error cuando faltan parámetros de fecha", async () => {
-      mockReq.query = { startDate: "2023-01-01" }; // falta endDate
-
-      await billController.getBillsByDateRange(mockReq, mockRes);
-
-      expect((mockService as any).getByDateRange).not.toHaveBeenCalled();
       expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "startDate y endDate son requeridos",
-      });
     });
 
-    it("debería manejar errores del servidor al obtener facturas por fecha", async () => {
-      const errorServidor = new Error("Error de conexión a la base de datos");
-
-      mockReq.query = { startDate: "2023-01-01", endDate: "2023-01-31" };
-      (mockService as any).getByDateRange.mockRejectedValue(errorServidor);
+    it("consulta el rango", async () => {
+      mockReq.query = { startDate: "2026-01-01", endDate: "2026-01-31" };
+      mockService.getByDateRange.mockResolvedValue([]);
 
       await billController.getBillsByDateRange(mockReq, mockRes);
 
-      expect((mockService as any).getByDateRange).toHaveBeenCalledWith(
-        new Date("2023-01-01"),
-        new Date("2023-01-31"),
+      expect(mockService.getByDateRange).toHaveBeenCalledWith(
+        new Date("2026-01-01"),
+        new Date("2026-01-31"),
       );
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: `Error al obtener las facturas por rango de fecha: ${errorServidor.message}`,
-      });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
     });
   });
 
-  describe("getBillsByCustomer", () => {
-    it("debería obtener facturas por cliente exitosamente", async () => {
-      const facturas = [
-        { billId: 1, customer: "Juan Pérez", total: 100 },
-        { billId: 3, customer: "Juan Pérez", total: 150 },
-      ];
-
-      mockReq.params = { customer: "Juan Pérez" };
-      (mockService as any).getBillsByCustomer.mockResolvedValue(facturas);
+  describe("getBillsByCustomer / getBillsByTable", () => {
+    it("filtra por cliente", async () => {
+      mockReq.params = { customer: "Ana" };
+      mockService.getBillsByCustomer.mockResolvedValue([]);
 
       await billController.getBillsByCustomer(mockReq, mockRes);
 
-      expect((mockService as any).getBillsByCustomer).toHaveBeenCalledWith(
-        "Juan Pérez",
-      );
+      expect(mockService.getBillsByCustomer).toHaveBeenCalledWith("Ana");
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: "Facturas del cliente obtenidas correctamente",
-        data: facturas,
-      });
     });
 
-    it("debería manejar errores del servidor al obtener facturas por cliente", async () => {
-      const errorServidor = new Error("Error de conexión a la base de datos");
+    it("filtra por mesa", async () => {
+      mockReq.params = { tableId: "M1" };
+      mockService.getBillsByTable.mockResolvedValue([]);
 
-      mockReq.params = { customer: "Juan Pérez" };
-      (mockService as any).getBillsByCustomer.mockRejectedValue(errorServidor);
+      await billController.getBillsByTable(mockReq, mockRes);
 
-      await billController.getBillsByCustomer(mockReq, mockRes);
-
-      expect((mockService as any).getBillsByCustomer).toHaveBeenCalledWith(
-        "Juan Pérez",
-      );
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: `Error al obtener las facturas del cliente: ${errorServidor.message}`,
-      });
-    });
-
-    it("debería retornar array vacío cuando el cliente no tiene facturas", async () => {
-      const facturasVacias: any[] = [];
-
-      mockReq.params = { customer: "Cliente Sin Facturas" };
-      (mockService as any).getBillsByCustomer.mockResolvedValue(facturasVacias);
-
-      await billController.getBillsByCustomer(mockReq, mockRes);
-
-      expect((mockService as any).getBillsByCustomer).toHaveBeenCalledWith(
-        "Cliente Sin Facturas",
-      );
+      expect(mockService.getBillsByTable).toHaveBeenCalledWith("M1");
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: "Facturas del cliente obtenidas correctamente",
-        data: [],
-      });
-    });
-  });
-
-  describe("setService", () => {
-    it("debería establecer el servicio correctamente", async () => {
-      const nuevoServicio = {
-        getAll: jest.fn(),
-        getById: jest.fn(),
-        save: jest.fn(),
-        saveAll: jest.fn(),
-        delete: jest.fn(),
-        update: jest.fn(),
-      } as any;
-
-      // Añadir métodos específicos del BillService
-      nuevoServicio.getByDateRange = jest.fn();
-      nuevoServicio.getBillsByCustomer = jest.fn();
-      nuevoServicio.getBillsByTable = jest.fn();
-      nuevoServicio.closeBillsByTable = jest.fn();
-
-      expect(() => billController.setService(nuevoServicio)).not.toThrow();
-
-      // Verificar que el servicio se estableció correctamente
-      nuevoServicio.getAll.mockResolvedValue([]);
-      await billController.getBills(mockReq, mockRes);
-
-      expect(nuevoServicio.getAll).toHaveBeenCalled();
     });
   });
 
   describe("closeBillsByTable", () => {
-    it("debería cerrar todas las facturas de una mesa exitosamente", async () => {
-      const tableId = "A1";
-      const resultado = { updated: 3 };
-
-      mockReq.params = { tableId };
-      mockedTableIdSchema.parse.mockReturnValue({ tableId });
-      (mockService as any).closeBillsByTable.mockResolvedValue(resultado);
+    it("cierra las cuentas de la mesa en la caja indicada", async () => {
+      mockReq.params = { tableId: "M1" };
+      mockReq.body = { cashRegisterId: 1 };
+      mockService.closeBillsByTable.mockResolvedValue({ updated: 2 });
 
       await billController.closeBillsByTable(mockReq, mockRes);
 
-      expect(mockedTableIdSchema.parse).toHaveBeenCalledWith({ tableId });
-      expect((mockService as any).closeBillsByTable).toHaveBeenCalledWith(
-        tableId,
-      );
+      expect(mockService.closeBillsByTable).toHaveBeenCalledWith("M1", 1);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
-        message: `Se cerraron 3 facturas de la mesa ${tableId}`,
-        data: resultado,
+        message: "Se cerraron 2 facturas de la mesa M1",
+        data: { updated: 2 },
       });
     });
 
-    it("debería manejar correctamente cuando no hay facturas para cerrar", async () => {
-      const tableId = "B3";
-      const resultado = { updated: 0 };
-
-      mockReq.params = { tableId };
-      mockedTableIdSchema.parse.mockReturnValue({ tableId });
-      (mockService as any).closeBillsByTable.mockResolvedValue(resultado);
+    it("exige cashRegisterId", async () => {
+      mockReq.params = { tableId: "M1" };
 
       await billController.closeBillsByTable(mockReq, mockRes);
 
-      expect(mockedTableIdSchema.parse).toHaveBeenCalledWith({ tableId });
-      expect((mockService as any).closeBillsByTable).toHaveBeenCalledWith(
-        tableId,
-      );
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: `Se cerraron 0 facturas de la mesa ${tableId}`,
-        data: resultado,
-      });
-    });
-
-    it("debería manejar errores de validación ZodError para tableId inválido", async () => {
-      const errorZod = {
-        name: "ZodError",
-        issues: [
-          {
-            message: "El ID de la mesa es requerido",
-            path: ["tableId"],
-          },
-        ],
-      };
-
-      mockReq.params = { tableId: "" };
-      mockedTableIdSchema.parse.mockImplementation(() => {
-        throw errorZod;
-      });
-
-      await billController.closeBillsByTable(mockReq, mockRes);
-
+      expect(mockService.closeBillsByTable).not.toHaveBeenCalled();
       expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: "Datos inválidos: El ID de la mesa es requerido",
-        campo: ["tableId"],
-      });
-    });
-
-    it("debería manejar errores de validación para tableId muy largo", async () => {
-      const errorZod = {
-        name: "ZodError",
-        issues: [
-          {
-            message: "El ID de la mesa no puede tener más de 10 caracteres",
-            path: ["tableId"],
-          },
-        ],
-      };
-
-      mockReq.params = { tableId: "MESA_SUPER_LARGA_123456" };
-      mockedTableIdSchema.parse.mockImplementation(() => {
-        throw errorZod;
-      });
-
-      await billController.closeBillsByTable(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message:
-          "Datos inválidos: El ID de la mesa no puede tener más de 10 caracteres",
-        campo: ["tableId"],
-      });
-    });
-
-    it("debería manejar errores del servidor al cerrar facturas", async () => {
-      const tableId = "VIP1";
-      const errorServidor = new Error("Error de conexión a la base de datos");
-
-      mockReq.params = { tableId };
-      mockedTableIdSchema.parse.mockReturnValue({ tableId });
-      (mockService as any).closeBillsByTable.mockRejectedValue(errorServidor);
-
-      await billController.closeBillsByTable(mockReq, mockRes);
-
-      expect((mockService as any).closeBillsByTable).toHaveBeenCalledWith(
-        tableId,
-      );
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: `Error al cerrar las facturas de la mesa: ${errorServidor.message}`,
-      });
-      expect(console.error).toHaveBeenCalledWith(
-        "Error al cerrar facturas por mesa:",
-        errorServidor,
-      );
-    });
-
-    it("debería cerrar una sola factura exitosamente", async () => {
-      const tableId = "C4";
-      const resultado = { updated: 1 };
-
-      mockReq.params = { tableId };
-      mockedTableIdSchema.parse.mockReturnValue({ tableId });
-      (mockService as any).closeBillsByTable.mockResolvedValue(resultado);
-
-      await billController.closeBillsByTable(mockReq, mockRes);
-
-      expect(mockedTableIdSchema.parse).toHaveBeenCalledWith({ tableId });
-      expect((mockService as any).closeBillsByTable).toHaveBeenCalledWith(
-        tableId,
-      );
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        status: "success",
-        message: `Se cerraron 1 facturas de la mesa ${tableId}`,
-        data: resultado,
-      });
     });
   });
 });

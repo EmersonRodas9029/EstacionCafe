@@ -1,196 +1,161 @@
-import { Repository } from "typeorm";
+import { EntityManager, In, Repository } from "typeorm";
 import { IService } from "../../core/interfaces/IService";
 import { BillDetails } from "../../core/entities/BillDetails";
+import { Bill } from "../../core/entities/Bill";
 import { Product } from "../../core/entities/Producto";
-import { Ingredient } from "../../core/entities/Ingredient";
-import { Consumable } from "../../core/entities/Consumable";
+import { Status } from "../../core/enums/Status";
 import { SaveBillDetailDTO } from "../DTOs/BillsDTO";
+import { AppError } from "../errors/AppError";
+import { adjustStockForProducts } from "./StockService";
+
+const EDITABLE_STATUSES = [Status.OPEN, Status.DRAFT];
+
+const round2 = (value: number) => Math.round(value * 100) / 100;
 
 export class BillDetailsService implements IService {
   constructor(
     private detailRepo: Repository<BillDetails>,
     private billService: IService,
-  ) {
-    this.detailRepo = detailRepo;
-    this.billService = billService;
-  }
+  ) {}
+
+  /** Detalles de una factura (id = billId). */
   async getById(id: number): Promise<BillDetails[]> {
-    console.log(`Obteniendo detalles de la factura ${id}...`);
     return this.detailRepo.find({
       where: { billId: id },
-      relations: ["product", "bill"] as any,
+      relations: ["product"],
+      order: { billDetailId: "ASC" },
     });
   }
 
-  save(_body: any): Promise<any> {
-    throw new Error("Method not implemented.");
+  save(body: SaveBillDetailDTO): Promise<BillDetails[]> {
+    return this.saveAll(body);
   }
 
-  async saveAll(body: SaveBillDetailDTO): Promise<any> {
-    const data: SaveBillDetailDTO = body;
-    const bill = await this.billService.getById(data.billId);
-    if (!bill) {
-      throw new Error(`Bill con ID ${data.billId} no encontrado`);
-    }
-    const existingDetails =
-      (await this.detailRepo.find({
-        where: { billId: data.billId },
-      })) ?? [];
+  /**
+   * Agrega productos a la cuenta. Si el producto ya está en la cuenta
+   * suma la cantidad a la línea existente. Descuenta stock y recalcula el total.
+   */
+  async saveAll(data: SaveBillDetailDTO): Promise<BillDetails[]> {
+    return this.detailRepo.manager.transaction(async (manager) => {
+      await this.getEditableBill(manager, data.billId);
 
-    const detailsToSave: BillDetails[] = [];
-    const productRepo = this.detailRepo.manager.getRepository(Product);
-    const ingredientRepo = this.detailRepo.manager.getRepository(Ingredient);
-    const consumableRepo = this.detailRepo.manager.getRepository(Consumable);
-    const stockAdjustments = new Map<number, number>();
-    const supportsIngredientQueries =
-      typeof (ingredientRepo as any).find === "function";
-    const supportsConsumableQueries =
-      typeof (consumableRepo as any).findOne === "function" &&
-      typeof (consumableRepo as any).save === "function";
+      const quantities = new Map<number, number>();
+      for (const item of data.billDetails) {
+        quantities.set(
+          item.productId,
+          (quantities.get(item.productId) ?? 0) + item.quantity,
+        );
+      }
 
-    for (const item of data.billDetails) {
-      // Validar que el producto existe por ID
-      const product = await productRepo.findOne({
-        where: { productId: item.productId },
+      const productIds = [...quantities.keys()];
+      const products = await manager.find(Product, {
+        where: { productId: In(productIds) },
+      });
+      for (const productId of productIds) {
+        const product = products.find((p) => p.productId === productId);
+        if (!product) {
+          throw AppError.badRequest(`Producto con ID ${productId} no encontrado`);
+        }
+        if (!product.active) {
+          throw AppError.badRequest(`El producto "${product.name}" no está disponible`);
+        }
+      }
+
+      await adjustStockForProducts(manager, quantities);
+
+      const existing = await manager.find(BillDetails, {
+        where: { billId: data.billId, productId: In(productIds) },
       });
 
-      if (!product) {
-        throw new Error(`Producto con ID ${item.productId} no encontrado`);
-      }
+      const toSave = productIds.map((productId) => {
+        const product = products.find((p) => p.productId === productId)!;
+        const line =
+          existing.find((d) => d.productId === productId) ??
+          Object.assign(new BillDetails(), {
+            billId: data.billId,
+            productId,
+            quantity: 0,
+            unitPrice: product.price,
+          });
+        line.quantity += quantities.get(productId)!;
+        line.subTotal = round2(line.quantity * line.unitPrice);
+        return line;
+      });
 
-      if (product.name !== item.name) {
-        throw new Error(
-          `El nombre del producto no coincide: esperado "${product.name}", recibido "${item.name}"`,
-        );
-      }
-
-      if (Math.abs(product.price - item.price) > 0.01) {
-        throw new Error(
-          `El precio del producto "${item.name}" no coincide: esperado ${product.price}, recibido ${item.price}`,
-        );
-      }
-
-      const expectedSubTotal = item.quantity * item.price;
-      if (Math.abs(expectedSubTotal - item.subTotal) > 0.01) {
-        throw new Error(
-          `El subtotal del producto "${item.name}" no es correcto: esperado ${expectedSubTotal}, recibido ${item.subTotal}`,
-        );
-      }
-
-      // Verificar si ya existe un detalle con este producto
-      const existingDetail = existingDetails.find(
-        (detail) => detail.productId === item.productId,
-      );
-      const quantityDelta = existingDetail
-        ? item.quantity - existingDetail.quantity
-        : item.quantity;
-
-      const ingredients = supportsIngredientQueries
-        ? ((await ingredientRepo.find({
-            where: { productId: item.productId },
-          })) ?? [])
-        : [];
-
-      for (const ingredient of ingredients) {
-        const currentAdjustment =
-          stockAdjustments.get(ingredient.consumableId) ?? 0;
-        stockAdjustments.set(
-          ingredient.consumableId,
-          currentAdjustment + ingredient.quantity * quantityDelta,
-        );
-      }
-
-      if (existingDetail) {
-        // Actualizar detalle existente
-        existingDetail.quantity = item.quantity;
-        existingDetail.subTotal = expectedSubTotal;
-        detailsToSave.push(existingDetail);
-        console.log(
-          `Actualizando detalle existente para producto ${item.productId}: nueva cantidad ${existingDetail.quantity}`,
-        );
-      } else {
-        // Crear nuevo detalle
-        const newDetail = new BillDetails();
-        newDetail.billId = data.billId;
-        newDetail.productId = item.productId;
-        newDetail.quantity = item.quantity;
-        newDetail.subTotal = item.subTotal;
-        detailsToSave.push(newDetail);
-        console.log(`Creando nuevo detalle para producto ${item.productId}`);
-      }
-    }
-
-    // Validar stock y aplicar descuentos/reposiciones en consumibles
-    if (supportsConsumableQueries) {
-      const consumablesToUpdate: Consumable[] = [];
-      for (const [consumableId, adjustment] of stockAdjustments.entries()) {
-        if (adjustment === 0) {
-          continue;
-        }
-
-        const consumable = await consumableRepo.findOne({
-          where: { consumableId },
-        });
-
-        if (!consumable) {
-          throw new Error(`Consumible con ID ${consumableId} no encontrado`);
-        }
-
-        const resultingStock = consumable.quantity - adjustment;
-        if (resultingStock < 0) {
-          throw new Error(
-            `Stock insuficiente para "${consumable.name}". Disponible: ${consumable.quantity}, requerido: ${adjustment}`,
-          );
-        }
-
-        consumable.quantity = resultingStock;
-        consumablesToUpdate.push(consumable);
-      }
-
-      if (consumablesToUpdate.length > 0) {
-        await consumableRepo.save(consumablesToUpdate);
-      }
-    }
-
-    // Guardar todos los detalles (nuevos y actualizados)
-    const savedDetails = await this.detailRepo.save(detailsToSave);
-
-    // Calcular el total de TODOS los detalles de la factura
-    const allDetails =
-      (await this.detailRepo.find({
-        where: { billId: data.billId },
-      })) ?? [];
-
-    const newTotal = allDetails.reduce(
-      (acc, detail) => acc + detail.subTotal,
-      0,
-    );
-
-    await this.billService.update({
-      billId: data.billId,
-      total: newTotal,
+      const saved = await manager.save(toSave);
+      await this.recalculateTotal(manager, data.billId);
+      return saved;
     });
-
-    console.log(
-      `Guardados/actualizados ${savedDetails.length} detalles y actualizado total a ${newTotal}`,
-    );
-    return savedDetails;
   }
+
+  /** Cambia la cantidad de una línea (PATCH). Ajusta stock por la diferencia. */
+  async update(body: { billDetailId: number; quantity: number }) {
+    return this.detailRepo.manager.transaction(async (manager) => {
+      const detail = await this.getDetail(manager, body.billDetailId);
+      await this.getEditableBill(manager, detail.billId);
+
+      const delta = body.quantity - detail.quantity;
+      await adjustStockForProducts(manager, new Map([[detail.productId, delta]]));
+
+      detail.quantity = body.quantity;
+      detail.subTotal = round2(detail.quantity * detail.unitPrice);
+      const saved = await manager.save(detail);
+      await this.recalculateTotal(manager, detail.billId);
+      return saved;
+    });
+  }
+
+  /** Quita la línea, devuelve el stock y recalcula el total. */
   async delete(id: number): Promise<any> {
-    const result = await this.detailRepo.delete(id);
-    if (result.affected === 0) {
-      throw new Error(`Detalle con ID ${id} no encontrado`);
-    }
+    await this.detailRepo.manager.transaction(async (manager) => {
+      const detail = await this.getDetail(manager, id);
+      await this.getEditableBill(manager, detail.billId);
+
+      await adjustStockForProducts(
+        manager,
+        new Map([[detail.productId, -detail.quantity]]),
+      );
+      await manager.delete(BillDetails, { billDetailId: id });
+      await this.recalculateTotal(manager, detail.billId);
+    });
     return { message: "Detalle eliminado correctamente", id };
   }
-  update(_body: any): Promise<any> {
-    throw new Error("Method not implemented.");
-  }
-  getAll(): Promise<any[]> {
-    console.log(`Obteniendo bills details...`);
 
-    return this.detailRepo.find({
-      relations: ["product", "bill"] as any,
+  getAll(): Promise<BillDetails[]> {
+    return this.detailRepo.find({ relations: ["product"] });
+  }
+
+  private async getDetail(manager: EntityManager, id: number) {
+    const detail = await manager.findOne(BillDetails, {
+      where: { billDetailId: id },
     });
+    if (!detail) throw new Error(`Detalle con ID ${id} no encontrado`);
+    return detail;
+  }
+
+  private async getEditableBill(manager: EntityManager, billId: number) {
+    const bill = await manager.findOne(Bill, { where: { billId } });
+    if (!bill) {
+      throw AppError.badRequest(`Bill con ID ${billId} no encontrado`);
+    }
+    if (!EDITABLE_STATUSES.includes(bill.status)) {
+      throw AppError.conflict(
+        `La cuenta ${billId} está ${bill.status} y no se puede modificar`,
+      );
+    }
+    return bill;
+  }
+
+  private async recalculateTotal(manager: EntityManager, billId: number) {
+    const raw = await manager
+      .createQueryBuilder(BillDetails, "d")
+      .select("COALESCE(SUM(d.sub_total), 0)", "total")
+      .where("d.bill_id = :billId", { billId })
+      .getRawOne<{ total: string }>();
+    await manager.update(
+      Bill,
+      { billId },
+      { total: round2(parseFloat(raw?.total ?? "0")) },
+    );
   }
 }

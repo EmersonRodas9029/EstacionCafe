@@ -33,8 +33,8 @@ export class User {
   @JoinColumn({ name: "type_id" })
   userType?: UserType;
 
-  @OneToMany(() => Bill, (bill: Bill) => bill.cashRegister)
-  bill!: Bill;
+  @OneToMany(() => Bill, (bill: Bill) => bill.waiter)
+  bills!: Bill[];
 
   constructor() {}
 }
