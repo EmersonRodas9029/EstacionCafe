@@ -38,7 +38,8 @@ Para usar Supabase define `DATABASE_URL` y `DB_SSL=true` en `.env` (tiene priori
 | `npm run test:int` | Pruebas de integración contra Postgres (crea `estacioncafe_test`) |
 | `npm run migration:generate -- infrastructure/db/migrations/Nombre` | Genera migración desde las entidades |
 | `npm run migration:run` · `migration:revert` | Aplica / revierte |
-| `npm run seed:run` · `seed:revert` | Datos demo |
+| `npm run seed:run` · `seed:revert` | Datos demo mínimos (idempotente) |
+| `npm run seed:demo` | **Borra la BD** y genera 30 días de operación: ~1600 cuentas en los 5 estados, compras semanales, stock coherente, 7 usuarios con PIN. Se niega en producción; con `DATABASE_URL` exige `--yes` |
 
 ## Autenticación y roles
 

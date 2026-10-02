@@ -17,6 +17,8 @@ npm install
 npm run db:up          # Postgres en Docker
 npm run migration:run
 npm run seed:run       # usuarios demo: admin.demo / mesero.demo / cajero.demo (AdminDemo123!)
+# o, para ver la app con un mes de operación (BORRA la BD local):
+# npm run seed:demo
 npm run dev            # http://localhost:3484/api  ·  docs: /api/docs
 
 # 2. Frontend (otra terminal)
