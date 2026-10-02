@@ -117,4 +117,28 @@ test.describe('Mesero', () => {
     await sendOrder(page)
     await expect(page.getByText('Café Americano')).toBeVisible()
   })
+
+  test('privacidad: la cuenta de otro se ve como "Atiende …" y no se puede abrir', async ({
+    page,
+    request,
+  }) => {
+    const cashier = await api(request, 'cajero.demo')
+    const bill = await cashier.post('/bills', { customer: 'Cuenta privada e2e', tableId: 'M2' })
+
+    await login(page, 'mesero.demo')
+    const m2 = page.getByRole('link', { name: /Mesa M2/ })
+    await expect(m2).toContainText('Atiende cajero.demo')
+    await expect(m2).not.toContainText('$')
+
+    await m2.click()
+    await expect(page.getByText(/También atiende esta mesa/)).toContainText('cajero.demo')
+    await expect(page.getByText('Cuenta privada e2e')).toHaveCount(0)
+
+    await page.goto(`/mesero/cuentas/${bill.billId}`)
+    await expect(page.getByText('No encontramos la cuenta.')).toBeVisible()
+
+    // Deja la mesa como estaba para las demás pruebas
+    const admin = await api(request)
+    await admin.post(`/bills/${bill.billId}/void`, {})
+  })
 })

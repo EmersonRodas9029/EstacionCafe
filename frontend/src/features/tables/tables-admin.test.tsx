@@ -11,6 +11,7 @@ describe('Mesas y zonas (admin)', () => {
     await user.click(await screen.findByRole('button', { name: 'Agregar mesa en Terraza' }))
     let dialog = await screen.findByRole('dialog', { name: 'Nueva mesa' })
     expect(within(dialog).getByLabelText('Zona')).toHaveValue('Terraza')
+    expect(within(dialog).getByRole('combobox', { name: 'Zona' })).toBeInTheDocument()
     await user.type(within(dialog).getByLabelText('Identificador'), 't2')
     await user.click(within(dialog).getByRole('button', { name: 'Crear mesa' }))
 
@@ -20,7 +21,7 @@ describe('Mesas y zonas (admin)', () => {
     await user.click(screen.getByRole('button', { name: /nueva mesa/i }))
     dialog = await screen.findByRole('dialog', { name: 'Nueva mesa' })
     await user.type(within(dialog).getByLabelText('Identificador'), 'A1')
-    await user.type(within(dialog).getByLabelText('Zona'), 'Interior')
+    await user.selectOptions(within(dialog).getByLabelText('Zona'), 'Interior')
     await user.click(within(dialog).getByRole('button', { name: 'Crear mesa' }))
     expect(await within(dialog).findByText('Ya existe una mesa con ese ID')).toBeInTheDocument()
   })
@@ -53,5 +54,25 @@ describe('Mesas y zonas (admin)', () => {
       ]),
     )
     expect(await screen.findByRole('heading', { name: 'Salón' })).toBeInTheDocument()
+  })
+
+  it('una zona nueva se escribe desde la opción "+ Nueva zona…"', async () => {
+    renderApp('/admin/mesas', 'admin')
+    const user = userEvent.setup()
+
+    await user.click(await screen.findByRole('button', { name: /nueva mesa/i }))
+    const dialog = await screen.findByRole('dialog', { name: 'Nueva mesa' })
+    await user.type(within(dialog).getByLabelText('Identificador'), 'P1')
+    await user.click(within(dialog).getByRole('button', { name: 'Crear mesa' }))
+    expect(await within(dialog).findByText('Escribe la zona')).toBeInTheDocument()
+
+    await user.selectOptions(within(dialog).getByLabelText('Zona'), '+ Nueva zona…')
+    const name = within(dialog).getByLabelText('Nombre de la zona')
+    expect(name).toHaveFocus()
+    await user.type(name, 'Patio')
+    await user.click(within(dialog).getByRole('button', { name: 'Crear mesa' }))
+
+    expect(await screen.findByRole('heading', { name: 'Patio' })).toBeInTheDocument()
+    expect(db.tables.find((t) => t.tableId === 'P1')).toMatchObject({ zone: 'Patio' })
   })
 })

@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/ui/state'
 import { formatCurrency } from '@/lib/format'
 import { TableCard } from '../components/table-card'
+import { useRole } from '@/features/auth/session-store'
 import { useTablesBoard } from '../hooks/use-tables-board'
 import { TABLE_STATUS } from '../table-status'
 import { groupByZone } from '../group-by-zone'
@@ -14,6 +15,7 @@ import { groupByZone } from '../group-by-zone'
 type StatusFilter = 'todas' | TableStatus
 
 export function TablesMapPage() {
+  const role = useRole()
   const board = useTablesBoard()
   const [zone, setZone] = useState('todas')
   const [status, setStatus] = useState<StatusFilter>('todas')
@@ -31,8 +33,8 @@ export function TablesMapPage() {
         subtitle={
           board.isPending ? null : (
             <span>
-              {occupied} de {board.tables.length} ocupadas · {formatCurrency(openTotal)} en cuentas
-              abiertas
+              {occupied} de {board.tables.length} ocupadas · {formatCurrency(openTotal)}{' '}
+              {role === 'mesero' ? 'en tus cuentas abiertas' : 'en cuentas abiertas'}
             </span>
           )
         }

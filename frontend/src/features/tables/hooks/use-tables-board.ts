@@ -1,14 +1,28 @@
 import { useListBills } from '@/api/generated/bills/bills'
 import type { Bill } from '@/api/generated/model/bill'
-import type { Table } from '@/api/generated/model/table'
-import { useListTables } from '@/api/generated/tables/tables'
+import type { BoardTable as ApiBoardTable } from '@/api/generated/model/boardTable'
+import { useGetTableBoard } from '@/api/generated/tables/tables'
 import { LIVE_REFRESH_MS } from '@/features/bills/invalidate'
+import { useSessionStore } from '@/features/auth/session-store'
 
-export type BoardTable = Table & { openBills: Bill[]; total: number }
+export type BoardTable = ApiBoardTable & {
+  /** Cuentas abiertas que puedo ver (las mías; todas si soy cajero/admin) */
+  openBills: Bill[]
+  /** Otros meseros con cuentas en la mesa (sin montos) */
+  others: string[]
+  /** Cuentas y total visibles para mi rol */
+  count: number
+  total: number
+}
 
-/** Mesas + cuentas abiertas agrupadas por mesa, refrescadas cada 15 s. */
+/**
+ * Mapa de mesas: el board de la API dice quién atiende cada mesa sin exponer
+ * montos ajenos; las cuentas visibles (para el tiempo transcurrido) salen del
+ * listado, que la API ya limita al mesero. Se refresca cada 15 s.
+ */
 export function useTablesBoard() {
-  const tables = useListTables({
+  const me = useSessionStore((s) => s.user?.userId)
+  const board = useGetTableBoard({
     query: { refetchInterval: LIVE_REFRESH_MS, select: (r) => r.data },
   })
   const bills = useListBills(
@@ -22,16 +36,22 @@ export function useTablesBoard() {
     byTable.set(bill.tableId, [...(byTable.get(bill.tableId) ?? []), bill])
   }
 
-  const board: BoardTable[] = (tables.data ?? []).map((table) => {
-    const openBills = byTable.get(table.tableId) ?? []
-    return { ...table, openBills, total: openBills.reduce((acc, b) => acc + b.total, 0) }
+  const tables: BoardTable[] = (board.data ?? []).map((table) => {
+    const visible = table.all ?? table.mine
+    return {
+      ...table,
+      openBills: byTable.get(table.tableId) ?? [],
+      others: table.attendedBy.filter((w) => w.waiterId !== me).map((w) => w.username),
+      count: visible.bills,
+      total: visible.total,
+    }
   })
 
   return {
-    tables: board,
-    zones: [...new Set(board.map((t) => t.zone))],
-    isPending: tables.isPending || bills.isPending,
-    isError: tables.isError || bills.isError,
-    refetch: () => Promise.all([tables.refetch(), bills.refetch()]),
+    tables,
+    zones: [...new Set(tables.map((t) => t.zone))],
+    isPending: board.isPending || bills.isPending,
+    isError: board.isError || bills.isError,
+    refetch: () => Promise.all([board.refetch(), bills.refetch()]),
   }
 }

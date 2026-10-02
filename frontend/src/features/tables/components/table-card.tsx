@@ -12,7 +12,8 @@ const accentByStatus = {
 } as const
 
 export function TableCard({ table }: { table: BoardTable }) {
-  const count = table.openBills.length
+  const { count, others } = table
+  const names = others.join(', ')
   const oldest = table.openBills.reduce<string | null>(
     (min, b) => (!min || b.date < min ? b.date : min),
     null,
@@ -21,7 +22,7 @@ export function TableCard({ table }: { table: BoardTable }) {
   return (
     <Link
       to={`/mesero/mesas/${encodeURIComponent(table.tableId)}`}
-      aria-label={`Mesa ${table.tableId}, ${table.zone}`}
+      aria-label={`Mesa ${table.tableId}, ${table.zone}${names ? `, atiende ${names}` : ''}`}
       className={cn(
         'group relative flex min-h-36 flex-col justify-between overflow-hidden rounded-lg border bg-card p-4 pl-5 shadow-xs transition hover:-translate-y-0.5 hover:shadow-md',
         "before:absolute before:inset-y-0 before:left-0 before:w-1.5 before:content-['']",
@@ -39,18 +40,26 @@ export function TableCard({ table }: { table: BoardTable }) {
       </div>
 
       {count > 0 ? (
-        <div className="flex items-end justify-between gap-2">
-          <p className="flex items-center gap-1.5 text-sm font-semibold text-primary">
-            <Receipt className="size-4 text-accent" aria-hidden="true" />
-            {count} {count === 1 ? 'cuenta' : 'cuentas'}
-            {oldest ? (
-              <span className="font-normal text-muted-foreground">· {formatElapsed(oldest)}</span>
-            ) : null}
-          </p>
-          <p className="text-lg font-bold text-primary tabular-nums">
-            {formatCurrency(table.total)}
-          </p>
+        <div className="space-y-1">
+          {names ? (
+            <p className="truncate text-xs text-muted-foreground">También atiende {names}</p>
+          ) : null}
+          <div className="flex items-end justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+              <Receipt className="size-4 text-accent" aria-hidden="true" />
+              {count} {count === 1 ? 'cuenta' : 'cuentas'}
+              {oldest ? (
+                <span className="font-normal text-muted-foreground">· {formatElapsed(oldest)}</span>
+              ) : null}
+            </p>
+            <p className="text-lg font-bold text-primary tabular-nums">
+              {formatCurrency(table.total)}
+            </p>
+          </div>
         </div>
+      ) : names ? (
+        // Mesa de otro mesero: se sabe quién la atiende, sin montos ni detalle
+        <p className="truncate text-sm font-semibold text-primary">Atiende {names}</p>
       ) : (
         <p className="text-sm text-muted-foreground">Sin cuentas abiertas</p>
       )}

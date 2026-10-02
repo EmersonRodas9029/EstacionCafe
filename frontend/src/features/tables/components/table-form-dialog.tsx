@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useId } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { ApiError } from '@/api/errors'
 import type { Table } from '@/api/generated/model/table'
@@ -10,6 +9,7 @@ import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { useAddTable, useEditTable } from '../hooks/use-table-admin'
 import { tableFormSchema, type TableFormValues } from '../schemas'
+import { ZoneSelect } from './zone-select'
 
 const resolver = zodResolver(tableFormSchema)
 
@@ -27,11 +27,11 @@ export function TableFormDialog({
   zones: string[]
   defaultZone?: string
 }) {
-  const listId = useId()
   const add = useAddTable()
   const edit = useEditTable()
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors },
@@ -92,22 +92,19 @@ export function TableFormDialog({
             )}
           </FormField>
         )}
-        <FormField
-          label="Zona"
-          error={errors.zone?.message}
-          hint="Elige una existente o escribe una nueva."
-        >
-          {(control) => (
-            <>
-              <Input {...control} list={listId} autoFocus={!!table} {...register('zone')} />
-              <datalist id={listId}>
-                {zones.map((zone) => (
-                  <option key={zone} value={zone} />
-                ))}
-              </datalist>
-            </>
+        <Controller
+          control={control}
+          name="zone"
+          render={({ field }) => (
+            <ZoneSelect
+              value={field.value}
+              onChange={field.onChange}
+              zones={zones}
+              error={errors.zone?.message}
+              autoFocus={!!table}
+            />
           )}
-        </FormField>
+        />
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="ghost" onClick={onClose}>
             Cancelar

@@ -92,4 +92,50 @@ describe('Flujo del mesero', () => {
 
     expect(await screen.findByText(/ya está cerrada/)).toBeInTheDocument()
   })
+
+  it('una mesa de otro mesero muestra quién la atiende, sin montos ni sus cuentas', async () => {
+    db.bills.push({
+      billId: 50,
+      waiterId: 3,
+      cashRegisterId: null,
+      tableId: 'T1',
+      orderType: 'dine_in',
+      customer: 'Cuenta del cajero',
+      date: new Date().toISOString(),
+      total: 12,
+      status: 'open',
+    })
+    db.tables.find((t) => t.tableId === 'T1')!.status = 'ocupada'
+    renderApp('/mesero/mesas', 'mesero')
+    const user = userEvent.setup()
+
+    const t1 = await screen.findByRole('link', { name: /Mesa T1, Terraza, atiende cajero\.demo/ })
+    expect(within(t1).getByText('Atiende cajero.demo')).toBeInTheDocument()
+    expect(within(t1).queryByText('$12.00')).not.toBeInTheDocument()
+
+    await user.click(t1)
+    expect(await screen.findByText(/También atiende esta mesa/)).toHaveTextContent('cajero.demo')
+    expect(await screen.findByText('No tienes cuentas en esta mesa')).toBeInTheDocument()
+    expect(screen.queryByText('Cuenta del cajero')).not.toBeInTheDocument()
+  })
+
+  it('el cajero ve el total completo de la mesa compartida', async () => {
+    db.bills.push({
+      billId: 51,
+      waiterId: 3,
+      cashRegisterId: null,
+      tableId: 'A1',
+      orderType: 'dine_in',
+      customer: 'Segunda cuenta',
+      date: new Date().toISOString(),
+      total: 7,
+      status: 'open',
+    })
+    renderApp('/mesero/mesas', 'cajero')
+
+    const a1 = await screen.findByRole('link', { name: /Mesa A1/ })
+    expect(await within(a1).findByText('$12.00')).toBeInTheDocument()
+    expect(within(a1).getByText(/2 cuentas/)).toBeInTheDocument()
+    expect(within(a1).getByText('También atiende mesero.demo')).toBeInTheDocument()
+  })
 })
