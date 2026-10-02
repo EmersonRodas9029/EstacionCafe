@@ -1,3 +1,4 @@
+# Blueprint de Render: API + frontend. New → Blueprint → este repositorio.
 services:
   - type: web
     name: estacioncafe-api
@@ -13,7 +14,7 @@ services:
       - key: PORT
         value: 3484
       - key: CORS_ORIGIN
-        sync: false # URL del frontend
+        sync: false # URL pública del frontend, p. ej. https://estacioncafe-web.onrender.com
       - key: DATABASE_URL
         sync: false # cadena de conexión de Supabase
       - key: DB_SSL
@@ -22,3 +23,17 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN_HOURS
         value: 12
+
+  - type: web
+    name: estacioncafe-web
+    runtime: docker
+    rootDir: frontend
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: API_UPSTREAM
+        sync: false # URL de la API, p. ej. https://estacioncafe-api.onrender.com

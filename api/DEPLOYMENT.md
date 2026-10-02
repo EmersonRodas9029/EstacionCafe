@@ -26,11 +26,32 @@ El contenedor aplica las migraciones pendientes al iniciar (`npm run start:prod`
 
 ## Render
 
-`api/render.yaml` define el servicio (runtime Docker, `rootDir: api`, health check `/health`).
+`render.yaml` (raíz del repo) define los dos servicios con runtime Docker:
+
+| Servicio | `rootDir` | Health check | Variables a completar |
+|---|---|---|---|
+| `estacioncafe-api` | `api` | `/health` | `CORS_ORIGIN` (URL del frontend), `DATABASE_URL` |
+| `estacioncafe-web` | `frontend` | `/healthz` | `API_UPSTREAM` (URL de la API) |
 
 1. New → Blueprint → seleccionar el repositorio.
-2. Completar `CORS_ORIGIN` y `DATABASE_URL`; `JWT_SECRET` se genera automáticamente.
-3. Deploy. Las migraciones corren en cada arranque.
+2. Completar las variables; `JWT_SECRET` se genera automáticamente.
+3. Deploy. Las migraciones de la API corren en cada arranque.
+
+`CORS_ORIGIN` debe ser la URL pública del frontend aunque el navegador llame a la API por el proxy de nginx: el navegador sigue enviando el header `Origin`.
+
+## Frontend (Docker)
+
+```bash
+cd frontend
+docker build -t estacioncafe-web .
+docker run -p 8080:8080 -e API_UPSTREAM=https://estacioncafe-api.onrender.com estacioncafe-web
+```
+
+- nginx sirve la SPA (cualquier ruta → `index.html`) y hace de proxy de `/api/` hacia `API_UPSTREAM`: el navegador ve un solo origen.
+- Caché: `/assets/*` un año (nombres con hash); `index.html`, `sw.js` y el manifiesto siempre se revalidan.
+- Headers: CSP (`connect-src` configurable con `CSP_CONNECT_SRC`, por defecto `'self'`), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`.
+- Para llamar a la API directo sin proxy: build con `--build-arg VITE_API_URL=https://api.example.com/api` y `CSP_CONNECT_SRC="'self' https://api.example.com"`.
+- Es una PWA: se puede instalar en tabletas; el shell carga sin red y la API nunca se cachea. Las versiones nuevas se ofrecen con un aviso "Actualizar".
 
 ## Supabase
 

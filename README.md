@@ -26,6 +26,17 @@ pnpm install
 pnpm dev               # http://localhost:5173 (proxy /api -> 3484)
 ```
 
+## Pruebas
+
+| Proyecto | Comando | Qué cubre |
+|---|---|---|
+| API | `npm test` | Unitarias (Jest) de servicios y controladores |
+| API | `npm run test:int` | Integración contra Postgres real (BD `estacioncafe_test`) |
+| Frontend | `pnpm test` / `pnpm test:coverage` | Componentes y flujos con Vitest + Testing Library + MSW |
+| Frontend | `pnpm test:e2e` | E2E con Playwright contra API y Postgres reales (BD `estacioncafe_e2e`, se recrea en cada corrida) y auditoría axe |
+
+Los e2e levantan solos la API (puerto 3485) y Vite (5174); solo necesitan Postgres (`npm --prefix api run db:up`).
+
 ## Documentación
 
 - [API](./api/README.md) · [Referencia de endpoints](./api/API_DOCUMENTATION.md) · [Despliegue](./api/DEPLOYMENT.md)
