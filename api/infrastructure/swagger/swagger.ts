@@ -1778,7 +1778,11 @@ const swaggerDocument: any = {
         roles: "admin",
         parameters: [idParam("tipo de consumible")],
         ok: { description: "Tipo de consumible eliminado", schema: ref("DeleteResult") },
-        errors: { 400: "ID inválido", 404: "Tipo de consumible no encontrado" },
+        errors: {
+          400: "ID inválido",
+          404: "Tipo de consumible no encontrado",
+          409: "El tipo tiene consumibles asociados",
+        },
       }),
     },
 

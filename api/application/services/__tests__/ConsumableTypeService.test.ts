@@ -16,6 +16,7 @@ describe("ConsumableTypeService", () => {
       delete: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      manager: { count: jest.fn().mockResolvedValue(0) },
     } as any;
 
     // Crear instancia del servicio con el repositorio mock

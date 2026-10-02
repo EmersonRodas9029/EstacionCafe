@@ -1,5 +1,8 @@
 import { Repository } from "typeorm";
 import { ConsumableType } from "../../core/entities/ConsumableType";
+import { Consumable } from "../../core/entities/Consumable";
+import { AppError } from "../errors/AppError";
+import { plural } from "../utils/plural";
 import { IService } from "../../core/interfaces/IService";
 import {
   SaveConsumableTypeDTO,
@@ -32,6 +35,14 @@ export class ConsumableTypeService implements IService {
   }
 
   async delete(id: number): Promise<void> {
+    const consumables = await this.ConsumableTypeRepository.manager.count(Consumable, {
+      where: { consumableTypeId: id },
+    });
+    if (consumables > 0) {
+      throw AppError.conflict(
+        `El tipo tiene ${plural(consumables, "consumible asociado", "consumibles asociados")} y no se puede eliminar`,
+      );
+    }
     const result = await this.ConsumableTypeRepository.delete(id);
     if (result.affected === 0) {
       throw new Error(`Tipo de consumible con ID ${id} no encontrado`);

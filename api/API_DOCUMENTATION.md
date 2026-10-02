@@ -176,7 +176,7 @@ Un job elimina cada 10 min los `draft` **sin productos** con más de 2 h.
 - `/consumable` `{ supplierId, name, consumableTypeId, quantity, unitMeasurement, cost, minStock }`.
 - El listado incluye `lowStock` (`quantity <= minStock`).
 - `GET /consumable/low-stock` → consumibles activos con stock bajo.
-- `DELETE` desactiva. Tipos: `/consumable-type`.
+- `DELETE` desactiva. Tipos: `/consumable-type` (`DELETE` responde 409 si el tipo tiene consumibles).
 
 ### Compras
 

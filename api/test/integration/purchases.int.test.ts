@@ -1,6 +1,7 @@
 import { DataSource } from "typeorm";
 import { closeTestDatabase, resetTables, setupTestDatabase } from "./db";
 import { PurchaseService } from "../../application/services/PurchaseService";
+import { ConsumableTypeService } from "../../application/services/ConsumableTypeService";
 import { Purchase } from "../../core/entities/Purchase";
 import { Consumable } from "../../core/entities/Consumable";
 import { ConsumableType } from "../../core/entities/ConsumableType";
@@ -122,5 +123,14 @@ describe("PurchaseService", () => {
     await expect(
       purchases.update({ purchaseId: purchase.purchaseId, total: 999 }),
     ).rejects.toMatchObject({ statusCode: 400 });
+  });
+});
+
+describe("Tipos de consumible", () => {
+  it("no elimina un tipo con consumibles", async () => {
+    const types = new ConsumableTypeService(ds.getRepository(ConsumableType));
+    await expect(types.delete(coffee.consumableTypeId)).rejects.toMatchObject({
+      statusCode: 409,
+    });
   });
 });

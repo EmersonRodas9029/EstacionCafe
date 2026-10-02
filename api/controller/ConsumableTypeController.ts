@@ -1,3 +1,4 @@
+import { AppError, sendAppError } from "../application/errors/AppError";
 import { IService } from "../core/interfaces/IService";
 import {
   ConsumableTypeSchema,
@@ -162,6 +163,7 @@ export const deleteConsumableType = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
