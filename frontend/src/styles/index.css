@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* Modo oscuro por clase en <html> (la pone public/theme-init.js antes de pintar) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * Paleta de marca EstacionCafé
  *   ciruela  #3d1c42  → primary
@@ -39,7 +42,42 @@
   --status-occupied: var(--brand-orange);
   --status-reserved: var(--brand-plum);
 
+  /* Superficies de marca (barra lateral, cabeceras, splash): ciruela en ambos modos */
+  --chrome: var(--brand-plum);
+  --chrome-foreground: #ffffff;
+
   --radius: 0.75rem;
+  color-scheme: light;
+}
+
+/*
+ * Modo oscuro: fondo ciruela casi negro y texto latte. Todo par texto/fondo
+ * cumple AA (verificado con axe). En oscuro el naranja y el rojo son claros,
+ * así que los botones llevan texto oscuro.
+ */
+.dark {
+  --background: #140a18;
+  --foreground: #f3ebe2;
+  --surface-soft: #251829;
+  --card: #1d1223;
+  --card-foreground: var(--foreground);
+  --primary: #ecdcc4;
+  --primary-foreground: #2a1230;
+  --accent: #e8894f;
+  --accent-strong: #ef9056;
+  --accent-text: #f4ad7e;
+  --accent-foreground: #1a0d1e;
+  --status-available: #5dbb88;
+  --status-available-text: #86d9ab;
+  --status-reserved: #ecdcc4;
+  --muted: #2d2033;
+  --muted-foreground: #bba9ba;
+  --border: #3d2d44;
+  --destructive: #f0605a;
+  --destructive-foreground: #1a0d1e;
+  --chrome: #2a1530;
+  --chrome-foreground: #f3ebe2;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -66,6 +104,8 @@
   --color-status-available: var(--status-available);
   --color-status-occupied: var(--status-occupied);
   --color-status-reserved: var(--status-reserved);
+  --color-chrome: var(--chrome);
+  --color-chrome-foreground: var(--chrome-foreground);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -141,5 +181,12 @@
   }
   [data-sonner-toaster] {
     display: none !important;
+  }
+  /* El ticket sale siempre en claro, aunque la pantalla esté en modo oscuro */
+  html {
+    color-scheme: light;
+  }
+  body {
+    background: #fff !important;
   }
 }

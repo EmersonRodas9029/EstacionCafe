@@ -75,4 +75,28 @@ test.describe('Accesibilidad (axe)', () => {
       await audit(page, `${path} (móvil)`)
     }
   })
+
+  test('modo oscuro: contraste AA en las vistas principales', async ({ page }) => {
+    // Tema "Sistema" + preferencia oscura del equipo
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.goto('/login')
+    await expect(page.locator('html')).toHaveClass(/dark/)
+    await audit(page, 'login (oscuro)')
+
+    await login(page, 'admin.demo')
+    for (const path of [
+      '/admin',
+      '/admin/facturas',
+      '/admin/productos',
+      '/admin/inventario',
+      '/admin/usuarios',
+      '/admin/dispositivos',
+      '/mesero/mesas',
+      '/mesero/mesas/M1',
+      '/mesero/perfil',
+    ]) {
+      await page.goto(path)
+      await audit(page, `${path} (oscuro)`)
+    }
+  })
 })

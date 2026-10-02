@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useLogout } from '@/features/auth/hooks/use-logout'
 import { cn } from '@/lib/utils'
 import { ADMIN_NAV } from '../navigation'
+import { ThemeQuickToggle } from '@/features/theme/theme-toggle'
 import { UserChip } from './user-chip'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -13,14 +14,14 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
     'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition-colors',
     isActive
       ? 'bg-accent-strong text-accent-foreground'
-      : 'text-primary-foreground/75 hover:bg-white/10 hover:text-primary-foreground',
+      : 'text-chrome-foreground/75 hover:bg-white/10 hover:text-chrome-foreground',
   )
 
 function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const logout = useLogout()
 
   return (
-    <div className="flex h-full flex-col gap-5 bg-primary p-4 text-primary-foreground">
+    <div className="flex h-full flex-col gap-5 bg-chrome p-4 text-chrome-foreground">
       <Logo className="px-2 pt-2" />
       <nav aria-label="Administración" className="flex-1 space-y-4 overflow-y-auto">
         {ADMIN_NAV.map((group) => (
@@ -47,12 +48,13 @@ function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
         <div className="flex items-center justify-between px-1">
           <UserChip />
+          <ThemeQuickToggle className="ml-auto" />
           <Button
             variant="ghost"
             size="icon"
             onClick={logout}
             aria-label="Cerrar sesión"
-            className="text-primary-foreground hover:bg-white/10"
+            className="text-chrome-foreground hover:bg-white/10"
           >
             <LogOut />
           </Button>
@@ -76,7 +78,7 @@ export function AdminLayout() {
         <AdminSidebar />
       </aside>
 
-      <header className="sticky top-0 z-30 flex h-16 items-center gap-3 bg-primary px-4 text-primary-foreground lg:hidden">
+      <header className="sticky top-0 z-30 flex h-16 items-center gap-3 bg-chrome px-4 text-chrome-foreground lg:hidden">
         <Button
           variant="ghost"
           size="icon"
@@ -84,7 +86,7 @@ export function AdminLayout() {
           aria-expanded={menuOpen}
           aria-controls="admin-drawer"
           onClick={() => setMenuOpen(true)}
-          className="text-primary-foreground hover:bg-white/10"
+          className="text-chrome-foreground hover:bg-white/10"
         >
           <Menu />
         </Button>
@@ -96,7 +98,7 @@ export function AdminLayout() {
           <button
             type="button"
             aria-label="Cerrar menú"
-            className="absolute inset-0 bg-foreground/50"
+            className="absolute inset-0 bg-black/60"
             onClick={closeMenu}
           />
           <div
@@ -113,7 +115,7 @@ export function AdminLayout() {
               aria-label="Cerrar menú"
               autoFocus
               onClick={closeMenu}
-              className="absolute top-3 right-3 text-primary-foreground hover:bg-white/10"
+              className="absolute top-3 right-3 text-chrome-foreground hover:bg-white/10"
             >
               <X />
             </Button>

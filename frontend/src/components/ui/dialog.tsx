@@ -48,7 +48,7 @@ export function Dialog({
       }}
       aria-labelledby={titleId}
       className={cn(
-        'm-0 mt-auto w-full max-w-none rounded-t-xl bg-card p-0 text-foreground shadow-xl backdrop:bg-foreground/50',
+        'm-0 mt-auto w-full max-w-none rounded-t-xl bg-card p-0 text-foreground shadow-xl backdrop:bg-black/60',
         'sm:m-auto sm:max-w-md sm:rounded-xl',
         className,
       )}

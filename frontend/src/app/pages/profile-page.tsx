@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { useLogout } from '@/features/auth/hooks/use-logout'
 import { ROLE_LABELS } from '@/features/auth/roles'
 import { useSessionStore } from '@/features/auth/session-store'
+import { ThemeSelector } from '@/features/theme/theme-toggle'
 
 export function ProfilePage() {
   const user = useSessionStore((s) => s.user)
@@ -25,6 +26,15 @@ export function ProfilePage() {
           </div>
         ))}
       </dl>
+      <section aria-labelledby="theme-title" className="space-y-3">
+        <h2 id="theme-title" className="font-semibold text-primary">
+          Apariencia
+        </h2>
+        <ThemeSelector />
+        <p className="text-sm text-muted-foreground">
+          Se guarda en este dispositivo. «Sistema» sigue la configuración del equipo.
+        </p>
+      </section>
       <p className="text-sm text-muted-foreground">
         Para cambiar tus datos o contraseña pide ayuda a un administrador.
       </p>

@@ -15,8 +15,8 @@ export function LoginPage() {
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
-      <aside className="brand-panel relative hidden overflow-hidden bg-primary p-12 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
-        <Logo className="text-primary-foreground" />
+      <aside className="brand-panel relative hidden overflow-hidden bg-chrome p-12 text-chrome-foreground lg:flex lg:flex-col lg:justify-between">
+        <Logo className="text-chrome-foreground" />
         <div className="relative z-10 max-w-md space-y-5">
           <p className="text-sm font-semibold tracking-[0.2em] text-accent uppercase">
             Próxima parada
@@ -32,7 +32,7 @@ export function LoginPage() {
       </aside>
 
       <main className="flex flex-col bg-surface-soft">
-        <header className="bg-primary px-6 py-5 text-primary-foreground lg:hidden">
+        <header className="bg-chrome px-6 py-5 text-chrome-foreground lg:hidden">
           <Logo />
         </header>
         <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8">

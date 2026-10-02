@@ -42,10 +42,13 @@ export function TableCard({ table }: { table: BoardTable }) {
       {count > 0 ? (
         <div className="space-y-1">
           {names ? (
-            <p className="truncate text-xs text-muted-foreground">También atiende {names}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {/* "También" solo si quien mira tiene cuentas propias en la mesa */}
+              {table.mine.bills > 0 ? 'También atiende' : 'Atiende'} {names}
+            </p>
           ) : null}
           <div className="flex items-end justify-between gap-2">
-            <p className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+            <p className="flex min-w-0 items-center gap-1.5 text-sm font-semibold whitespace-nowrap text-primary">
               <Receipt className="size-4 text-accent" aria-hidden="true" />
               {count} {count === 1 ? 'cuenta' : 'cuentas'}
               {oldest ? (

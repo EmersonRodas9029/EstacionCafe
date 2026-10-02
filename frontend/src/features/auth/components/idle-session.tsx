@@ -29,7 +29,7 @@ export function IdleSession({ timeoutMs }: { timeoutMs: number }) {
           role="alertdialog"
           aria-live="assertive"
           aria-label="La sesión se cerrará por inactividad"
-          className="fixed inset-0 z-[60] grid place-items-center bg-foreground/60 p-6 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] grid place-items-center bg-black/60 p-6 backdrop-blur-sm"
         >
           <div className="flex max-w-sm flex-col items-center gap-4 rounded-xl bg-card p-8 text-center shadow-xl">
             <Hand className="size-10 text-accent" aria-hidden="true" />

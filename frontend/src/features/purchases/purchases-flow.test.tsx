@@ -52,7 +52,8 @@ describe('Compras', () => {
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/admin/compras/2'))
     expect(db.purchases.at(-1)).toMatchObject({ total: 18.5, details: [] })
-    expect(await screen.findByText('Gasto sin inventario')).toBeInTheDocument()
+    // Texto exclusivo del detalle: el botón del formulario también dice "Gasto sin inventario"
+    expect(await screen.findByText('Esta compra no movió stock.')).toBeInTheDocument()
   })
 
   it('eliminar una compra revierte el stock; si ya se consumió, lo impide', async () => {
