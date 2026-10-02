@@ -4,6 +4,7 @@ import { UserType } from "../../core/entities/UserType";
 import { User } from "../../core/entities/User";
 import { Role } from "../../core/enums/Role";
 import { AppError } from "../errors/AppError";
+import { plural } from "../utils/plural";
 
 export class UserTypeService implements IService {
   private typeRepo: Repository<UserType>;
@@ -38,7 +39,7 @@ export class UserTypeService implements IService {
     });
     if (users > 0) {
       throw AppError.conflict(
-        `El rol tiene ${users} usuarios asignados y no se puede eliminar`,
+        `El rol tiene ${plural(users, "usuario asignado", "usuarios asignados")} y no se puede eliminar`,
       );
     }
     const result = await this.typeRepo.delete(id);

@@ -4,6 +4,7 @@ import { Table, TableStatus } from "../../core/entities/Table";
 import { SaveTableDTO, UpdateTableDTO } from "../DTOs/TableDTO";
 import { Bill } from "../../core/entities/Bill";
 import { AppError } from "../errors/AppError";
+import { plural } from "../utils/plural";
 
 export class TableService implements IService {
   public constructor(private tableRepository: Repository<Table>) {
@@ -49,7 +50,7 @@ export class TableService implements IService {
     });
     if (bills > 0) {
       throw AppError.conflict(
-        `La mesa ${tableId} tiene ${bills} facturas asociadas y no se puede eliminar`,
+        `La mesa ${tableId} tiene ${plural(bills, "factura asociada", "facturas asociadas")} y no se puede eliminar`,
       );
     }
     const result = await this.tableRepository.delete(tableId);

@@ -3,6 +3,7 @@ import { IService } from "../../core/interfaces/IService";
 import { ProductType } from "../../core/entities/ProductType";
 import { Product } from "../../core/entities/Producto";
 import { AppError } from "../errors/AppError";
+import { plural } from "../utils/plural";
 import {
   SaveProductTypeDTO,
   UpdateProductTypeDTO,
@@ -38,7 +39,7 @@ export class ProductTypeService implements IService {
     });
     if (products > 0) {
       throw AppError.conflict(
-        `La categoría tiene ${products} productos asociados y no se puede eliminar`,
+        `La categoría tiene ${plural(products, "producto asociado", "productos asociados")} y no se puede eliminar`,
       );
     }
     const result = await this.productTypeRepo.delete(id);
