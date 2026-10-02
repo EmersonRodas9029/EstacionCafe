@@ -9,9 +9,13 @@ export default defineConfig({
       target: './src/api/generated/endpoints.ts',
       schemas: './src/api/generated/model',
       client: 'react-query',
+      httpClient: 'fetch',
       mode: 'tags-split',
+      clean: true,
       override: {
         mutator: { path: './src/api/client.ts', name: 'orvalMutator' },
+        // Las funciones devuelven el body ({ status, message, data }) sin wrapper HTTP
+        fetch: { includeHttpResponseReturnType: false },
       },
     },
   },

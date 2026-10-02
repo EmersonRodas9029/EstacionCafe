@@ -1,9 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
+import { useListActiveProducts } from '@/api/generated/products/products'
 import { formatCurrency } from '@/lib/format'
-import { activeProductsQuery } from '../api'
 
 export function ProductList() {
-  const { data, isPending, isError, error } = useQuery(activeProductsQuery())
+  const { data, isPending, isError, error } = useListActiveProducts({
+    query: { select: (response) => response.data },
+  })
 
   if (isPending) return <p className="text-muted-foreground">Cargando productos…</p>
   if (isError)

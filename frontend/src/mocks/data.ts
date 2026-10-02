@@ -1,4 +1,4 @@
-import type { Product } from '@/features/products/types'
+import type { Product } from '@/api/generated/model'
 
 export const products: Product[] = [
   {

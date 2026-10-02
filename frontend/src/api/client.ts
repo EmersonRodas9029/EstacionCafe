@@ -31,26 +31,17 @@ async function parseBody(response: Response): Promise<unknown> {
   }
 }
 
-/**
- * Cliente HTTP único. Agrega el token, desempaqueta `{ status, data }`
- * y convierte cualquier error en `ApiError`.
- */
-export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { body, query, headers, ...init } = options
+/** Envía la petición con token y convierte errores en ApiError. Devuelve el body completo. */
+async function send(url: string, init: RequestInit): Promise<unknown> {
   const token = useSessionStore.getState().token
+  const headers = new Headers(init.headers)
+  headers.set('Accept', 'application/json')
+  if (init.body !== undefined && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+  if (token) headers.set('Authorization', `Bearer ${token}`)
 
-  const response = await fetch(buildUrl(path, query), {
-    ...init,
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      ...(body !== undefined && { 'Content-Type': 'application/json' }),
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
-
+  const response = await fetch(url, { ...init, headers, credentials: 'include' })
   const payload = await parseBody(response)
 
   if (!response.ok) {
@@ -58,7 +49,18 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     if (error.isUnauthorized) useSessionStore.getState().clear()
     throw error
   }
+  return payload
+}
 
+/**
+ * Cliente HTTP para código escrito a mano: desempaqueta `{ status, data }`.
+ */
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { body, query, ...init } = options
+  const payload = await send(buildUrl(path, query), {
+    ...init,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  })
   return (payload as ApiSuccess<T> | undefined)?.data as T
 }
 
@@ -75,17 +77,9 @@ export const api = {
     apiRequest<T>(path, { ...options, method: 'DELETE' }),
 }
 
-/** Adaptador para hooks generados por orval (`orval.config.ts`). */
-export const orvalMutator = <T>(config: {
-  url: string
-  method: string
-  params?: Record<string, QueryValue>
-  data?: unknown
-  signal?: AbortSignal
-}) =>
-  apiRequest<T>(config.url, {
-    method: config.method.toUpperCase(),
-    query: config.params,
-    body: config.data,
-    signal: config.signal,
-  })
+/**
+ * Mutator de orval (`orval.config.ts`). Devuelve el envelope completo,
+ * que es lo que describen los tipos generados (usar `select: (r) => r.data`).
+ */
+export const orvalMutator = <T>(url: string, init: RequestInit = {}): Promise<T> =>
+  send(`${env.apiUrl}${url}`, init) as Promise<T>
