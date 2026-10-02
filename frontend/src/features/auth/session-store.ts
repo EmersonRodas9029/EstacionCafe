@@ -1,12 +1,19 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { Role } from '@/api/generated/model/role'
 
-export type Role = 'admin' | 'mesero' | 'cajero'
+export type SessionUser = {
+  userId: number
+  username: string
+  email: string
+  role: Role
+}
 
 type SessionState = {
   token: string | null
-  role: Role | null
-  setSession: (token: string, role: Role | null) => void
+  user: SessionUser | null
+  setToken: (token: string) => void
+  setUser: (user: SessionUser) => void
   clear: () => void
 }
 
@@ -15,10 +22,13 @@ export const useSessionStore = create<SessionState>()(
   persist(
     (set) => ({
       token: null,
-      role: null,
-      setSession: (token, role) => set({ token, role }),
-      clear: () => set({ token: null, role: null }),
+      user: null,
+      setToken: (token) => set({ token }),
+      setUser: (user) => set({ user }),
+      clear: () => set({ token: null, user: null }),
     }),
-    { name: 'estacioncafe-session' },
+    { name: 'estacioncafe-session', version: 1 },
   ),
 )
+
+export const useRole = () => useSessionStore((s) => s.user?.role ?? null)

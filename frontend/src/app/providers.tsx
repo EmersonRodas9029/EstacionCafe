@@ -9,7 +9,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {import.meta.env.DEV && <ReactQueryDevtools buttonPosition="bottom-left" />}
+      {import.meta.env.VITE_QUERY_DEVTOOLS === 'true' ? (
+        <ReactQueryDevtools buttonPosition="top-right" />
+      ) : null}
     </QueryClientProvider>
   )
 }

@@ -15,7 +15,7 @@ describe('apiRequest', () => {
   })
 
   it('envía el token Bearer de la sesión', async () => {
-    useSessionStore.getState().setSession('abc123', 'mesero')
+    useSessionStore.getState().setToken('abc123')
     let auth: string | null = null
     server.use(
       http.get('*/api/ping', ({ request }) => {
@@ -60,7 +60,7 @@ describe('apiRequest', () => {
   })
 
   it('limpia la sesión en 401', async () => {
-    useSessionStore.getState().setSession('expirado', 'admin')
+    useSessionStore.getState().setToken('expirado')
     server.use(
       http.get('*/api/ping', () =>
         HttpResponse.json({ status: 'error', message: 'Token inválido' }, { status: 401 }),

@@ -1,4 +1,5 @@
-import type { Product } from '@/api/generated/model'
+import type { CurrentUser } from '@/api/generated/model/currentUser'
+import type { Product } from '@/api/generated/model/product'
 
 export const products: Product[] = [
   {
@@ -36,5 +37,35 @@ export const products: Product[] = [
     cost: 0.9,
     productTypeId: 3,
     active: false,
+  },
+]
+
+export const DEMO_PASSWORD = 'AdminDemo123!'
+
+const userType = (userTypeId: number, name: string, role: CurrentUser['role']) => ({
+  userTypeId,
+  name,
+  permissionLevel: role === 'admin' ? 10 : 3,
+  role,
+})
+
+export const users: CurrentUser[] = [
+  {
+    userId: 1,
+    username: 'admin.demo',
+    email: 'admin.demo@estacioncafe.test',
+    userTypeId: 1,
+    active: true,
+    userType: userType(1, 'Administrador', 'admin'),
+    role: 'admin',
+  },
+  {
+    userId: 2,
+    username: 'mesero.demo',
+    email: 'mesero.demo@estacioncafe.test',
+    userTypeId: 2,
+    active: true,
+    userType: userType(2, 'Mesero', 'mesero'),
+    role: 'mesero',
   },
 ]
