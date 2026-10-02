@@ -344,7 +344,8 @@ export async function runDemoSeed(ds: DataSource, now = new Date()): Promise<Dem
       return total;
     };
 
-    const stock = new Map(consumables.map((c) => [c.consumableId, c.minStock * 1.5]));
+    const avgDaily = (id: number) => usageBetween(DEMO_DAYS - 1, 0, id) / DEMO_DAYS;
+    const stock = new Map(consumables.map((c) => [c.consumableId, Math.ceil(c.minStock * 1.5)]));
     const cost = new Map(consumables.map((c) => [c.consumableId, c.cost]));
     const purchases: { date: Date; supplierId: number; cashRegisterId: number | null; details: { consumableId: number; quantity: number; unitCost: number }[] }[] = [];
     const buy = (date: Date, supplier: number, items: { consumableId: number; quantity: number }[]) => {
@@ -375,12 +376,14 @@ export async function runDemoSeed(ds: DataSource, now = new Date()): Promise<Dem
           const def = defOf(c.consumableId);
           if (def.supplier !== supplier.key) continue;
           const isLast = daysAgo === LAST_WEEKLY;
-          const need = usageBetween(daysAgo, Math.max(daysAgo - 6, 0), c.consumableId);
+          // Se compra para la semana completa (consumo promedio), aunque el mes termine antes
+          const windowUse = usageBetween(daysAgo, Math.max(daysAgo - 6, 0), c.consumableId);
+          const need = Math.max(windowUse, avgDaily(c.consumableId) * 7);
           const dayUse = usageByDay.get(day)?.get(c.consumableId) ?? 0;
           if (weekly && !(isLast && ENDS_LOW.includes(def.key))) {
             // Antes de la compra "olvidada", los de ENDS_LOW se piden sin colchón
             const lean = ENDS_LOW.includes(def.key) && daysAgo === LAST_WEEKLY + 7;
-            const target = lean ? need : need * 1.15 + c.minStock * 1.2;
+            const target = lean ? windowUse : need * 1.15 + c.minStock * 1.2;
             const quantity = Math.ceil(target - stock.get(c.consumableId)!);
             if (quantity > 0) items.push({ consumableId: c.consumableId, quantity });
           } else if (stock.get(c.consumableId)! < dayUse) {
