@@ -42,6 +42,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -97,7 +98,7 @@ export const getListTablesQueryKey = () => {
     }
 
 
-export const getListTablesQueryOptions = <TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTables>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListTablesQueryOptions = <TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTables>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -116,10 +117,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListTablesQueryResult = NonNullable<Awaited<ReturnType<typeof listTables>>>
-export type ListTablesQueryError = ErrorResponse
+export type ListTablesQueryError = ErrorType<ErrorResponse>
 
 
-export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorResponse>(
+export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTables>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTables>>,
@@ -129,7 +130,7 @@ export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TE
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorResponse>(
+export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTables>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTables>>,
@@ -139,7 +140,7 @@ export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TE
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorResponse>(
+export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTables>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -147,7 +148,7 @@ export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TE
  * @summary Listar mesas (incluye sus cuentas)
  */
 
-export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorResponse>(
+export function useListTables<TData = Awaited<ReturnType<typeof listTables>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTables>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -207,7 +208,7 @@ return orvalMutator<CreateTable201>(getCreateTableUrl(),
 
 export const getCreateTableMutationKey = () => ['createTable'] as const;
 
-export const getCreateTableMutationOptions = <TError = ErrorResponse,
+export const getCreateTableMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTable>>, TError,CreateTableMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createTable>>, TError,CreateTableMutationVariables, TContext> => {
 
@@ -236,13 +237,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateTableMutationResult = NonNullable<Awaited<ReturnType<typeof createTable>>>
     export type CreateTableMutationBody = TableInput
-    export type CreateTableMutationError = ErrorResponse
+    export type CreateTableMutationError = ErrorType<ErrorResponse>
     export type CreateTableMutationVariables = {data: TableInput}
 
     /**
  * @summary Crear mesa
  */
-export const useCreateTable = <TError = ErrorResponse,
+export const useCreateTable = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTable>>, TError,CreateTableMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createTable>>,
@@ -286,7 +287,7 @@ export const getListAvailableTablesQueryKey = () => {
     }
 
 
-export const getListAvailableTablesQueryOptions = <TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAvailableTables>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListAvailableTablesQueryOptions = <TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAvailableTables>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -305,10 +306,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListAvailableTablesQueryResult = NonNullable<Awaited<ReturnType<typeof listAvailableTables>>>
-export type ListAvailableTablesQueryError = ErrorResponse
+export type ListAvailableTablesQueryError = ErrorType<ErrorResponse>
 
 
-export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorResponse>(
+export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAvailableTables>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAvailableTables>>,
@@ -318,7 +319,7 @@ export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAva
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorResponse>(
+export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAvailableTables>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAvailableTables>>,
@@ -328,7 +329,7 @@ export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAva
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorResponse>(
+export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAvailableTables>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -336,7 +337,7 @@ export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAva
  * @summary Listar mesas disponibles
  */
 
-export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorResponse>(
+export function useListAvailableTables<TData = Awaited<ReturnType<typeof listAvailableTables>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAvailableTables>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -387,7 +388,7 @@ export const getListTablesByZoneQueryKey = (zone: string,) => {
     }
 
 
-export const getListTablesByZoneQueryOptions = <TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorResponse>(zone: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByZone>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListTablesByZoneQueryOptions = <TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorType<ErrorResponse>>(zone: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByZone>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -406,10 +407,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListTablesByZoneQueryResult = NonNullable<Awaited<ReturnType<typeof listTablesByZone>>>
-export type ListTablesByZoneQueryError = ErrorResponse
+export type ListTablesByZoneQueryError = ErrorType<ErrorResponse>
 
 
-export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorResponse>(
+export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorType<ErrorResponse>>(
  zone: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByZone>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTablesByZone>>,
@@ -419,7 +420,7 @@ export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTables
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorResponse>(
+export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorType<ErrorResponse>>(
  zone: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByZone>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTablesByZone>>,
@@ -429,7 +430,7 @@ export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTables
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorResponse>(
+export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorType<ErrorResponse>>(
  zone: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByZone>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -437,7 +438,7 @@ export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTables
  * @summary Listar mesas por zona
  */
 
-export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorResponse>(
+export function useListTablesByZone<TData = Awaited<ReturnType<typeof listTablesByZone>>, TError = ErrorType<ErrorResponse>>(
  zone: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByZone>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -488,7 +489,7 @@ export const getListTablesByStatusQueryKey = (status: TableStatus,) => {
     }
 
 
-export const getListTablesByStatusQueryOptions = <TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorResponse>(status: TableStatus, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByStatus>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListTablesByStatusQueryOptions = <TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorType<ErrorResponse>>(status: TableStatus, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByStatus>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -507,10 +508,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListTablesByStatusQueryResult = NonNullable<Awaited<ReturnType<typeof listTablesByStatus>>>
-export type ListTablesByStatusQueryError = ErrorResponse
+export type ListTablesByStatusQueryError = ErrorType<ErrorResponse>
 
 
-export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorResponse>(
+export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorType<ErrorResponse>>(
  status: TableStatus, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByStatus>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTablesByStatus>>,
@@ -520,7 +521,7 @@ export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTabl
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorResponse>(
+export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorType<ErrorResponse>>(
  status: TableStatus, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByStatus>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTablesByStatus>>,
@@ -530,7 +531,7 @@ export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTabl
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorResponse>(
+export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorType<ErrorResponse>>(
  status: TableStatus, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByStatus>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -538,7 +539,7 @@ export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTabl
  * @summary Listar mesas por estado
  */
 
-export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorResponse>(
+export function useListTablesByStatus<TData = Awaited<ReturnType<typeof listTablesByStatus>>, TError = ErrorType<ErrorResponse>>(
  status: TableStatus, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTablesByStatus>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -589,7 +590,7 @@ export const getGetTableQueryKey = (id: string,) => {
     }
 
 
-export const getGetTableQueryOptions = <TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorResponse>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTable>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetTableQueryOptions = <TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorType<ErrorResponse>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTable>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -608,10 +609,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetTableQueryResult = NonNullable<Awaited<ReturnType<typeof getTable>>>
-export type GetTableQueryError = ErrorResponse
+export type GetTableQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorResponse>(
+export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorType<ErrorResponse>>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTable>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getTable>>,
@@ -621,7 +622,7 @@ export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorResponse>(
+export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorType<ErrorResponse>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTable>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getTable>>,
@@ -631,7 +632,7 @@ export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorResponse>(
+export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorType<ErrorResponse>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTable>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -639,7 +640,7 @@ export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError
  * @summary Obtener mesa
  */
 
-export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorResponse>(
+export function useGetTable<TData = Awaited<ReturnType<typeof getTable>>, TError = ErrorType<ErrorResponse>>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTable>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -700,7 +701,7 @@ return orvalMutator<UpdateTable200>(getUpdateTableUrl(id),
 
 export const getUpdateTableMutationKey = () => ['updateTable'] as const;
 
-export const getUpdateTableMutationOptions = <TError = ErrorResponse,
+export const getUpdateTableMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTable>>, TError,UpdateTableMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateTable>>, TError,UpdateTableMutationVariables, TContext> => {
 
@@ -729,13 +730,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateTableMutationResult = NonNullable<Awaited<ReturnType<typeof updateTable>>>
     export type UpdateTableMutationBody = TableUpdate
-    export type UpdateTableMutationError = ErrorResponse
+    export type UpdateTableMutationError = ErrorType<ErrorResponse>
     export type UpdateTableMutationVariables = {id: string;data: TableUpdate}
 
     /**
  * @summary Actualizar mesa
  */
-export const useUpdateTable = <TError = ErrorResponse,
+export const useUpdateTable = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTable>>, TError,UpdateTableMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateTable>>,
@@ -774,7 +775,7 @@ export const deleteTable = async (id: string, options?: Parameters<typeof orvalM
 
 export const getDeleteTableMutationKey = () => ['deleteTable'] as const;
 
-export const getDeleteTableMutationOptions = <TError = ErrorResponse,
+export const getDeleteTableMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTable>>, TError,DeleteTableMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteTable>>, TError,DeleteTableMutationVariables, TContext> => {
 
@@ -803,13 +804,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteTableMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTable>>>
 
-    export type DeleteTableMutationError = ErrorResponse
+    export type DeleteTableMutationError = ErrorType<ErrorResponse>
     export type DeleteTableMutationVariables = {id: string}
 
     /**
  * @summary Eliminar mesa
  */
-export const useDeleteTable = <TError = ErrorResponse,
+export const useDeleteTable = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTable>>, TError,DeleteTableMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteTable>>,
@@ -863,7 +864,7 @@ return orvalMutator<UpdateTableStatus200>(getUpdateTableStatusUrl(id),
 
 export const getUpdateTableStatusMutationKey = () => ['updateTableStatus'] as const;
 
-export const getUpdateTableStatusMutationOptions = <TError = ErrorResponse,
+export const getUpdateTableStatusMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTableStatus>>, TError,UpdateTableStatusMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateTableStatus>>, TError,UpdateTableStatusMutationVariables, TContext> => {
 
@@ -892,13 +893,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateTableStatusMutationResult = NonNullable<Awaited<ReturnType<typeof updateTableStatus>>>
     export type UpdateTableStatusMutationBody = TableStatusUpdate
-    export type UpdateTableStatusMutationError = ErrorResponse
+    export type UpdateTableStatusMutationError = ErrorType<ErrorResponse>
     export type UpdateTableStatusMutationVariables = {id: string;data: TableStatusUpdate}
 
     /**
  * @summary Cambiar estado de la mesa
  */
-export const useUpdateTableStatus = <TError = ErrorResponse,
+export const useUpdateTableStatus = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTableStatus>>, TError,UpdateTableStatusMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateTableStatus>>,

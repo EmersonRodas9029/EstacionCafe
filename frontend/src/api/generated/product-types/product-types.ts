@@ -36,6 +36,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -91,7 +92,7 @@ export const getListProductTypesQueryKey = () => {
     }
 
 
-export const getListProductTypesQueryOptions = <TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListProductTypesQueryOptions = <TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -110,10 +111,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListProductTypesQueryResult = NonNullable<Awaited<ReturnType<typeof listProductTypes>>>
-export type ListProductTypesQueryError = ErrorResponse
+export type ListProductTypesQueryError = ErrorType<ErrorResponse>
 
 
-export function useListProductTypes<TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorResponse>(
+export function useListProductTypes<TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductTypes>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listProductTypes>>,
@@ -123,7 +124,7 @@ export function useListProductTypes<TData = Awaited<ReturnType<typeof listProduc
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListProductTypes<TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorResponse>(
+export function useListProductTypes<TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductTypes>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listProductTypes>>,
@@ -133,7 +134,7 @@ export function useListProductTypes<TData = Awaited<ReturnType<typeof listProduc
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListProductTypes<TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorResponse>(
+export function useListProductTypes<TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -141,7 +142,7 @@ export function useListProductTypes<TData = Awaited<ReturnType<typeof listProduc
  * @summary Listar categorías de producto
  */
 
-export function useListProductTypes<TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorResponse>(
+export function useListProductTypes<TData = Awaited<ReturnType<typeof listProductTypes>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProductTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -201,7 +202,7 @@ return orvalMutator<CreateProductType201>(getCreateProductTypeUrl(),
 
 export const getCreateProductTypeMutationKey = () => ['createProductType'] as const;
 
-export const getCreateProductTypeMutationOptions = <TError = ErrorResponse,
+export const getCreateProductTypeMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProductType>>, TError,CreateProductTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createProductType>>, TError,CreateProductTypeMutationVariables, TContext> => {
 
@@ -230,13 +231,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateProductTypeMutationResult = NonNullable<Awaited<ReturnType<typeof createProductType>>>
     export type CreateProductTypeMutationBody = ProductTypeInput
-    export type CreateProductTypeMutationError = ErrorResponse
+    export type CreateProductTypeMutationError = ErrorType<ErrorResponse>
     export type CreateProductTypeMutationVariables = {data: ProductTypeInput}
 
     /**
  * @summary Crear categoría de producto
  */
-export const useCreateProductType = <TError = ErrorResponse,
+export const useCreateProductType = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProductType>>, TError,CreateProductTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createProductType>>,
@@ -280,7 +281,7 @@ export const getGetProductTypeQueryKey = (id: number,) => {
     }
 
 
-export const getGetProductTypeQueryOptions = <TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorResponse>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetProductTypeQueryOptions = <TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorType<ErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -299,10 +300,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetProductTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getProductType>>>
-export type GetProductTypeQueryError = ErrorResponse
+export type GetProductTypeQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetProductType<TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorResponse>(
+export function useGetProductType<TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductType>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getProductType>>,
@@ -312,7 +313,7 @@ export function useGetProductType<TData = Awaited<ReturnType<typeof getProductTy
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetProductType<TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorResponse>(
+export function useGetProductType<TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductType>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getProductType>>,
@@ -322,7 +323,7 @@ export function useGetProductType<TData = Awaited<ReturnType<typeof getProductTy
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetProductType<TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorResponse>(
+export function useGetProductType<TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -330,7 +331,7 @@ export function useGetProductType<TData = Awaited<ReturnType<typeof getProductTy
  * @summary Obtener categoría de producto
  */
 
-export function useGetProductType<TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorResponse>(
+export function useGetProductType<TData = Awaited<ReturnType<typeof getProductType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -391,7 +392,7 @@ return orvalMutator<UpdateProductType200>(getUpdateProductTypeUrl(id),
 
 export const getUpdateProductTypeMutationKey = () => ['updateProductType'] as const;
 
-export const getUpdateProductTypeMutationOptions = <TError = ErrorResponse,
+export const getUpdateProductTypeMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductType>>, TError,UpdateProductTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateProductType>>, TError,UpdateProductTypeMutationVariables, TContext> => {
 
@@ -420,13 +421,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateProductTypeMutationResult = NonNullable<Awaited<ReturnType<typeof updateProductType>>>
     export type UpdateProductTypeMutationBody = ProductTypeUpdate
-    export type UpdateProductTypeMutationError = ErrorResponse
+    export type UpdateProductTypeMutationError = ErrorType<ErrorResponse>
     export type UpdateProductTypeMutationVariables = {id: number;data: ProductTypeUpdate}
 
     /**
  * @summary Actualizar categoría de producto
  */
-export const useUpdateProductType = <TError = ErrorResponse,
+export const useUpdateProductType = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductType>>, TError,UpdateProductTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateProductType>>,
@@ -465,7 +466,7 @@ export const deleteProductType = async (id: number, options?: Parameters<typeof 
 
 export const getDeleteProductTypeMutationKey = () => ['deleteProductType'] as const;
 
-export const getDeleteProductTypeMutationOptions = <TError = ErrorResponse,
+export const getDeleteProductTypeMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductType>>, TError,DeleteProductTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteProductType>>, TError,DeleteProductTypeMutationVariables, TContext> => {
 
@@ -494,13 +495,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteProductTypeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteProductType>>>
 
-    export type DeleteProductTypeMutationError = ErrorResponse
+    export type DeleteProductTypeMutationError = ErrorType<ErrorResponse>
     export type DeleteProductTypeMutationVariables = {id: number}
 
     /**
  * @summary Eliminar categoría de producto
  */
-export const useDeleteProductType = <TError = ErrorResponse,
+export const useDeleteProductType = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductType>>, TError,DeleteProductTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteProductType>>,

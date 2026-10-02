@@ -27,6 +27,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -91,7 +92,7 @@ export const getGetSalesReportQueryKey = (params?: GetSalesReportParams,) => {
     }
 
 
-export const getGetSalesReportQueryOptions = <TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorResponse>(params: GetSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSalesReport>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetSalesReportQueryOptions = <TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorType<ErrorResponse>>(params: GetSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSalesReport>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -110,10 +111,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetSalesReportQueryResult = NonNullable<Awaited<ReturnType<typeof getSalesReport>>>
-export type GetSalesReportQueryError = ErrorResponse
+export type GetSalesReportQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorResponse>(
+export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorType<ErrorResponse>>(
  params: GetSalesReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSalesReport>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSalesReport>>,
@@ -123,7 +124,7 @@ export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesRepo
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorResponse>(
+export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorType<ErrorResponse>>(
  params: GetSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSalesReport>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSalesReport>>,
@@ -133,7 +134,7 @@ export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesRepo
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorResponse>(
+export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorType<ErrorResponse>>(
  params: GetSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSalesReport>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -141,7 +142,7 @@ export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesRepo
  * @summary Reporte de ventas
  */
 
-export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorResponse>(
+export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesReport>>, TError = ErrorType<ErrorResponse>>(
  params: GetSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSalesReport>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {

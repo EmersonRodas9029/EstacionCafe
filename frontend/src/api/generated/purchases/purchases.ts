@@ -37,6 +37,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -92,7 +93,7 @@ export const getListPurchasesQueryKey = () => {
     }
 
 
-export const getListPurchasesQueryOptions = <TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchases>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListPurchasesQueryOptions = <TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchases>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -111,10 +112,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListPurchasesQueryResult = NonNullable<Awaited<ReturnType<typeof listPurchases>>>
-export type ListPurchasesQueryError = ErrorResponse
+export type ListPurchasesQueryError = ErrorType<ErrorResponse>
 
 
-export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorResponse>(
+export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchases>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPurchases>>,
@@ -124,7 +125,7 @@ export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorResponse>(
+export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchases>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPurchases>>,
@@ -134,7 +135,7 @@ export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorResponse>(
+export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchases>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -142,7 +143,7 @@ export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases
  * @summary Listar compras
  */
 
-export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorResponse>(
+export function useListPurchases<TData = Awaited<ReturnType<typeof listPurchases>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchases>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -204,7 +205,7 @@ return orvalMutator<CreatePurchase201>(getCreatePurchaseUrl(),
 
 export const getCreatePurchaseMutationKey = () => ['createPurchase'] as const;
 
-export const getCreatePurchaseMutationOptions = <TError = ErrorResponse,
+export const getCreatePurchaseMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPurchase>>, TError,CreatePurchaseMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createPurchase>>, TError,CreatePurchaseMutationVariables, TContext> => {
 
@@ -233,13 +234,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreatePurchaseMutationResult = NonNullable<Awaited<ReturnType<typeof createPurchase>>>
     export type CreatePurchaseMutationBody = PurchaseInput
-    export type CreatePurchaseMutationError = ErrorResponse
+    export type CreatePurchaseMutationError = ErrorType<ErrorResponse>
     export type CreatePurchaseMutationVariables = {data: PurchaseInput}
 
     /**
  * @summary Registrar compra
  */
-export const useCreatePurchase = <TError = ErrorResponse,
+export const useCreatePurchase = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPurchase>>, TError,CreatePurchaseMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createPurchase>>,
@@ -283,7 +284,7 @@ export const getListPurchasesBySupplierQueryKey = (supplierId: number,) => {
     }
 
 
-export const getListPurchasesBySupplierQueryOptions = <TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorResponse>(supplierId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListPurchasesBySupplierQueryOptions = <TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorType<ErrorResponse>>(supplierId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -302,10 +303,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListPurchasesBySupplierQueryResult = NonNullable<Awaited<ReturnType<typeof listPurchasesBySupplier>>>
-export type ListPurchasesBySupplierQueryError = ErrorResponse
+export type ListPurchasesBySupplierQueryError = ErrorType<ErrorResponse>
 
 
-export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorResponse>(
+export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorType<ErrorResponse>>(
  supplierId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPurchasesBySupplier>>,
@@ -315,7 +316,7 @@ export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof lis
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorResponse>(
+export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorType<ErrorResponse>>(
  supplierId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPurchasesBySupplier>>,
@@ -325,7 +326,7 @@ export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof lis
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorResponse>(
+export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorType<ErrorResponse>>(
  supplierId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -333,7 +334,7 @@ export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof lis
  * @summary Listar compras por proveedor
  */
 
-export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorResponse>(
+export function useListPurchasesBySupplier<TData = Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError = ErrorType<ErrorResponse>>(
  supplierId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchasesBySupplier>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -384,7 +385,7 @@ export const getGetPurchaseQueryKey = (id: number,) => {
     }
 
 
-export const getGetPurchaseQueryOptions = <TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorResponse>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchase>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetPurchaseQueryOptions = <TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorType<ErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchase>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -403,10 +404,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetPurchaseQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchase>>>
-export type GetPurchaseQueryError = ErrorResponse
+export type GetPurchaseQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorResponse>(
+export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorType<ErrorResponse>>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchase>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getPurchase>>,
@@ -416,7 +417,7 @@ export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, 
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorResponse>(
+export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchase>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getPurchase>>,
@@ -426,7 +427,7 @@ export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, 
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorResponse>(
+export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchase>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -434,7 +435,7 @@ export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, 
  * @summary Obtener compra con detalles
  */
 
-export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorResponse>(
+export function useGetPurchase<TData = Awaited<ReturnType<typeof getPurchase>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchase>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -495,7 +496,7 @@ return orvalMutator<UpdatePurchase200>(getUpdatePurchaseUrl(id),
 
 export const getUpdatePurchaseMutationKey = () => ['updatePurchase'] as const;
 
-export const getUpdatePurchaseMutationOptions = <TError = ErrorResponse,
+export const getUpdatePurchaseMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePurchase>>, TError,UpdatePurchaseMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updatePurchase>>, TError,UpdatePurchaseMutationVariables, TContext> => {
 
@@ -524,13 +525,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdatePurchaseMutationResult = NonNullable<Awaited<ReturnType<typeof updatePurchase>>>
     export type UpdatePurchaseMutationBody = PurchaseUpdate
-    export type UpdatePurchaseMutationError = ErrorResponse
+    export type UpdatePurchaseMutationError = ErrorType<ErrorResponse>
     export type UpdatePurchaseMutationVariables = {id: number;data: PurchaseUpdate}
 
     /**
  * @summary Actualizar datos generales de la compra
  */
-export const useUpdatePurchase = <TError = ErrorResponse,
+export const useUpdatePurchase = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePurchase>>, TError,UpdatePurchaseMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updatePurchase>>,
@@ -569,7 +570,7 @@ export const deletePurchase = async (id: number, options?: Parameters<typeof orv
 
 export const getDeletePurchaseMutationKey = () => ['deletePurchase'] as const;
 
-export const getDeletePurchaseMutationOptions = <TError = ErrorResponse,
+export const getDeletePurchaseMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePurchase>>, TError,DeletePurchaseMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deletePurchase>>, TError,DeletePurchaseMutationVariables, TContext> => {
 
@@ -598,13 +599,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeletePurchaseMutationResult = NonNullable<Awaited<ReturnType<typeof deletePurchase>>>
 
-    export type DeletePurchaseMutationError = ErrorResponse
+    export type DeletePurchaseMutationError = ErrorType<ErrorResponse>
     export type DeletePurchaseMutationVariables = {id: number}
 
     /**
  * @summary Eliminar compra (revierte stock)
  */
-export const useDeletePurchase = <TError = ErrorResponse,
+export const useDeletePurchase = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePurchase>>, TError,DeletePurchaseMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deletePurchase>>,

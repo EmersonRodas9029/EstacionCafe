@@ -36,6 +36,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -91,7 +92,7 @@ export const getListUserTypesQueryKey = () => {
     }
 
 
-export const getListUserTypesQueryOptions = <TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUserTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListUserTypesQueryOptions = <TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUserTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -110,10 +111,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListUserTypesQueryResult = NonNullable<Awaited<ReturnType<typeof listUserTypes>>>
-export type ListUserTypesQueryError = ErrorResponse
+export type ListUserTypesQueryError = ErrorType<ErrorResponse>
 
 
-export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorResponse>(
+export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUserTypes>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listUserTypes>>,
@@ -123,7 +124,7 @@ export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorResponse>(
+export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUserTypes>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listUserTypes>>,
@@ -133,7 +134,7 @@ export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorResponse>(
+export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUserTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -141,7 +142,7 @@ export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes
  * @summary Listar tipos de usuario
  */
 
-export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorResponse>(
+export function useListUserTypes<TData = Awaited<ReturnType<typeof listUserTypes>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUserTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -201,7 +202,7 @@ return orvalMutator<CreateUserType201>(getCreateUserTypeUrl(),
 
 export const getCreateUserTypeMutationKey = () => ['createUserType'] as const;
 
-export const getCreateUserTypeMutationOptions = <TError = ErrorResponse,
+export const getCreateUserTypeMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUserType>>, TError,CreateUserTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createUserType>>, TError,CreateUserTypeMutationVariables, TContext> => {
 
@@ -230,13 +231,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateUserTypeMutationResult = NonNullable<Awaited<ReturnType<typeof createUserType>>>
     export type CreateUserTypeMutationBody = UserTypeInput
-    export type CreateUserTypeMutationError = ErrorResponse
+    export type CreateUserTypeMutationError = ErrorType<ErrorResponse>
     export type CreateUserTypeMutationVariables = {data: UserTypeInput}
 
     /**
  * @summary Crear tipo de usuario
  */
-export const useCreateUserType = <TError = ErrorResponse,
+export const useCreateUserType = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUserType>>, TError,CreateUserTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createUserType>>,
@@ -280,7 +281,7 @@ export const getGetUserTypeQueryKey = (id: number,) => {
     }
 
 
-export const getGetUserTypeQueryOptions = <TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorResponse>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetUserTypeQueryOptions = <TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorType<ErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -299,10 +300,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetUserTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getUserType>>>
-export type GetUserTypeQueryError = ErrorResponse
+export type GetUserTypeQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorResponse>(
+export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserType>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getUserType>>,
@@ -312,7 +313,7 @@ export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, 
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorResponse>(
+export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserType>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getUserType>>,
@@ -322,7 +323,7 @@ export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, 
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorResponse>(
+export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -330,7 +331,7 @@ export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, 
  * @summary Obtener tipo de usuario
  */
 
-export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorResponse>(
+export function useGetUserType<TData = Awaited<ReturnType<typeof getUserType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -391,7 +392,7 @@ return orvalMutator<UpdateUserType200>(getUpdateUserTypeUrl(id),
 
 export const getUpdateUserTypeMutationKey = () => ['updateUserType'] as const;
 
-export const getUpdateUserTypeMutationOptions = <TError = ErrorResponse,
+export const getUpdateUserTypeMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserType>>, TError,UpdateUserTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateUserType>>, TError,UpdateUserTypeMutationVariables, TContext> => {
 
@@ -420,13 +421,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateUserTypeMutationResult = NonNullable<Awaited<ReturnType<typeof updateUserType>>>
     export type UpdateUserTypeMutationBody = UserTypeUpdate
-    export type UpdateUserTypeMutationError = ErrorResponse
+    export type UpdateUserTypeMutationError = ErrorType<ErrorResponse>
     export type UpdateUserTypeMutationVariables = {id: number;data: UserTypeUpdate}
 
     /**
  * @summary Actualizar tipo de usuario
  */
-export const useUpdateUserType = <TError = ErrorResponse,
+export const useUpdateUserType = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserType>>, TError,UpdateUserTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateUserType>>,
@@ -465,7 +466,7 @@ export const deleteUserType = async (id: number, options?: Parameters<typeof orv
 
 export const getDeleteUserTypeMutationKey = () => ['deleteUserType'] as const;
 
-export const getDeleteUserTypeMutationOptions = <TError = ErrorResponse,
+export const getDeleteUserTypeMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUserType>>, TError,DeleteUserTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteUserType>>, TError,DeleteUserTypeMutationVariables, TContext> => {
 
@@ -494,13 +495,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteUserTypeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteUserType>>>
 
-    export type DeleteUserTypeMutationError = ErrorResponse
+    export type DeleteUserTypeMutationError = ErrorType<ErrorResponse>
     export type DeleteUserTypeMutationVariables = {id: number}
 
     /**
  * @summary Eliminar tipo de usuario
  */
-export const useDeleteUserType = <TError = ErrorResponse,
+export const useDeleteUserType = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUserType>>, TError,DeleteUserTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteUserType>>,

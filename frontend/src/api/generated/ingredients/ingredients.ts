@@ -37,6 +37,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -92,7 +93,7 @@ export const getListIngredientsQueryKey = () => {
     }
 
 
-export const getListIngredientsQueryOptions = <TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredients>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListIngredientsQueryOptions = <TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredients>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -111,10 +112,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListIngredientsQueryResult = NonNullable<Awaited<ReturnType<typeof listIngredients>>>
-export type ListIngredientsQueryError = ErrorResponse
+export type ListIngredientsQueryError = ErrorType<ErrorResponse>
 
 
-export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorResponse>(
+export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredients>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listIngredients>>,
@@ -124,7 +125,7 @@ export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredi
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorResponse>(
+export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredients>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listIngredients>>,
@@ -134,7 +135,7 @@ export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredi
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorResponse>(
+export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredients>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -142,7 +143,7 @@ export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredi
  * @summary Listar ingredientes (recetas)
  */
 
-export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorResponse>(
+export function useListIngredients<TData = Awaited<ReturnType<typeof listIngredients>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredients>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -202,7 +203,7 @@ return orvalMutator<CreateIngredient201>(getCreateIngredientUrl(),
 
 export const getCreateIngredientMutationKey = () => ['createIngredient'] as const;
 
-export const getCreateIngredientMutationOptions = <TError = ErrorResponse,
+export const getCreateIngredientMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createIngredient>>, TError,CreateIngredientMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createIngredient>>, TError,CreateIngredientMutationVariables, TContext> => {
 
@@ -231,13 +232,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateIngredientMutationResult = NonNullable<Awaited<ReturnType<typeof createIngredient>>>
     export type CreateIngredientMutationBody = IngredientInput
-    export type CreateIngredientMutationError = ErrorResponse
+    export type CreateIngredientMutationError = ErrorType<ErrorResponse>
     export type CreateIngredientMutationVariables = {data: IngredientInput}
 
     /**
  * @summary Agregar ingrediente a un producto
  */
-export const useCreateIngredient = <TError = ErrorResponse,
+export const useCreateIngredient = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createIngredient>>, TError,CreateIngredientMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createIngredient>>,
@@ -281,7 +282,7 @@ export const getListIngredientsByProductQueryKey = (productId: number,) => {
     }
 
 
-export const getListIngredientsByProductQueryOptions = <TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorResponse>(productId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientsByProduct>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListIngredientsByProductQueryOptions = <TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorType<ErrorResponse>>(productId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientsByProduct>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -300,10 +301,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListIngredientsByProductQueryResult = NonNullable<Awaited<ReturnType<typeof listIngredientsByProduct>>>
-export type ListIngredientsByProductQueryError = ErrorResponse
+export type ListIngredientsByProductQueryError = ErrorType<ErrorResponse>
 
 
-export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorResponse>(
+export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorType<ErrorResponse>>(
  productId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientsByProduct>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listIngredientsByProduct>>,
@@ -313,7 +314,7 @@ export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof li
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorResponse>(
+export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorType<ErrorResponse>>(
  productId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientsByProduct>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listIngredientsByProduct>>,
@@ -323,7 +324,7 @@ export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof li
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorResponse>(
+export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorType<ErrorResponse>>(
  productId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientsByProduct>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -331,7 +332,7 @@ export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof li
  * @summary Receta de un producto
  */
 
-export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorResponse>(
+export function useListIngredientsByProduct<TData = Awaited<ReturnType<typeof listIngredientsByProduct>>, TError = ErrorType<ErrorResponse>>(
  productId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIngredientsByProduct>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -382,7 +383,7 @@ export const getGetIngredientQueryKey = (id: number,) => {
     }
 
 
-export const getGetIngredientQueryOptions = <TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorResponse>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIngredient>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetIngredientQueryOptions = <TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorType<ErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIngredient>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -401,10 +402,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetIngredientQueryResult = NonNullable<Awaited<ReturnType<typeof getIngredient>>>
-export type GetIngredientQueryError = ErrorResponse
+export type GetIngredientQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorResponse>(
+export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorType<ErrorResponse>>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIngredient>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getIngredient>>,
@@ -414,7 +415,7 @@ export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorResponse>(
+export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIngredient>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getIngredient>>,
@@ -424,7 +425,7 @@ export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorResponse>(
+export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIngredient>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -432,7 +433,7 @@ export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient
  * @summary Obtener ingrediente
  */
 
-export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorResponse>(
+export function useGetIngredient<TData = Awaited<ReturnType<typeof getIngredient>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIngredient>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -493,7 +494,7 @@ return orvalMutator<UpdateIngredient200>(getUpdateIngredientUrl(id),
 
 export const getUpdateIngredientMutationKey = () => ['updateIngredient'] as const;
 
-export const getUpdateIngredientMutationOptions = <TError = ErrorResponse,
+export const getUpdateIngredientMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateIngredient>>, TError,UpdateIngredientMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateIngredient>>, TError,UpdateIngredientMutationVariables, TContext> => {
 
@@ -522,13 +523,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateIngredientMutationResult = NonNullable<Awaited<ReturnType<typeof updateIngredient>>>
     export type UpdateIngredientMutationBody = IngredientUpdate
-    export type UpdateIngredientMutationError = ErrorResponse
+    export type UpdateIngredientMutationError = ErrorType<ErrorResponse>
     export type UpdateIngredientMutationVariables = {id: number;data: IngredientUpdate}
 
     /**
  * @summary Actualizar ingrediente
  */
-export const useUpdateIngredient = <TError = ErrorResponse,
+export const useUpdateIngredient = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateIngredient>>, TError,UpdateIngredientMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateIngredient>>,
@@ -567,7 +568,7 @@ export const deleteIngredient = async (id: number, options?: Parameters<typeof o
 
 export const getDeleteIngredientMutationKey = () => ['deleteIngredient'] as const;
 
-export const getDeleteIngredientMutationOptions = <TError = ErrorResponse,
+export const getDeleteIngredientMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteIngredient>>, TError,DeleteIngredientMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteIngredient>>, TError,DeleteIngredientMutationVariables, TContext> => {
 
@@ -596,13 +597,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteIngredientMutationResult = NonNullable<Awaited<ReturnType<typeof deleteIngredient>>>
 
-    export type DeleteIngredientMutationError = ErrorResponse
+    export type DeleteIngredientMutationError = ErrorType<ErrorResponse>
     export type DeleteIngredientMutationVariables = {id: number}
 
     /**
  * @summary Eliminar ingrediente
  */
-export const useDeleteIngredient = <TError = ErrorResponse,
+export const useDeleteIngredient = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteIngredient>>, TError,DeleteIngredientMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteIngredient>>,

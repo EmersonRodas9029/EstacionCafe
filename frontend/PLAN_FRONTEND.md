@@ -312,8 +312,8 @@ Swagger ──orval──▶ tipos + hooks + Zod ──▶ features/*/hooks ─�
 - [x] Fase 0 — Base (pendiente: correr `pnpm api:generate` cuando la API esté disponible)
 - [x] Fase 0b — Ajustes de la API
 - [x] Fase 1 — Auth y shell
-- [ ] Fase 2 — Design system
-- [ ] Fase 3 — Mesero: núcleo
+- [x] Fase 2 — Design system (base; se amplía por vista)
+- [x] Fase 3 — Mesero: núcleo
 - [ ] Fase 4 — Mesero: para llevar y cobro
 - [ ] Fase 5 — Admin: catálogo
 - [ ] Fase 6 — Admin: operación y accesos

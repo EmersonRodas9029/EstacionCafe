@@ -36,6 +36,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -91,7 +92,7 @@ export const getListConsumableTypesQueryKey = () => {
     }
 
 
-export const getListConsumableTypesQueryOptions = <TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConsumableTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListConsumableTypesQueryOptions = <TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConsumableTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -110,10 +111,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListConsumableTypesQueryResult = NonNullable<Awaited<ReturnType<typeof listConsumableTypes>>>
-export type ListConsumableTypesQueryError = ErrorResponse
+export type ListConsumableTypesQueryError = ErrorType<ErrorResponse>
 
 
-export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorResponse>(
+export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConsumableTypes>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listConsumableTypes>>,
@@ -123,7 +124,7 @@ export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listCon
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorResponse>(
+export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConsumableTypes>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listConsumableTypes>>,
@@ -133,7 +134,7 @@ export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listCon
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorResponse>(
+export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConsumableTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -141,7 +142,7 @@ export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listCon
  * @summary Listar tipos de consumible
  */
 
-export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorResponse>(
+export function useListConsumableTypes<TData = Awaited<ReturnType<typeof listConsumableTypes>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConsumableTypes>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -201,7 +202,7 @@ return orvalMutator<CreateConsumableType201>(getCreateConsumableTypeUrl(),
 
 export const getCreateConsumableTypeMutationKey = () => ['createConsumableType'] as const;
 
-export const getCreateConsumableTypeMutationOptions = <TError = ErrorResponse,
+export const getCreateConsumableTypeMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createConsumableType>>, TError,CreateConsumableTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createConsumableType>>, TError,CreateConsumableTypeMutationVariables, TContext> => {
 
@@ -230,13 +231,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateConsumableTypeMutationResult = NonNullable<Awaited<ReturnType<typeof createConsumableType>>>
     export type CreateConsumableTypeMutationBody = ConsumableTypeInput
-    export type CreateConsumableTypeMutationError = ErrorResponse
+    export type CreateConsumableTypeMutationError = ErrorType<ErrorResponse>
     export type CreateConsumableTypeMutationVariables = {data: ConsumableTypeInput}
 
     /**
  * @summary Crear tipo de consumible
  */
-export const useCreateConsumableType = <TError = ErrorResponse,
+export const useCreateConsumableType = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createConsumableType>>, TError,CreateConsumableTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createConsumableType>>,
@@ -280,7 +281,7 @@ export const getGetConsumableTypeQueryKey = (id: number,) => {
     }
 
 
-export const getGetConsumableTypeQueryOptions = <TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorResponse>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumableType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetConsumableTypeQueryOptions = <TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorType<ErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumableType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -299,10 +300,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetConsumableTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getConsumableType>>>
-export type GetConsumableTypeQueryError = ErrorResponse
+export type GetConsumableTypeQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorResponse>(
+export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumableType>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getConsumableType>>,
@@ -312,7 +313,7 @@ export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsum
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorResponse>(
+export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumableType>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getConsumableType>>,
@@ -322,7 +323,7 @@ export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsum
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorResponse>(
+export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumableType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -330,7 +331,7 @@ export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsum
  * @summary Obtener tipo de consumible
  */
 
-export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorResponse>(
+export function useGetConsumableType<TData = Awaited<ReturnType<typeof getConsumableType>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumableType>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -391,7 +392,7 @@ return orvalMutator<UpdateConsumableType200>(getUpdateConsumableTypeUrl(id),
 
 export const getUpdateConsumableTypeMutationKey = () => ['updateConsumableType'] as const;
 
-export const getUpdateConsumableTypeMutationOptions = <TError = ErrorResponse,
+export const getUpdateConsumableTypeMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateConsumableType>>, TError,UpdateConsumableTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateConsumableType>>, TError,UpdateConsumableTypeMutationVariables, TContext> => {
 
@@ -420,13 +421,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateConsumableTypeMutationResult = NonNullable<Awaited<ReturnType<typeof updateConsumableType>>>
     export type UpdateConsumableTypeMutationBody = ConsumableTypeUpdate
-    export type UpdateConsumableTypeMutationError = ErrorResponse
+    export type UpdateConsumableTypeMutationError = ErrorType<ErrorResponse>
     export type UpdateConsumableTypeMutationVariables = {id: number;data: ConsumableTypeUpdate}
 
     /**
  * @summary Actualizar tipo de consumible
  */
-export const useUpdateConsumableType = <TError = ErrorResponse,
+export const useUpdateConsumableType = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateConsumableType>>, TError,UpdateConsumableTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateConsumableType>>,
@@ -465,7 +466,7 @@ export const deleteConsumableType = async (id: number, options?: Parameters<type
 
 export const getDeleteConsumableTypeMutationKey = () => ['deleteConsumableType'] as const;
 
-export const getDeleteConsumableTypeMutationOptions = <TError = ErrorResponse,
+export const getDeleteConsumableTypeMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteConsumableType>>, TError,DeleteConsumableTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteConsumableType>>, TError,DeleteConsumableTypeMutationVariables, TContext> => {
 
@@ -494,13 +495,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteConsumableTypeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteConsumableType>>>
 
-    export type DeleteConsumableTypeMutationError = ErrorResponse
+    export type DeleteConsumableTypeMutationError = ErrorType<ErrorResponse>
     export type DeleteConsumableTypeMutationVariables = {id: number}
 
     /**
  * @summary Eliminar tipo de consumible
  */
-export const useDeleteConsumableType = <TError = ErrorResponse,
+export const useDeleteConsumableType = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteConsumableType>>, TError,DeleteConsumableTypeMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteConsumableType>>,

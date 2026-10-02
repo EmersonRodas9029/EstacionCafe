@@ -38,6 +38,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -93,7 +94,7 @@ export const getListCashRegistersQueryKey = () => {
     }
 
 
-export const getListCashRegistersQueryOptions = <TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashRegisters>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListCashRegistersQueryOptions = <TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashRegisters>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -112,10 +113,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListCashRegistersQueryResult = NonNullable<Awaited<ReturnType<typeof listCashRegisters>>>
-export type ListCashRegistersQueryError = ErrorResponse
+export type ListCashRegistersQueryError = ErrorType<ErrorResponse>
 
 
-export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorResponse>(
+export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashRegisters>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listCashRegisters>>,
@@ -125,7 +126,7 @@ export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashR
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorResponse>(
+export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashRegisters>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listCashRegisters>>,
@@ -135,7 +136,7 @@ export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashR
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorResponse>(
+export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashRegisters>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -143,7 +144,7 @@ export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashR
  * @summary Listar cajas
  */
 
-export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorResponse>(
+export function useListCashRegisters<TData = Awaited<ReturnType<typeof listCashRegisters>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashRegisters>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -203,7 +204,7 @@ return orvalMutator<CreateCashRegister201>(getCreateCashRegisterUrl(),
 
 export const getCreateCashRegisterMutationKey = () => ['createCashRegister'] as const;
 
-export const getCreateCashRegisterMutationOptions = <TError = ErrorResponse,
+export const getCreateCashRegisterMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCashRegister>>, TError,CreateCashRegisterMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createCashRegister>>, TError,CreateCashRegisterMutationVariables, TContext> => {
 
@@ -232,13 +233,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateCashRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof createCashRegister>>>
     export type CreateCashRegisterMutationBody = CashRegisterInput
-    export type CreateCashRegisterMutationError = ErrorResponse
+    export type CreateCashRegisterMutationError = ErrorType<ErrorResponse>
     export type CreateCashRegisterMutationVariables = {data: CashRegisterInput}
 
     /**
  * @summary Crear caja
  */
-export const useCreateCashRegister = <TError = ErrorResponse,
+export const useCreateCashRegister = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCashRegister>>, TError,CreateCashRegisterMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createCashRegister>>,
@@ -282,7 +283,7 @@ export const getListActiveCashRegistersQueryKey = () => {
     }
 
 
-export const getListActiveCashRegistersQueryOptions = <TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveCashRegisters>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListActiveCashRegistersQueryOptions = <TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveCashRegisters>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -301,10 +302,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListActiveCashRegistersQueryResult = NonNullable<Awaited<ReturnType<typeof listActiveCashRegisters>>>
-export type ListActiveCashRegistersQueryError = ErrorResponse
+export type ListActiveCashRegistersQueryError = ErrorType<ErrorResponse>
 
 
-export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorResponse>(
+export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveCashRegisters>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listActiveCashRegisters>>,
@@ -314,7 +315,7 @@ export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof lis
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorResponse>(
+export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveCashRegisters>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listActiveCashRegisters>>,
@@ -324,7 +325,7 @@ export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof lis
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorResponse>(
+export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveCashRegisters>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -332,7 +333,7 @@ export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof lis
  * @summary Listar cajas activas (para cobrar)
  */
 
-export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorResponse>(
+export function useListActiveCashRegisters<TData = Awaited<ReturnType<typeof listActiveCashRegisters>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveCashRegisters>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -383,7 +384,7 @@ export const getGetCashRegisterByNumberQueryKey = (number: string,) => {
     }
 
 
-export const getGetCashRegisterByNumberQueryOptions = <TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorResponse>(number: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetCashRegisterByNumberQueryOptions = <TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorType<ErrorResponse>>(number: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -402,10 +403,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetCashRegisterByNumberQueryResult = NonNullable<Awaited<ReturnType<typeof getCashRegisterByNumber>>>
-export type GetCashRegisterByNumberQueryError = ErrorResponse
+export type GetCashRegisterByNumberQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorResponse>(
+export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorType<ErrorResponse>>(
  number: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCashRegisterByNumber>>,
@@ -415,7 +416,7 @@ export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof get
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorResponse>(
+export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorType<ErrorResponse>>(
  number: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCashRegisterByNumber>>,
@@ -425,7 +426,7 @@ export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof get
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorResponse>(
+export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorType<ErrorResponse>>(
  number: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -433,7 +434,7 @@ export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof get
  * @summary Obtener caja por número
  */
 
-export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorResponse>(
+export function useGetCashRegisterByNumber<TData = Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError = ErrorType<ErrorResponse>>(
  number: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegisterByNumber>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -484,7 +485,7 @@ export const getGetCashRegisterQueryKey = (id: number,) => {
     }
 
 
-export const getGetCashRegisterQueryOptions = <TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorResponse>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegister>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetCashRegisterQueryOptions = <TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorType<ErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegister>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -503,10 +504,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetCashRegisterQueryResult = NonNullable<Awaited<ReturnType<typeof getCashRegister>>>
-export type GetCashRegisterQueryError = ErrorResponse
+export type GetCashRegisterQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorResponse>(
+export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorType<ErrorResponse>>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegister>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCashRegister>>,
@@ -516,7 +517,7 @@ export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegi
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorResponse>(
+export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegister>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCashRegister>>,
@@ -526,7 +527,7 @@ export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegi
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorResponse>(
+export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegister>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -534,7 +535,7 @@ export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegi
  * @summary Obtener caja
  */
 
-export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorResponse>(
+export function useGetCashRegister<TData = Awaited<ReturnType<typeof getCashRegister>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashRegister>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -595,7 +596,7 @@ return orvalMutator<UpdateCashRegister200>(getUpdateCashRegisterUrl(id),
 
 export const getUpdateCashRegisterMutationKey = () => ['updateCashRegister'] as const;
 
-export const getUpdateCashRegisterMutationOptions = <TError = ErrorResponse,
+export const getUpdateCashRegisterMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCashRegister>>, TError,UpdateCashRegisterMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateCashRegister>>, TError,UpdateCashRegisterMutationVariables, TContext> => {
 
@@ -624,13 +625,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateCashRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof updateCashRegister>>>
     export type UpdateCashRegisterMutationBody = CashRegisterUpdate
-    export type UpdateCashRegisterMutationError = ErrorResponse
+    export type UpdateCashRegisterMutationError = ErrorType<ErrorResponse>
     export type UpdateCashRegisterMutationVariables = {id: number;data: CashRegisterUpdate}
 
     /**
  * @summary Actualizar caja
  */
-export const useUpdateCashRegister = <TError = ErrorResponse,
+export const useUpdateCashRegister = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCashRegister>>, TError,UpdateCashRegisterMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateCashRegister>>,
@@ -669,7 +670,7 @@ export const deleteCashRegister = async (id: number, options?: Parameters<typeof
 
 export const getDeleteCashRegisterMutationKey = () => ['deleteCashRegister'] as const;
 
-export const getDeleteCashRegisterMutationOptions = <TError = ErrorResponse,
+export const getDeleteCashRegisterMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCashRegister>>, TError,DeleteCashRegisterMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteCashRegister>>, TError,DeleteCashRegisterMutationVariables, TContext> => {
 
@@ -698,13 +699,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteCashRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCashRegister>>>
 
-    export type DeleteCashRegisterMutationError = ErrorResponse
+    export type DeleteCashRegisterMutationError = ErrorType<ErrorResponse>
     export type DeleteCashRegisterMutationVariables = {id: number}
 
     /**
  * @summary Desactivar caja (baja lógica)
  */
-export const useDeleteCashRegister = <TError = ErrorResponse,
+export const useDeleteCashRegister = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCashRegister>>, TError,DeleteCashRegisterMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteCashRegister>>,

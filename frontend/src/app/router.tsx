@@ -53,7 +53,34 @@ export const routes: RouteObject[] = [
                 }),
                 children: [
                   { index: true, element: <RoleHomeRedirect /> },
-                  soon('mesas', 'Mesas', 3),
+                  {
+                    path: 'mesas',
+                    lazy: async () => ({
+                      Component: (await import('@/features/tables/pages/tables-map-page'))
+                        .TablesMapPage,
+                    }),
+                  },
+                  {
+                    path: 'mesas/:tableId',
+                    lazy: async () => ({
+                      Component: (await import('@/features/tables/pages/table-detail-page'))
+                        .TableDetailPage,
+                    }),
+                  },
+                  {
+                    path: 'cuentas/:billId',
+                    lazy: async () => ({
+                      Component: (await import('@/features/bills/pages/bill-detail-page'))
+                        .BillDetailPage,
+                    }),
+                  },
+                  {
+                    path: 'cuentas/:billId/orden',
+                    lazy: async () => ({
+                      Component: (await import('@/features/orders/pages/take-order-page'))
+                        .TakeOrderPage,
+                    }),
+                  },
                   soon('para-llevar', 'Para llevar', 4),
                   soon('historial', 'Historial del turno', 4),
                   profile,

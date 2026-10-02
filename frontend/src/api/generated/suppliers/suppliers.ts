@@ -37,6 +37,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -92,7 +93,7 @@ export const getListSuppliersQueryKey = () => {
     }
 
 
-export const getListSuppliersQueryOptions = <TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuppliers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListSuppliersQueryOptions = <TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuppliers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -111,10 +112,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListSuppliersQueryResult = NonNullable<Awaited<ReturnType<typeof listSuppliers>>>
-export type ListSuppliersQueryError = ErrorResponse
+export type ListSuppliersQueryError = ErrorType<ErrorResponse>
 
 
-export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorResponse>(
+export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuppliers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listSuppliers>>,
@@ -124,7 +125,7 @@ export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorResponse>(
+export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuppliers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listSuppliers>>,
@@ -134,7 +135,7 @@ export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorResponse>(
+export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuppliers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -142,7 +143,7 @@ export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers
  * @summary Listar proveedores
  */
 
-export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorResponse>(
+export function useListSuppliers<TData = Awaited<ReturnType<typeof listSuppliers>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSuppliers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -202,7 +203,7 @@ return orvalMutator<CreateSupplier201>(getCreateSupplierUrl(),
 
 export const getCreateSupplierMutationKey = () => ['createSupplier'] as const;
 
-export const getCreateSupplierMutationOptions = <TError = ErrorResponse,
+export const getCreateSupplierMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSupplier>>, TError,CreateSupplierMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createSupplier>>, TError,CreateSupplierMutationVariables, TContext> => {
 
@@ -231,13 +232,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateSupplierMutationResult = NonNullable<Awaited<ReturnType<typeof createSupplier>>>
     export type CreateSupplierMutationBody = SupplierInput
-    export type CreateSupplierMutationError = ErrorResponse
+    export type CreateSupplierMutationError = ErrorType<ErrorResponse>
     export type CreateSupplierMutationVariables = {data: SupplierInput}
 
     /**
  * @summary Crear proveedor
  */
-export const useCreateSupplier = <TError = ErrorResponse,
+export const useCreateSupplier = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSupplier>>, TError,CreateSupplierMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createSupplier>>,
@@ -281,7 +282,7 @@ export const getListActiveSuppliersQueryKey = () => {
     }
 
 
-export const getListActiveSuppliersQueryOptions = <TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveSuppliers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListActiveSuppliersQueryOptions = <TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveSuppliers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -300,10 +301,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListActiveSuppliersQueryResult = NonNullable<Awaited<ReturnType<typeof listActiveSuppliers>>>
-export type ListActiveSuppliersQueryError = ErrorResponse
+export type ListActiveSuppliersQueryError = ErrorType<ErrorResponse>
 
 
-export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorResponse>(
+export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveSuppliers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listActiveSuppliers>>,
@@ -313,7 +314,7 @@ export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listAct
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorResponse>(
+export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveSuppliers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listActiveSuppliers>>,
@@ -323,7 +324,7 @@ export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listAct
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorResponse>(
+export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveSuppliers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -331,7 +332,7 @@ export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listAct
  * @summary Listar proveedores activos
  */
 
-export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorResponse>(
+export function useListActiveSuppliers<TData = Awaited<ReturnType<typeof listActiveSuppliers>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listActiveSuppliers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -382,7 +383,7 @@ export const getGetSupplierQueryKey = (id: number,) => {
     }
 
 
-export const getGetSupplierQueryOptions = <TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorResponse>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplier>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getGetSupplierQueryOptions = <TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorType<ErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplier>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -401,10 +402,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetSupplierQueryResult = NonNullable<Awaited<ReturnType<typeof getSupplier>>>
-export type GetSupplierQueryError = ErrorResponse
+export type GetSupplierQueryError = ErrorType<ErrorResponse>
 
 
-export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorResponse>(
+export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorType<ErrorResponse>>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplier>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSupplier>>,
@@ -414,7 +415,7 @@ export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, 
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorResponse>(
+export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplier>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSupplier>>,
@@ -424,7 +425,7 @@ export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, 
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorResponse>(
+export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplier>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -432,7 +433,7 @@ export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, 
  * @summary Obtener proveedor
  */
 
-export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorResponse>(
+export function useGetSupplier<TData = Awaited<ReturnType<typeof getSupplier>>, TError = ErrorType<ErrorResponse>>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplier>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -493,7 +494,7 @@ return orvalMutator<UpdateSupplier200>(getUpdateSupplierUrl(id),
 
 export const getUpdateSupplierMutationKey = () => ['updateSupplier'] as const;
 
-export const getUpdateSupplierMutationOptions = <TError = ErrorResponse,
+export const getUpdateSupplierMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSupplier>>, TError,UpdateSupplierMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSupplier>>, TError,UpdateSupplierMutationVariables, TContext> => {
 
@@ -522,13 +523,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateSupplierMutationResult = NonNullable<Awaited<ReturnType<typeof updateSupplier>>>
     export type UpdateSupplierMutationBody = SupplierUpdate
-    export type UpdateSupplierMutationError = ErrorResponse
+    export type UpdateSupplierMutationError = ErrorType<ErrorResponse>
     export type UpdateSupplierMutationVariables = {id: number;data: SupplierUpdate}
 
     /**
  * @summary Actualizar proveedor
  */
-export const useUpdateSupplier = <TError = ErrorResponse,
+export const useUpdateSupplier = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSupplier>>, TError,UpdateSupplierMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateSupplier>>,
@@ -567,7 +568,7 @@ export const deleteSupplier = async (id: number, options?: Parameters<typeof orv
 
 export const getDeleteSupplierMutationKey = () => ['deleteSupplier'] as const;
 
-export const getDeleteSupplierMutationOptions = <TError = ErrorResponse,
+export const getDeleteSupplierMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSupplier>>, TError,DeleteSupplierMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteSupplier>>, TError,DeleteSupplierMutationVariables, TContext> => {
 
@@ -596,13 +597,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteSupplierMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSupplier>>>
 
-    export type DeleteSupplierMutationError = ErrorResponse
+    export type DeleteSupplierMutationError = ErrorType<ErrorResponse>
     export type DeleteSupplierMutationVariables = {id: number}
 
     /**
  * @summary Eliminar proveedor
  */
-export const useDeleteSupplier = <TError = ErrorResponse,
+export const useDeleteSupplier = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSupplier>>, TError,DeleteSupplierMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteSupplier>>,

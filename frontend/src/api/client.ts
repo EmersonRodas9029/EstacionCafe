@@ -83,3 +83,6 @@ export const api = {
  */
 export const orvalMutator = <T>(url: string, init: RequestInit = {}): Promise<T> =>
   send(`${env.apiUrl}${url}`, init) as Promise<T>
+
+/** orval usa este tipo para el TError de los hooks: el cliente siempre lanza ApiError. */
+export type ErrorType<_Body = unknown> = ApiError

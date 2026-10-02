@@ -36,6 +36,7 @@ import type {
 } from '../model';
 
 import { orvalMutator } from '../../client';
+import type { ErrorType } from '../../client';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -91,7 +92,7 @@ export const getListBillDetailsQueryKey = () => {
     }
 
 
-export const getListBillDetailsQueryOptions = <TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetails>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListBillDetailsQueryOptions = <TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorType<ErrorResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetails>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -110,10 +111,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListBillDetailsQueryResult = NonNullable<Awaited<ReturnType<typeof listBillDetails>>>
-export type ListBillDetailsQueryError = ErrorResponse
+export type ListBillDetailsQueryError = ErrorType<ErrorResponse>
 
 
-export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorResponse>(
+export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorType<ErrorResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetails>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listBillDetails>>,
@@ -123,7 +124,7 @@ export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDet
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorResponse>(
+export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetails>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listBillDetails>>,
@@ -133,7 +134,7 @@ export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDet
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorResponse>(
+export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetails>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -141,7 +142,7 @@ export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDet
  * @summary Listar todos los detalles
  */
 
-export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorResponse>(
+export function useListBillDetails<TData = Awaited<ReturnType<typeof listBillDetails>>, TError = ErrorType<ErrorResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetails>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -203,7 +204,7 @@ return orvalMutator<CreateBillDetails201>(getCreateBillDetailsUrl(),
 
 export const getCreateBillDetailsMutationKey = () => ['createBillDetails'] as const;
 
-export const getCreateBillDetailsMutationOptions = <TError = ErrorResponse,
+export const getCreateBillDetailsMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBillDetails>>, TError,CreateBillDetailsMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createBillDetails>>, TError,CreateBillDetailsMutationVariables, TContext> => {
 
@@ -232,13 +233,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateBillDetailsMutationResult = NonNullable<Awaited<ReturnType<typeof createBillDetails>>>
     export type CreateBillDetailsMutationBody = BillDetailsInput
-    export type CreateBillDetailsMutationError = ErrorResponse
+    export type CreateBillDetailsMutationError = ErrorType<ErrorResponse>
     export type CreateBillDetailsMutationVariables = {data: BillDetailsInput}
 
     /**
  * @summary Agregar productos a una cuenta
  */
-export const useCreateBillDetails = <TError = ErrorResponse,
+export const useCreateBillDetails = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBillDetails>>, TError,CreateBillDetailsMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createBillDetails>>,
@@ -284,7 +285,7 @@ export const getListBillDetailsByBillQueryKey = (billId: number,) => {
     }
 
 
-export const getListBillDetailsByBillQueryOptions = <TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorResponse>(billId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetailsByBill>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListBillDetailsByBillQueryOptions = <TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorType<ErrorResponse>>(billId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetailsByBill>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -303,10 +304,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListBillDetailsByBillQueryResult = NonNullable<Awaited<ReturnType<typeof listBillDetailsByBill>>>
-export type ListBillDetailsByBillQueryError = ErrorResponse
+export type ListBillDetailsByBillQueryError = ErrorType<ErrorResponse>
 
 
-export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorResponse>(
+export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorType<ErrorResponse>>(
  billId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetailsByBill>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listBillDetailsByBill>>,
@@ -316,7 +317,7 @@ export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listB
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorResponse>(
+export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorType<ErrorResponse>>(
  billId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetailsByBill>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listBillDetailsByBill>>,
@@ -326,7 +327,7 @@ export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listB
       >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorResponse>(
+export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorType<ErrorResponse>>(
  billId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetailsByBill>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -334,7 +335,7 @@ export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listB
  * @summary Líneas de una cuenta
  */
 
-export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorResponse>(
+export function useListBillDetailsByBill<TData = Awaited<ReturnType<typeof listBillDetailsByBill>>, TError = ErrorType<ErrorResponse>>(
  billId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBillDetailsByBill>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -397,7 +398,7 @@ return orvalMutator<UpdateBillDetail200>(getUpdateBillDetailUrl(id),
 
 export const getUpdateBillDetailMutationKey = () => ['updateBillDetail'] as const;
 
-export const getUpdateBillDetailMutationOptions = <TError = ErrorResponse,
+export const getUpdateBillDetailMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBillDetail>>, TError,UpdateBillDetailMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateBillDetail>>, TError,UpdateBillDetailMutationVariables, TContext> => {
 
@@ -426,13 +427,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateBillDetailMutationResult = NonNullable<Awaited<ReturnType<typeof updateBillDetail>>>
     export type UpdateBillDetailMutationBody = BillDetailUpdate
-    export type UpdateBillDetailMutationError = ErrorResponse
+    export type UpdateBillDetailMutationError = ErrorType<ErrorResponse>
     export type UpdateBillDetailMutationVariables = {id: number;data: BillDetailUpdate}
 
     /**
  * @summary Cambiar cantidad de una línea
  */
-export const useUpdateBillDetail = <TError = ErrorResponse,
+export const useUpdateBillDetail = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBillDetail>>, TError,UpdateBillDetailMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateBillDetail>>,
@@ -473,7 +474,7 @@ export const deleteBillDetail = async (id: number, options?: Parameters<typeof o
 
 export const getDeleteBillDetailMutationKey = () => ['deleteBillDetail'] as const;
 
-export const getDeleteBillDetailMutationOptions = <TError = ErrorResponse,
+export const getDeleteBillDetailMutationOptions = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBillDetail>>, TError,DeleteBillDetailMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteBillDetail>>, TError,DeleteBillDetailMutationVariables, TContext> => {
 
@@ -502,13 +503,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteBillDetailMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBillDetail>>>
 
-    export type DeleteBillDetailMutationError = ErrorResponse
+    export type DeleteBillDetailMutationError = ErrorType<ErrorResponse>
     export type DeleteBillDetailMutationVariables = {id: number}
 
     /**
  * @summary Quitar una línea
  */
-export const useDeleteBillDetail = <TError = ErrorResponse,
+export const useDeleteBillDetail = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBillDetail>>, TError,DeleteBillDetailMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteBillDetail>>,
