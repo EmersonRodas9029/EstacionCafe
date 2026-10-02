@@ -31,15 +31,20 @@ async function parseBody(response: Response): Promise<unknown> {
   }
 }
 
-/** Envía la petición con token y convierte errores en ApiError. Devuelve el body completo. */
+/** Header anti-CSRF que la API exige en toda mutación con cookie de sesión. */
+export const CSRF_HEADER = { name: 'X-Requested-With', value: 'EstacionCafe' } as const
+
+/**
+ * Envía la petición con la cookie de sesión (httpOnly, la pone el navegador)
+ * y convierte errores en ApiError. Devuelve el body completo.
+ */
 async function send(url: string, init: RequestInit): Promise<unknown> {
-  const token = useSessionStore.getState().token
   const headers = new Headers(init.headers)
   headers.set('Accept', 'application/json')
+  headers.set(CSRF_HEADER.name, CSRF_HEADER.value)
   if (init.body !== undefined && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
-  if (token) headers.set('Authorization', `Bearer ${token}`)
 
   const response = await fetch(url, { ...init, headers, credentials: 'include' })
   const payload = await parseBody(response)

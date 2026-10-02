@@ -26,11 +26,24 @@ const ok = <T>(data: T, message = 'OK', status = 200) =>
 const fail = (status: number, message: string, type?: string) =>
   HttpResponse.json({ status: 'error', message, ...(type && { type }) }, { status })
 
-// Token simulado: "mock-<userId>"
-const userFromRequest = (request: Request) => {
-  const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-  return db.users.find((u) => token === `mock-${u.userId}`)
+/** Usuario de la sesión simulada (la API real lo saca de la cookie httpOnly). */
+const userFromRequest = (_request?: Request) =>
+  db.users.find((u) => u.userId === db.sessionUserId && u.active)
+
+const sessionUser = (user: CurrentUser) => ({
+  userId: user.userId,
+  username: user.username,
+  email: user.email,
+  role: user.role,
+})
+
+/** Como la API: el mesero solo ve sus cuentas; cajero y admin, todas. */
+const canSee = (bill: Bill, request?: Request) => {
+  const actor = userFromRequest(request)
+  return !!actor && (actor.role !== 'mesero' || bill.waiterId === actor.userId)
 }
+
+const deviceView = (d: (typeof db.devices)[number]) => d
 
 /** Como la API: sin contraseña y con su tipo de usuario. */
 const publicUser = ({ role: _role, ...user }: CurrentUser) => ({
@@ -58,9 +71,77 @@ export const handlers = [
     const user = db.users.find((u) => u.username === username)
     if (!user || !user.active || password !== DEMO_PASSWORD)
       return fail(401, 'Usuario o contraseña incorrectos')
-    return ok({ token: `mock-${user.userId}`, expiresIn: 43200 }, 'Inicio de sesión exitoso')
+    db.sessionUserId = user.userId
+    return ok({ user: sessionUser(user), expiresIn: 43200 }, 'Inicio de sesión exitoso')
   }),
-  http.post('*/api/users/logout', () => ok(null, 'Sesión cerrada')),
+  http.post('*/api/auth/pin', async ({ request }) => {
+    if (!db.devices.some((d) => d.deviceId === db.thisDevice && d.active))
+      return fail(403, 'Este dispositivo no está autorizado para entrar con PIN')
+    const { pin } = (await request.json()) as { pin: string }
+    const user = db.users.find(
+      (u) => u.active && db.pins[u.userId] === pin && (u.role === 'mesero' || u.role === 'cajero'),
+    )
+    if (!user) return fail(401, 'PIN incorrecto')
+    db.sessionUserId = user.userId
+    return ok({ user: sessionUser(user), expiresIn: 1800 }, 'Inicio de sesión exitoso')
+  }),
+  http.post('*/api/users/logout', () => {
+    db.sessionUserId = null
+    return ok(null, 'Sesión cerrada')
+  }),
+  http.get('*/api/auth/device', () => {
+    const device = db.devices.find((d) => d.deviceId === db.thisDevice && d.active)
+    return ok({ authorized: !!device, name: device?.name ?? null })
+  }),
+  http.delete('*/api/auth/device', () => {
+    db.thisDevice = null
+    return ok(null, 'Dispositivo olvidado')
+  }),
+  http.get('*/api/devices', () => ok(db.devices.map(deviceView))),
+  http.post('*/api/devices', async ({ request }) => {
+    const { name } = (await request.json()) as { name: string }
+    const device = {
+      deviceId: db.nextDeviceId++,
+      name,
+      active: true,
+      createdBy: db.sessionUserId,
+      createdAt: new Date().toISOString(),
+      lastSeenAt: null,
+    }
+    db.devices.push(device)
+    db.thisDevice = device.deviceId
+    return ok(device, 'Dispositivo autorizado', 201)
+  }),
+  http.put('*/api/devices/:id', async ({ params, request }) => {
+    const device = db.devices.find((d) => d.deviceId === Number(params.id))
+    if (!device) return fail(404, 'Dispositivo no encontrado')
+    Object.assign(device, (await request.json()) as object)
+    return ok(device)
+  }),
+  http.delete('*/api/devices/:id', ({ params }) => {
+    const device = db.devices.find((d) => d.deviceId === Number(params.id))
+    if (!device) return fail(404, 'Dispositivo no encontrado')
+    device.active = false
+    return ok(device, 'Dispositivo revocado')
+  }),
+  http.put('*/api/users/:id/pin', async ({ params, request }) => {
+    const user = db.users.find((u) => u.userId === Number(params.id))
+    if (!user) return fail(404, 'Usuario no encontrado')
+    if (user.role !== 'mesero' && user.role !== 'cajero')
+      return fail(400, 'Solo meseros y cajeros usan PIN')
+    const body = ((await request.json().catch(() => ({}))) ?? {}) as { pin?: string }
+    const taken = (pin: string) =>
+      Object.entries(db.pins).some(([id, p]) => p === pin && Number(id) !== user.userId)
+    if (body.pin && taken(body.pin)) return fail(409, 'Ese PIN ya está en uso')
+    let pin = body.pin
+    for (let n = 1000; !pin; n++) if (!taken(String(n))) pin = String(n)
+    db.pins[user.userId] = pin
+    return ok({ pin }, 'PIN asignado')
+  }),
+  http.delete('*/api/users/:id/pin', ({ params }) => {
+    delete db.pins[Number(params.id)]
+    return ok({ id: Number(params.id) }, 'PIN eliminado')
+  }),
   http.get('*/api/users/me', ({ request }) => {
     const user = userFromRequest(request)
     return user ? ok(user, 'Usuario autenticado') : fail(401, 'Token inválido')
@@ -452,7 +533,9 @@ export const handlers = [
   }),
 
   // ---------- Usuarios y roles ----------
-  http.get('*/api/users', () => ok(db.users.map(publicUser))),
+  http.get('*/api/users', () =>
+    ok(db.users.map((u) => ({ ...publicUser(u), hasPin: db.pins[u.userId] !== undefined }))),
+  ),
   http.post('*/api/users', async ({ request }) => {
     const body = (await request.json()) as { username: string; email: string; typeId: number }
     if (db.users.some((u) => u.username === body.username))
@@ -567,6 +650,32 @@ export const handlers = [
 
   // ---------- Mesas ----------
   http.get('*/api/tables', () => ok(db.tables)),
+  http.get('*/api/tables/board', ({ request }) => {
+    const actor = userFromRequest(request)
+    if (!actor) return fail(401, 'No autenticado')
+    const seesAll = actor.role !== 'mesero'
+    const sum = (list: Bill[]) => ({
+      bills: list.length,
+      total: list.reduce((acc, b) => acc + b.total, 0),
+    })
+    return ok(
+      db.tables.map((table) => {
+        const active = db.bills.filter((b) => b.tableId === table.tableId && isActive(b))
+        const waiters = [...new Set(active.map((b) => b.waiterId))]
+        return {
+          tableId: table.tableId,
+          zone: table.zone,
+          status: table.status,
+          attendedBy: waiters.map((waiterId) => ({
+            waiterId,
+            username: db.users.find((u) => u.userId === waiterId)?.username ?? '',
+          })),
+          mine: sum(active.filter((b) => b.waiterId === actor.userId)),
+          ...(seesAll && { all: sum(active) }),
+        }
+      }),
+    )
+  }),
   http.get('*/api/tables/:id', ({ params }) => {
     const table = db.tables.find((t) => t.tableId === params.id)
     return table ? ok(table) : fail(404, `Mesa con ID ${String(params.id)} no encontrada`)
@@ -613,6 +722,7 @@ export const handlers = [
     const mine = query.get('mine') === 'true' ? userFromRequest(request)?.userId : undefined
     const items = db.bills.filter(
       (b) =>
+        canSee(b, request) &&
         (!status || b.status === status) &&
         (!tableId || b.tableId === tableId) &&
         (!orderType || b.orderType === orderType) &&
@@ -622,9 +732,9 @@ export const handlers = [
     )
     return ok(items.map(withWaiter))
   }),
-  http.get('*/api/bills/:id', ({ params }) => {
+  http.get('*/api/bills/:id', ({ params, request }) => {
     const bill = findBill(params.id)
-    return bill ? ok(withWaiter(bill)) : fail(404, 'Factura no encontrada')
+    return bill && canSee(bill, request) ? ok(withWaiter(bill)) : fail(404, 'Factura no encontrada')
   }),
   http.post('*/api/bills', async ({ request }) => {
     const body = (await request.json()) as Partial<Bill>
@@ -649,7 +759,7 @@ export const handlers = [
   }),
   http.put('*/api/bills/:id', async ({ params, request }) => {
     const bill = findBill(params.id)
-    if (!bill) return fail(404, 'Factura no encontrada')
+    if (!bill || !canSee(bill, request)) return fail(404, 'Factura no encontrada')
     const body = (await request.json()) as Partial<Bill>
     if (body.status === 'closed' && !(body.cashRegisterId ?? bill.cashRegisterId)) {
       return fail(400, 'Se requiere cashRegisterId para cerrar la cuenta')
@@ -671,14 +781,20 @@ export const handlers = [
   http.post('*/api/bills/table/:tableId/close', async ({ params, request }) => {
     const { cashRegisterId } = (await request.json()) as { cashRegisterId?: number }
     if (!cashRegisterId) return fail(400, 'Datos inválidos: cashRegisterId requerido')
-    const open = db.bills.filter((b) => b.tableId === params.tableId && isActive(b))
+    const open = db.bills.filter(
+      (b) => b.tableId === params.tableId && isActive(b) && canSee(b, request),
+    )
     for (const bill of open) Object.assign(bill, { status: 'closed', cashRegisterId })
     syncTable(String(params.tableId))
     return ok({ updated: open.length }, `Se cerraron ${open.length} facturas`)
   }),
 
   // ---------- Detalles ----------
-  http.get('*/api/bill-details/bill/:billId', ({ params }) => ok(linesOf(Number(params.billId)))),
+  http.get('*/api/bill-details/bill/:billId', ({ params, request }) => {
+    const bill = findBill(params.billId)
+    if (!bill || !canSee(bill, request)) return fail(404, 'Factura no encontrada')
+    return ok(linesOf(bill.billId))
+  }),
   http.post('*/api/bill-details', async ({ request }) => {
     const { billId, billDetails } = (await request.json()) as {
       billId: number
@@ -686,6 +802,7 @@ export const handlers = [
     }
     const bill = findBill(String(billId))
     if (!bill) return fail(400, 'Bill no encontrado')
+    if (!canSee(bill, request)) return fail(404, 'Factura no encontrada')
     if (!isActive(bill)) return fail(409, 'La cuenta no se puede modificar')
     for (const item of billDetails) {
       const available = db.stock[item.productId]

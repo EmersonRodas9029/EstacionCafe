@@ -18,8 +18,9 @@ export function HistoryPage() {
   const role = useRole()
   const today = localDay()
   const [day, setDay] = useState(today)
-  // El mesero ve lo suyo por defecto; cajero y admin, todo
-  const [onlyMine, setOnlyMine] = useState(role === 'mesero')
+  // La API ya limita al mesero a sus cuentas; cajero y admin pueden filtrar las suyas
+  const canFilter = role !== 'mesero'
+  const [onlyMine, setOnlyMine] = useState(false)
 
   const bills = useListBills(
     { ...dayRange(day), ...(onlyMine && { mine: 'true' as const }) },
@@ -50,15 +51,17 @@ export function HistoryPage() {
             )}
           </FormField>
         </div>
-        <label className="flex min-h-12 cursor-pointer items-center gap-3 font-semibold text-primary">
-          <input
-            type="checkbox"
-            checked={onlyMine}
-            onChange={(e) => setOnlyMine(e.target.checked)}
-            className="size-5 accent-[var(--accent-strong)]"
-          />
-          Solo mis cuentas
-        </label>
+        {canFilter ? (
+          <label className="flex min-h-12 cursor-pointer items-center gap-3 font-semibold text-primary">
+            <input
+              type="checkbox"
+              checked={onlyMine}
+              onChange={(e) => setOnlyMine(e.target.checked)}
+              className="size-5 accent-[var(--accent-strong)]"
+            />
+            Solo mis cuentas
+          </label>
+        ) : null}
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -94,7 +97,7 @@ export function HistoryPage() {
                 <span className="block truncate font-semibold text-primary">{bill.customer}</span>
                 <span className="text-sm text-muted-foreground">
                   {bill.tableId ? `Mesa ${bill.tableId}` : 'Para llevar'}
-                  {bill.waiter && !onlyMine ? ` · ${bill.waiter.username}` : ''}
+                  {bill.waiter && canFilter && !onlyMine ? ` · ${bill.waiter.username}` : ''}
                 </span>
               </Link>
               <Badge tone={BILL_STATUS[bill.status].tone}>{BILL_STATUS[bill.status].label}</Badge>

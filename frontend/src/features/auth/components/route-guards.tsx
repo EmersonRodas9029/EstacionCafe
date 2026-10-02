@@ -1,11 +1,11 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 import type { Role } from '@/api/generated/model/role'
-import { useSessionStore } from '../session-store'
+import { resumableRoute, useSessionStore } from '../session-store'
 import { homePathFor, safeRedirect } from '../roles'
 
 /** Exige sesión; si no hay, manda a /login recordando el destino. */
 export function RequireAuth() {
-  const hasSession = useSessionStore((s) => Boolean(s.token && s.user))
+  const hasSession = useSessionStore((s) => Boolean(s.user))
   const loggedOut = useSessionStore((s) => s.loggedOut)
   const location = useLocation()
 
@@ -30,11 +30,14 @@ export function RequireRole({ roles }: { roles: readonly Role[] }) {
  * login (si su rol puede verla) o a su panel. Único punto de redirección post-login.
  */
 export function GuestOnly() {
-  const role = useSessionStore((s) => s.user?.role)
+  const user = useSessionStore((s) => s.user)
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from
-
-  if (role) return <Navigate to={safeRedirect(from, role)} replace />
+  // Si el mismo usuario cerró por inactividad, retoma donde estaba (su orden sigue en el carrito)
+  if (user) {
+    const target = resumableRoute(user.userId) ?? from
+    return <Navigate to={safeRedirect(target, user.role)} replace />
+  }
   return <Outlet />
 }
 

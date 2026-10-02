@@ -47,7 +47,8 @@ describe('Para llevar, cobro, ticket e historial', () => {
   })
 
   it('la lista separa etapas y permite entregar desde "Por entregar"', async () => {
-    renderApp('/mesero/para-llevar', 'mesero')
+    // La orden de Luis la abrió otro usuario: el cajero la ve, el mesero no
+    renderApp('/mesero/para-llevar', 'cajero')
     const user = userEvent.setup()
 
     await user.click(await screen.findByRole('button', { name: /por entregar/i }))
@@ -86,13 +87,21 @@ describe('Para llevar, cobro, ticket e historial', () => {
 
   it('el historial del mesero muestra solo sus cuentas cobradas', async () => {
     renderApp('/mesero/historial', 'mesero')
-    const user = userEvent.setup()
 
     expect(await screen.findByText('Marta')).toBeInTheDocument()
     expect(screen.queryByText('Luis')).not.toBeInTheDocument()
     expect(screen.getByText('Cuentas cobradas').nextSibling).toHaveTextContent('1')
+    // La API ya limita al mesero: no hay interruptor que mostrar
+    expect(screen.queryByRole('checkbox', { name: /solo mis cuentas/i })).not.toBeInTheDocument()
+  })
 
-    await user.click(screen.getByRole('checkbox', { name: /solo mis cuentas/i }))
+  it('el cajero ve todo el historial y puede filtrar las suyas', async () => {
+    renderApp('/mesero/historial', 'cajero')
+    const user = userEvent.setup()
+
     expect(await screen.findByText('Luis')).toBeInTheDocument()
+    expect(screen.getByText('Marta')).toBeInTheDocument()
+    await user.click(screen.getByRole('checkbox', { name: /solo mis cuentas/i }))
+    expect(await screen.findByText('Sin ventas')).toBeInTheDocument()
   })
 })

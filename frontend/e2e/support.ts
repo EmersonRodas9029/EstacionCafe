@@ -15,8 +15,10 @@ export async function login(page: Page, username: DemoUser, path = '/login') {
 
 /** Cliente de la API para preparar datos o comprobar efectos sin pasar por la UI. */
 export async function api(request: APIRequestContext, username: DemoUser = 'admin.demo') {
+  // La API solo entrega el token en el body si se pide (scripts con Bearer)
   const response = await request.post(`${API_URL}/users/login`, {
     data: { username, password: PASSWORD },
+    headers: { 'X-Token-In-Body': 'true', 'X-Requested-With': 'EstacionCafe' },
   })
   expect(response.ok()).toBeTruthy()
   const token = (await response.json()).data.token as string
@@ -33,6 +35,7 @@ export async function api(request: APIRequestContext, username: DemoUser = 'admi
       unwrap(await request.post(`${API_URL}${path}`, { headers, data })),
     put: async (path: string, data: unknown) =>
       unwrap(await request.put(`${API_URL}${path}`, { headers, data })),
+    delete: async (path: string) => unwrap(await request.delete(`${API_URL}${path}`, { headers })),
   }
 }
 

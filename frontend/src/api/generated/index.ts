@@ -4,6 +4,7 @@ export * from './bills/bills';
 export * from './cash-registers/cash-registers';
 export * from './consumable-types/consumable-types';
 export * from './consumables/consumables';
+export * from './devices/devices';
 export * from './health/health';
 export * from './ingredients/ingredients';
 export * from './product-types/product-types';

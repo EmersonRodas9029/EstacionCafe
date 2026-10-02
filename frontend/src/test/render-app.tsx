@@ -4,31 +4,38 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { Toaster } from 'sonner'
 import { routes } from '@/app/router'
 import { useSessionStore, type SessionUser } from '@/features/auth/session-store'
+import { db } from '@/mocks/db'
 
-const SESSIONS: Record<'admin' | 'mesero', { token: string; user: SessionUser }> = {
+const USERS: Record<'admin' | 'mesero' | 'cajero', SessionUser> = {
   admin: {
-    token: 'mock-1',
-    user: {
-      userId: 1,
-      username: 'admin.demo',
-      email: 'admin.demo@estacioncafe.test',
-      role: 'admin',
-    },
+    userId: 1,
+    username: 'admin.demo',
+    email: 'admin.demo@estacioncafe.test',
+    role: 'admin',
   },
   mesero: {
-    token: 'mock-2',
-    user: {
-      userId: 2,
-      username: 'mesero.demo',
-      email: 'mesero.demo@estacioncafe.test',
-      role: 'mesero',
-    },
+    userId: 2,
+    username: 'mesero.demo',
+    email: 'mesero.demo@estacioncafe.test',
+    role: 'mesero',
+  },
+  cajero: {
+    userId: 3,
+    username: 'cajero.demo',
+    email: 'cajero.demo@estacioncafe.test',
+    role: 'cajero',
   },
 }
 
-/** Renderiza la app completa (router real + MSW). Con `as` inicia sesión con ese rol. */
-export function renderApp(path: string, as?: keyof typeof SESSIONS) {
-  if (as) useSessionStore.setState(SESSIONS[as])
+/**
+ * Renderiza la app completa (router real + MSW). Con `as` inicia sesión con ese rol:
+ * el usuario en el store y la sesión simulada en la API (la cookie en la app real).
+ */
+export function renderApp(path: string, as?: keyof typeof USERS) {
+  if (as) {
+    useSessionStore.setState({ user: USERS[as], loggedOut: false })
+    db.sessionUserId = USERS[as].userId
+  }
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   render(

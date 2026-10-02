@@ -3,13 +3,13 @@ import { useGetCurrentUser } from '@/api/generated/users/users'
 import { useSessionStore } from '../session-store'
 
 /**
- * Revalida el usuario guardado contra /users/me al abrir la app
- * (rol o estado pudieron cambiar). Un 401 limpia la sesión en el cliente HTTP.
+ * Revalida el usuario guardado contra /users/me al abrir la app: la cookie pudo
+ * vencer o la sesión revocarse. Un 401 limpia la sesión en el cliente HTTP.
  */
 export function useSessionSync() {
-  const token = useSessionStore((s) => s.token)
+  const hasUser = useSessionStore((s) => Boolean(s.user))
   const query = useGetCurrentUser({
-    query: { enabled: Boolean(token), staleTime: 5 * 60_000, retry: false },
+    query: { enabled: hasUser, staleTime: 5 * 60_000, retry: false },
   })
 
   const me = query.data?.data
@@ -23,5 +23,5 @@ export function useSessionSync() {
     })
   }, [me])
 
-  return { isChecking: Boolean(token) && query.isPending }
+  return { isChecking: hasUser && query.isPending }
 }

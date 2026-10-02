@@ -1,4 +1,4 @@
-import { Pencil, Plus, Search, ShieldCheck, Users } from 'lucide-react'
+import { KeyRound, Pencil, Plus, Search, ShieldCheck, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import type { User } from '@/api/generated/model/user'
@@ -15,11 +15,16 @@ import { EmptyState, ErrorState } from '@/components/ui/state'
 import { ROLE_LABELS } from '@/features/auth/roles'
 import { useSessionStore } from '@/features/auth/session-store'
 import { cn } from '@/lib/utils'
+import { PinDialog } from '../components/pin-dialog'
 import { RolesDialog } from '../components/roles-dialog'
 import { UserFormDialog } from '../components/user-form-dialog'
 import { useDeactivateUser, useEditUser } from '../hooks'
 
 type StatusFilter = 'active' | 'inactive' | 'all'
+
+/** Solo meseros y cajeros entran con PIN; el listado trae `hasPin`. */
+const usesPin = (user: User) => user.userType?.role === 'mesero' || user.userType?.role === 'cajero'
+const hasPin = (user: User) => Boolean(user.hasPin)
 
 function ActiveToggle({ user, isSelf }: { user: User; isSelf: boolean }) {
   const deactivate = useDeactivateUser()
@@ -72,9 +77,9 @@ export function UsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [status, setStatus] = useState<StatusFilter>('active')
-  const [dialog, setDialog] = useState<{ kind: 'user'; user?: User } | { kind: 'roles' } | null>(
-    null,
-  )
+  const [dialog, setDialog] = useState<
+    { kind: 'user'; user?: User } | { kind: 'roles' } | { kind: 'pin'; user: User } | null
+  >(null)
   const close = () => setDialog(null)
 
   const all = useMemo(() => users.data ?? [], [users.data])
@@ -211,6 +216,20 @@ export function UsersPage() {
                     <td className="px-2 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <ActiveToggle user={user} isSelf={isSelf} />
+                        {usesPin(user) ? (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            aria-label={`PIN de ${user.username}`}
+                            title={hasPin(user) ? 'Tiene PIN' : 'Sin PIN'}
+                            onClick={() => setDialog({ kind: 'pin', user })}
+                            className={
+                              hasPin(user) ? 'text-status-available' : 'text-muted-foreground'
+                            }
+                          >
+                            <KeyRound />
+                          </Button>
+                        ) : null}
                         <Button
                           size="icon"
                           variant="ghost"
@@ -237,6 +256,7 @@ export function UsersPage() {
           isSelf={dialog.user?.userId === me?.userId}
         />
       ) : null}
+      {dialog?.kind === 'pin' ? <PinDialog user={dialog.user} onClose={close} /> : null}
       {dialog?.kind === 'roles' ? (
         <RolesDialog onClose={close} roles={roles.data ?? []} users={all} ownTypeId={myTypeId} />
       ) : null}

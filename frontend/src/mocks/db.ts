@@ -44,6 +44,21 @@ const seed = () => ({
   users: structuredClone(users) as CurrentUser[],
   userTypes: structuredClone(userTypes) as UserType[],
   nextUserId: 5,
+  /** Sesión simulada (en la API real es una cookie httpOnly) */
+  sessionUserId: null as number | null,
+  /** ¿El navegador de la prueba es un dispositivo autorizado? */
+  thisDevice: null as number | null,
+  devices: [] as {
+    deviceId: number
+    name: string
+    active: boolean
+    createdBy: number | null
+    createdAt: string
+    lastSeenAt: string | null
+  }[],
+  nextDeviceId: 1,
+  /** PIN por usuario (la API guarda solo el hash) */
+  pins: { 2: '1234', 3: '5678' } as Record<number, string>,
   nextUserTypeId: 4,
   nextCashRegisterId: 3,
   products: structuredClone(products) as Product[],

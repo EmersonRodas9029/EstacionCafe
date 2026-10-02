@@ -12,6 +12,7 @@ import {
   UtensilsCrossed,
   Wallet,
   Armchair,
+  MonitorSmartphone,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -55,6 +56,9 @@ export const ADMIN_NAV: NavGroup[] = [
   },
   {
     title: 'Accesos',
-    items: [{ to: '/admin/usuarios', label: 'Usuarios y roles', icon: Users }],
+    items: [
+      { to: '/admin/usuarios', label: 'Usuarios y roles', icon: Users },
+      { to: '/admin/dispositivos', label: 'Dispositivos', icon: MonitorSmartphone },
+    ],
   },
 ]

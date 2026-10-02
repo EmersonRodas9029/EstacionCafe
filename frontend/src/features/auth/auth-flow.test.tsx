@@ -29,7 +29,7 @@ describe('Autenticación y navegación por rol', () => {
 
     expect(await screen.findByText('Ingresa tu usuario')).toBeInTheDocument()
     expect(screen.getByLabelText('Usuario')).toHaveAttribute('aria-invalid', 'true')
-    expect(useSessionStore.getState().token).toBeNull()
+    expect(useSessionStore.getState().user).toBeNull()
   })
 
   it('credenciales inválidas muestran el error de la API', async () => {
@@ -37,7 +37,7 @@ describe('Autenticación y navegación por rol', () => {
     await login('mesero.demo', 'incorrecta')
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Usuario o contraseña incorrectos')
-    expect(useSessionStore.getState().token).toBeNull()
+    expect(useSessionStore.getState().user).toBeNull()
   })
 
   it('el mesero entra a su panel de mesas', async () => {
@@ -75,7 +75,7 @@ describe('Autenticación y navegación por rol', () => {
     await user.click(await screen.findByRole('button', { name: /cerrar sesión/i }))
 
     expect(await screen.findByRole('heading', { name: 'Bienvenido' })).toBeInTheDocument()
-    expect(useSessionStore.getState().token).toBeNull()
+    expect(useSessionStore.getState().user).toBeNull()
   })
 
   it('tras cerrar sesión, el siguiente usuario entra a su propio panel', async () => {
@@ -90,9 +90,9 @@ describe('Autenticación y navegación por rol', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/admin'))
   })
 
-  it('una sesión guardada con token inválido se descarta', async () => {
+  it('una sesión guardada que la API ya no reconoce se descarta', async () => {
+    // Usuario guardado pero sin sesión válida en la API (cookie vencida o revocada)
     useSessionStore.setState({
-      token: 'expirado',
       user: { userId: 9, username: 'x', email: 'x@x.x', role: 'admin' },
     })
     renderAt('/admin')
