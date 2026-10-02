@@ -82,10 +82,8 @@ export class TableService implements IService {
   async getAll(): Promise<any[]> {
     console.log(`Obteniendo mesas...`);
     return this.tableRepository
-      .find({
-        relations: ["bills"] as any,
-        order: { zone: "ASC", tableId: "ASC" },
-      })
+      // Sin relación bills: crecería sin límite con el historial
+      .find({ order: { zone: "ASC", tableId: "ASC" } })
       .catch((error: any) => {
         console.log(error);
         throw error;
@@ -96,7 +94,6 @@ export class TableService implements IService {
     const tableId = String(id);
     const table = await this.tableRepository.findOne({
       where: { tableId },
-      relations: ["bills"] as any,
     });
     if (!table) {
       throw new Error(`Mesa con ID ${tableId} no encontrada`);
@@ -107,7 +104,6 @@ export class TableService implements IService {
   async getByZone(zone: string): Promise<Table[]> {
     return await this.tableRepository.find({
       where: { zone },
-      relations: ["bills"] as any,
       order: { tableId: "ASC" },
     });
   }
@@ -115,7 +111,6 @@ export class TableService implements IService {
   async getByStatus(status: TableStatus): Promise<Table[]> {
     return await this.tableRepository.find({
       where: { status },
-      relations: ["bills"] as any,
       order: { zone: "ASC", tableId: "ASC" },
     });
   }
