@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.billRouter = void 0;
+const express_1 = require("express");
+const BillController_1 = require("../../controller/BillController");
+const authMiddleware_1 = require("../../infrastructure/security/authMiddleware");
+const rbacMiddleware_1 = require("../../infrastructure/security/rbacMiddleware");
+exports.billRouter = (0, express_1.Router)();
+exports.billRouter.get("/bills", BillController_1.getBills);
+exports.billRouter.get("/bills/customer/:customer", BillController_1.getBillsByCustomer);
+exports.billRouter.get("/bills/table/:tableId", BillController_1.getBillsByTable);
+exports.billRouter.post("/bills/table/:tableId/close", BillController_1.closeBillsByTable);
+exports.billRouter.get("/bills/date-range", BillController_1.getBillsByDateRange);
+exports.billRouter.get("/bills/:id", BillController_1.getBillById);
+exports.billRouter.post("/bills", BillController_1.saveBill);
+exports.billRouter.put("/bills/:id", BillController_1.updateBill);
+exports.billRouter.delete("/bills/:id", authMiddleware_1.verifyToken, (0, rbacMiddleware_1.authorize)(["admin", "mesero", "cajero"]), BillController_1.deleteBill);

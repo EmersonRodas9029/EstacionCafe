@@ -1,0 +1,139 @@
+import { Repository } from "typeorm";
+import { User } from "../../core/entities/User";
+import { loginUser, SaveUserDTO } from "../DTOs/UserDTO";
+import * as bcrypt from "bcrypt";
+import { IUserService } from "../../core/interfaces/IUserService";
+
+export class UserService implements IUserService {
+  private userRepository: Repository<User>;
+  constructor(userRepo: Repository<User>) {
+    this.userRepository = userRepo;
+  }
+
+  async saveAll(body: SaveUserDTO[]): Promise<User[]> {
+    const users = await Promise.all(
+      body.map(async (userData) => {
+        const user = new User();
+        user.username = userData.username;
+        user.password = await this.encryptPassword(userData.password);
+        user.userTypeId = userData.typeId;
+        user.email = userData.email;
+        return user;
+      }),
+    );
+
+    return await this.userRepository.save(users);
+  }
+
+  async save(body: SaveUserDTO): Promise<any> {
+    const userData: SaveUserDTO = body;
+    const user: User = new User();
+    user.username = userData.username;
+    user.password = await this.encryptPassword(userData.password);
+    user.userTypeId = userData.typeId;
+    user.email = userData.email;
+
+    console.log("Guardando usuario...");
+    return await this.userRepository.save(user);
+  }
+
+  async delete(id: number): Promise<any> {
+    const user = await this.getById(id);
+    user.active = false;
+
+    await this.userRepository.save(user);
+    return { message: "Usuario desactivado correctamente", id };
+  }
+
+  async update(body: any): Promise<any> {
+    const { userId, ...updateData } = body;
+
+    if (!userId) {
+      throw new Error("userId es requerido para actualizar");
+    }
+
+    const user = await this.userRepository.findOne({ where: { userId } });
+    if (!user) {
+      throw new Error(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    if (updateData.password) {
+      updateData.password = await this.encryptPassword(updateData.password);
+    }
+
+    // Mapear typeId a userTypeId
+    if (updateData.typeId) {
+      updateData.userTypeId = updateData.typeId;
+      delete updateData.typeId;
+    }
+
+    Object.assign(user, updateData);
+    return await this.userRepository.save(user);
+  }
+
+  async getAll(): Promise<any[]> {
+    console.log(`Obteniendo usuarios...`);
+    return this.userRepository.find({
+      relations: ["userType"] as any,
+      order: { username: "ASC" },
+    });
+  }
+
+  async getById(id: number): Promise<any> {
+    const user = await this.userRepository.findOne({
+      where: { userId: id },
+      relations: ["userType"] as any,
+    });
+    if (!user) {
+      throw new Error(`Usuario con ID ${id} no encontrado`);
+    }
+    return user;
+  }
+
+  async getUsersByType(typeId: number): Promise<User[]> {
+    return await this.userRepository.find({
+      where: { userTypeId: typeId },
+      relations: ["userType"] as any,
+      order: { username: "ASC" },
+    });
+  }
+
+  async getUserByUsername(username: string): Promise<User | null> {
+    return await this.userRepository.findOne({
+      where: { username },
+      relations: ["userType"] as any,
+    });
+  }
+
+  private async encryptPassword(password: string): Promise<string> {
+    const saltRounds = 10;
+    return await bcrypt.hash(password, saltRounds);
+  }
+
+  async getPasswordAndRole(username: string): Promise<loginUser | null> {
+    const user = await this.userRepository
+      .createQueryBuilder("user")
+      .leftJoinAndSelect("user.userType", "userType")
+      .select([
+        "user.userId",
+        "user.username",
+        "user.password",
+        "userType.name",
+      ])
+      .where("user.username = :username", { username })
+      .getOne();
+
+    if (!user) {
+      return null;
+    }
+
+    const data: loginUser = {
+      userId: user.userId,
+      username: user.username,
+      role: user.userType!.name,
+      password: user.password,
+    };
+
+    return data;
+  }
+}

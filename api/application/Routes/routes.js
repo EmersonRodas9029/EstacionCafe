@@ -1,0 +1,35 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const BillRoute_1 = require("./BillRoute");
+const ProductRoute_1 = require("./ProductRoute");
+const BillDetailsRoute_1 = require("./BillDetailsRoute");
+const UserRoutes_1 = require("./UserRoutes");
+const UserTypesRoute_1 = require("./UserTypesRoute");
+const ConsumableRoute_1 = require("./ConsumableRoute");
+const ConsumableTypeRoute_1 = require("./ConsumableTypeRoute");
+const SupplierRoute_1 = require("./SupplierRoute");
+const IngredientRoute_1 = require("./IngredientRoute");
+const PurchaseRoute_1 = require("./PurchaseRoute");
+const CashRegisterRoutes_1 = require("./CashRegisterRoutes");
+const TableRoute_1 = require("./TableRoute");
+const ProductTypeRoute_1 = require("./ProductTypeRoute");
+const mainRouter = express_1.default.Router();
+// Usar las rutas de facturas
+mainRouter.use("/", BillRoute_1.billRouter);
+mainRouter.use("/", ProductRoute_1.productRouter);
+mainRouter.use("/", BillDetailsRoute_1.billDetailsRouter);
+mainRouter.use("/", UserRoutes_1.userRouter);
+mainRouter.use("/", UserTypesRoute_1.userTypeRouter);
+mainRouter.use("/", ConsumableRoute_1.consumableRouter);
+mainRouter.use("/", ConsumableTypeRoute_1.consumableTypeRouter);
+mainRouter.use("/", SupplierRoute_1.supplierRouter);
+mainRouter.use("/", IngredientRoute_1.ingredientRouter);
+mainRouter.use("/", PurchaseRoute_1.purchaseRouter);
+mainRouter.use("/", CashRegisterRoutes_1.cashRegisterRouter);
+mainRouter.use("/", TableRoute_1.tableRouter);
+mainRouter.use("/", ProductTypeRoute_1.productTypeRouter);
+exports.default = mainRouter;

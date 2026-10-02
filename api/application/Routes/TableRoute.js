@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.tableRouter = void 0;
+const express_1 = require("express");
+const TableController_1 = require("../../controller/TableController");
+const authMiddleware_1 = require("../../infrastructure/security/authMiddleware");
+const rbacMiddleware_1 = require("../../infrastructure/security/rbacMiddleware");
+exports.tableRouter = (0, express_1.Router)();
+exports.tableRouter.get("/tables", TableController_1.getTables);
+exports.tableRouter.get("/tables/available", TableController_1.getAvailableTables);
+exports.tableRouter.get("/tables/zone/:zone", TableController_1.getTablesByZone);
+exports.tableRouter.get("/tables/status/:status", TableController_1.getTablesByStatus);
+exports.tableRouter.get("/tables/:id", TableController_1.getTableById);
+exports.tableRouter.post("/tables", TableController_1.saveTable);
+exports.tableRouter.put("/tables/:id", TableController_1.updateTable);
+exports.tableRouter.patch("/tables/:id/status", TableController_1.updateTableStatus);
+exports.tableRouter.delete("/tables/:id", authMiddleware_1.verifyToken, (0, rbacMiddleware_1.authorize)(["admin", "mesero", "cajero"]), TableController_1.deleteTable);
