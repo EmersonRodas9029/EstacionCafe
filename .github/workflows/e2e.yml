@@ -1,0 +1,55 @@
+name: E2E
+
+# Flujos completos en navegador contra la API real y Postgres.
+on:
+  push:
+    branches: [main]
+    paths: ['frontend/**', 'api/**', '.github/workflows/e2e.yml']
+  pull_request:
+    paths: ['frontend/**', 'api/**', '.github/workflows/e2e.yml']
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: estacioncafe
+          POSTGRES_PASSWORD: estacioncafe
+          POSTGRES_DB: estacioncafe
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U estacioncafe"
+          --health-interval 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: API
+        working-directory: api
+        run: npm ci
+      - name: Frontend
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Playwright
+        working-directory: frontend
+        run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 7

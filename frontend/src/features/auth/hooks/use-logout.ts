@@ -13,7 +13,7 @@ export function useLogout() {
     } catch {
       /* sin conexión: la sesión local se limpia igual */
     }
-    useSessionStore.getState().clear()
+    useSessionStore.getState().clear({ byUser: true })
     queryClient.clear()
     navigate('/login', { replace: true })
   }

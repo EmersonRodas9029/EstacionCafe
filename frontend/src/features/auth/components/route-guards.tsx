@@ -6,10 +6,13 @@ import { homePathFor, safeRedirect } from '../roles'
 /** Exige sesión; si no hay, manda a /login recordando el destino. */
 export function RequireAuth() {
   const hasSession = useSessionStore((s) => Boolean(s.token && s.user))
+  const loggedOut = useSessionStore((s) => s.loggedOut)
   const location = useLocation()
 
   if (!hasSession) {
-    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
+    // Tras "Cerrar sesión" no se recuerda la página: quien entre después parte de su panel
+    const state = loggedOut ? undefined : { from: location.pathname + location.search }
+    return <Navigate to="/login" replace state={state} />
   }
   return <Outlet />
 }
