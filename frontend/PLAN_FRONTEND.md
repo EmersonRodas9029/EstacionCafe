@@ -65,24 +65,30 @@
 
 ## 2. Huecos detectados en la API
 
-Conviene resolverlos antes o en paralelo al frontend (Fase 0b).
+✅ **Resueltos en la rama `Christian` (Fase 0b).** La API ahora usa PostgreSQL (Supabase en producción).
 
-| #   | Problema                                                                                                                                                            | Impacto                                             | Propuesta                                                          |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------ |
-| 1   | El login devuelve solo `token`, sin rol ni usuario                                                                                                                  | El frontend no sabe a qué panel redirigir           | Agregar `GET /users/me` o incluir el rol en el payload del JWT     |
-| 2   | `bill` no tiene `userId` del mesero                                                                                                                                 | No hay "mis mesas" ni ventas por mesero             | Agregar `waiterId` a `bill`                                        |
-| 3   | No hay un campo explícito para "para llevar"                                                                                                                        | Solo se deduce por `tableId` nulo                   | Agregar `orderType: "dine_in" \| "takeaway"`                       |
-| 4   | No se puede editar la cantidad de una línea                                                                                                                         | Hay que borrar la línea y crearla de nuevo          | `PATCH /bill-details/:id`                                          |
-| 5   | No hay endpoints de reportes ni paginación                                                                                                                          | El dashboard tiene que calcularse en el cliente     | `GET /reports/sales?from&to&groupBy=` y paginación en los listados |
-| 6   | Casi todo GET/POST/PUT es público (solo los DELETE piden auth)                                                                                                      | Riesgo de seguridad grave                           | Proteger todas las rutas por rol                                   |
-| 7   | Inconsistencias en los nombres: `cashRegister` (create) vs `cashRegisterId` (update) en bills; typo `cosumableTypeId`; `active` de producto no aparece en el update | Bugs fáciles de cometer                             | Unificar los nombres                                               |
-| 8   | `purchases` no tiene líneas por consumible                                                                                                                          | Una compra no suma stock al inventario              | Agregar `purchase-details`                                         |
-| 9   | Cualquier usuario autenticado (`all`) puede eliminar productos e ingredientes; el mesero puede eliminar mesas                                                       | Permisos demasiado amplios                          | Restringir a `admin`                                               |
-| 10  | La API no notifica cambios en tiempo real                                                                                                                           | Dos meseros no ven los cambios del otro al instante | Corto plazo: polling de 10–15 s. Largo plazo: SSE o WebSocket      |
-| 11  | El login responde `expiresIn: "1 hora"` pero `JWT_EXPIRES_IN=24h`                                                                                                   | Los datos de expiración se contradicen              | Alinear los dos valores                                            |
-| 12  | `CORS_ORIGIN` apunta a `:4321` (Astro)                                                                                                                              | El nuevo frontend en Vite (`:5173`) sería bloqueado | Agregar `http://localhost:5173`                                    |
+| #   | Problema original          | Solución en la API                                                                   |
+| --- | -------------------------- | ------------------------------------------------------------------------------------ |
+| 1   | Login sin rol ni usuario   | `GET /users/me`; el JWT incluye `userId`, `username` y `role` (de `user_types.role`) |
+| 2   | `bill` sin mesero          | `bills.waiter_id`, tomado del token; filtro `GET /bills?mine=true`                   |
+| 3   | Sin campo "para llevar"    | `orderType: dine_in \| takeaway` (dine_in exige mesa)                                |
+| 4   | No se editaba la cantidad  | `PATCH /bill-details/:id { quantity }`; `POST` suma a la línea existente             |
+| 5   | Sin reportes ni paginación | `GET /reports/sales?from&to` y `GET /bills?page&limit` (con `meta.total`)            |
+| 6   | Rutas públicas             | Todas exigen JWT salvo login/logout; roles por ruta (403 si no aplica)               |
+| 7   | Nombres inconsistentes     | `cashRegisterId` en todos lados; `consumableTypeId`; `active` en update de producto  |
+| 8   | Compras sin líneas         | `purchases.details[]` suma stock y actualiza costo                                   |
+| 9   | Permisos amplios           | Escrituras de catálogo, inventario, mesas, usuarios: solo `admin`                    |
+| 10  | Sin tiempo real            | Sin cambio: el frontend usa polling (10–15 s) en mapa de mesas y cuentas             |
+| 11  | Expiración inconsistente   | `JWT_EXPIRES_IN_HOURS` único; `expiresIn` en segundos                                |
+| 12  | CORS a `:4321`             | Por defecto `http://localhost:5173`; en dev el proxy de Vite evita CORS              |
 
----
+**Cambios de contrato a tener en cuenta en el frontend:**
+
+- `POST /bills` → `{ customer, tableId?, orderType? }`; el total ya no se envía.
+- Cerrar cuenta: `PUT /bills/:id { status: "closed", cashRegisterId }` o `POST /bills/table/:id/close { cashRegisterId }`.
+- `POST /bill-details` → `{ billId, billDetails: [{ productId, quantity }] }`.
+- `GET /bill-details/bill/:id` devuelve `billDetailId` y `[]` si no hay líneas.
+- Abrir/cerrar cuentas actualiza el estado de la mesa automáticamente.
 
 ## 3. Listado de vistas
 
@@ -287,7 +293,7 @@ Swagger ──orval──▶ tipos + hooks + Zod ──▶ features/*/hooks ─�
 | Fase                               | Entregable                                                              | Detalle                                                                                                                                                           | Criterio de "hecho"                               |
 | ---------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | **0. Base**                        | Proyecto andando                                                        | Vite+TS, oxlint/Prettier, Husky, CI, Tailwind con tokens, shadcn, orval contra el Swagger, cliente fetch con manejo del formato `{status,data}` y de `campo`, MSW | CI verde; un hook generado consume `/products`    |
-| **0b. API (bloquea la Fase 3)**    | Huecos #1–#3 resueltos (obligatorios); #4–#7 y `minStock` en lo posible | `/users/me`, `waiterId`, `orderType` y `minStock` en `consumable`; después proteger rutas y `PATCH bill-details`                                                  | Swagger actualizado y orval regenerado            |
+| **0b. API (bloquea la Fase 3)** ✅ | Huecos #1–#3 resueltos (obligatorios); #4–#7 y `minStock` en lo posible | `/users/me`, `waiterId`, `orderType` y `minStock` en `consumable`; después proteger rutas y `PATCH bill-details`                                                  | Swagger actualizado y orval regenerado            |
 | **1. Auth y shell**                | C1–C4                                                                   | Login, guards por rol, layouts mesero/admin, logout automático en 401, error boundaries                                                                           | Cada rol aterriza en su panel                     |
 | **2. Design system**               | Componentes base                                                        | Button, Input, TableCard, StatusBadge, Cart, DataTable, ConfirmDialog, toasts, skeletons, estados vacíos                                                          | Componentes revisados y usados en las vistas      |
 | **3. Mesero: núcleo**              | M1–M4                                                                   | Mapa con polling, mesa con varias cuentas, toma de orden con carrito y manejo de `stock_error`                                                                    | e2e: abrir mesa → 2 cuentas → ordenar → ver total |
@@ -304,7 +310,7 @@ Swagger ──orval──▶ tipos + hooks + Zod ──▶ features/*/hooks ─�
 ### Checklist por fase
 
 - [x] Fase 0 — Base (pendiente: correr `pnpm api:generate` cuando la API esté disponible)
-- [ ] Fase 0b — Ajustes de la API
+- [x] Fase 0b — Ajustes de la API
 - [ ] Fase 1 — Auth y shell
 - [ ] Fase 2 — Design system
 - [ ] Fase 3 — Mesero: núcleo
