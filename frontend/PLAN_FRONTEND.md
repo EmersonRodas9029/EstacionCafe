@@ -319,7 +319,7 @@ Swagger ──orval──▶ tipos + hooks + Zod ──▶ features/*/hooks ─�
 - [x] Fase 6 — Admin: operación y accesos
 - [x] Fase 7 — Admin: inventario y compras
 - [x] Fase 8 — Dashboard y reportes
-- [ ] Fase 9 — Pulido y release
+- [x] Fase 9 — Pulido (release pendiente: lo hace el equipo)
 
 ---
 

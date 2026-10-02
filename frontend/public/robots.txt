@@ -1,0 +1,3 @@
+# Herramienta interna del restaurante: no indexar
+User-agent: *
+Disallow: /

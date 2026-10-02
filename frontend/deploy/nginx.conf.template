@@ -1,0 +1,52 @@
+# Generado al arrancar desde deploy/nginx.conf.template (envsubst de la imagen nginx).
+server {
+  listen ${PORT};
+  server_name _;
+  root /usr/share/nginx/html;
+
+  gzip on;
+  gzip_types text/css application/javascript application/json image/svg+xml application/manifest+json;
+  gzip_min_length 1024;
+
+  # Definidos solo aquí: un add_header dentro de un location anularía estos (la caché usa expires)
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "DENY" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+
+  location = /healthz {
+    access_log off;
+    default_type text/plain;
+    return 200 "ok";
+  }
+
+  # API en el mismo origen: el navegador no necesita CORS
+  location /api/ {
+    proxy_pass ${API_UPSTREAM};
+    proxy_http_version 1.1;
+    proxy_set_header Host $proxy_host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_ssl_server_name on;
+    proxy_read_timeout 30s;
+  }
+
+  # Archivos con hash en el nombre: caché de un año
+  location /assets/ {
+    expires 1y;
+    try_files $uri =404;
+  }
+
+  # Service worker, manifiesto e HTML se revalidan siempre para recibir versiones nuevas
+  location ~* ^/(sw\.js|workbox-[^/]+\.js|manifest\.webmanifest)$ {
+    expires -1;
+    try_files $uri =404;
+  }
+
+  # SPA: cualquier ruta del router sirve index.html
+  location / {
+    expires -1;
+    try_files $uri $uri/ /index.html;
+  }
+}
