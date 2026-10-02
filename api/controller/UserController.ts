@@ -5,7 +5,7 @@ import {
   updateUserSchema,
   userIdSchema,
 } from "../application/validations/UserValidations";
-import { AppError } from "../application/errors/AppError";
+import { AppError, sendAppError } from "../application/errors/AppError";
 import { TOKEN_TTL_MS } from "../infrastructure/security/TokenService";
 import { env } from "../infrastructure/config/env";
 import { SaveUserDTO } from "../application/DTOs/UserDTO";
@@ -96,6 +96,7 @@ export const saveUser = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -122,6 +123,7 @@ export const updateUser = async (req: any, res: any) => {
     const result = await userService.update({
       userId: id,
       ...updateData,
+      actorId: req.user?.userId,
     });
 
     console.log("Usuario actualizado correctamente");
@@ -131,6 +133,7 @@ export const updateUser = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -157,7 +160,10 @@ export const updateUser = async (req: any, res: any) => {
 export const deleteUser = async (req: any, res: any) => {
   try {
     const { id } = userIdSchema.parse(req.params);
-    const result = await service!.delete(parseInt(String(id)));
+    const result = await (service as any).delete(
+      parseInt(String(id)),
+      req.user?.userId,
+    );
 
     console.log("Usuario eliminado correctamente");
     return res.status(200).send({
@@ -166,6 +172,7 @@ export const deleteUser = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",

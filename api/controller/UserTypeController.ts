@@ -1,3 +1,4 @@
+import { AppError, sendAppError } from "../application/errors/AppError";
 import { IService } from "../core/interfaces/IService";
 import {
   createUserTypeSchema,
@@ -88,6 +89,7 @@ export const saveUserType = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -114,6 +116,7 @@ export const updateUserType = async (req: any, res: any) => {
     const result = await userTypeService.update({
       userTypeId: id,
       ...updateData,
+      actorId: req.user?.userId,
     });
 
     console.log("Tipo de usuario actualizado correctamente");
@@ -123,6 +126,7 @@ export const updateUserType = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",
@@ -158,6 +162,7 @@ export const deleteUserType = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
     if (error.name === "ZodError") {
       return res.status(400).send({
         status: "error",

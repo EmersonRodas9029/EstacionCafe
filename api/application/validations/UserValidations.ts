@@ -38,6 +38,8 @@ export const updateUserSchema = z.object({
         z.string().transform((val) => parseInt(val, 10)),
         z.number().int().positive("El tipo de usuario debe ser un número positivo")
     ]).refine((val) => !isNaN(val) && val > 0, "El tipo de usuario debe ser un número positivo").optional(),
+
+    active: z.boolean().optional(),
 });
 
 export const userIdSchema = z.object({

@@ -318,6 +318,7 @@ const swaggerDocument: any = {
           password: { type: "string", minLength: 6, maxLength: 100 },
           email: { type: "string", format: "email" },
           typeId: integerish(),
+          active: { type: "boolean", description: "false desactiva, true reactiva" },
         },
       },
 
@@ -388,9 +389,9 @@ const swaggerDocument: any = {
       // ---------- Cuentas ----------
       BillStatus: {
         type: "string",
-        enum: ["open", "closed", "draft", "finished"],
+        enum: ["open", "closed", "draft", "finished", "void"],
         description:
-          "draft = orden en edición, open = cuenta activa, finished = para llevar entregada, closed = cobrada",
+          "draft = orden en edición, open = cuenta activa, finished = para llevar entregada, closed = cobrada, void = anulada por un admin",
       },
       OrderType: {
         type: "string",
@@ -1043,7 +1044,7 @@ const swaggerDocument: any = {
         roles: "admin",
         body: "UserInput",
         ok: { code: 201, description: "Usuario creado correctamente", schema: ref("User") },
-        errors: { 400: "Datos inválidos" },
+        errors: { 400: "Datos inválidos o rol inexistente", 409: "El usuario ya existe" },
       }),
     },
     "/users/type/{typeId}": {
@@ -1077,7 +1078,11 @@ const swaggerDocument: any = {
         parameters: [idParam("usuario")],
         body: "UserUpdate",
         ok: { description: "Usuario actualizado correctamente", schema: ref("User") },
-        errors: { 400: "Datos inválidos", 404: "Usuario no encontrado" },
+        errors: {
+          400: "Datos inválidos o rol inexistente",
+          404: "Usuario no encontrado",
+          409: "Usuario repetido, o el admin intenta desactivarse o quitarse el rol",
+        },
       }),
       delete: op({
         id: "deleteUser",
@@ -1086,7 +1091,11 @@ const swaggerDocument: any = {
         roles: "admin",
         parameters: [idParam("usuario")],
         ok: { description: "Usuario eliminado correctamente", schema: ref("DeleteResult") },
-        errors: { 400: "ID inválido", 404: "Usuario no encontrado" },
+        errors: {
+          400: "ID inválido",
+          404: "Usuario no encontrado",
+          409: "No puedes desactivar tu propio usuario",
+        },
       }),
     },
 
@@ -1127,7 +1136,11 @@ const swaggerDocument: any = {
         parameters: [idParam("tipo de usuario")],
         body: "UserTypeUpdate",
         ok: { description: "Tipo de usuario actualizado", schema: ref("UserType") },
-        errors: { 400: "Datos inválidos", 404: "Tipo de usuario no encontrado" },
+        errors: {
+          400: "Datos inválidos",
+          404: "Tipo de usuario no encontrado",
+          409: "Quitar el rol admin al tipo del propio usuario",
+        },
       }),
       delete: op({
         id: "deleteUserType",
@@ -1136,7 +1149,11 @@ const swaggerDocument: any = {
         roles: "admin",
         parameters: [idParam("tipo de usuario")],
         ok: { description: "Tipo de usuario eliminado", schema: ref("DeleteResult") },
-        errors: { 400: "ID inválido", 404: "Tipo de usuario no encontrado" },
+        errors: {
+          400: "ID inválido",
+          404: "Tipo de usuario no encontrado",
+          409: "El rol tiene usuarios asignados",
+        },
       }),
     },
 
@@ -1373,19 +1390,34 @@ const swaggerDocument: any = {
         body: "BillUpdate",
         ok: { description: "Factura actualizada correctamente", schema: ref("Bill") },
         errors: {
-          400: "Datos inválidos, cierre sin caja, mesa inexistente o caja inactiva",
+          400: "Datos inválidos, cierre sin caja, mesa inexistente, caja inactiva o status void",
           404: "Factura no encontrada",
+          409: "La factura está anulada",
         },
       }),
       delete: op({
         id: "deleteBill",
         tag: "Bills",
-        summary: "Anular cuenta",
-        description: "Si estaba activa (open/draft) devuelve el stock consumido.",
+        summary: "Eliminar cuenta en curso",
+        description:
+          "Solo cuentas open/draft: borra la cuenta y devuelve el stock. Las cobradas se anulan con POST /bills/{id}/void.",
         roles: "admin",
         parameters: [idParam("factura")],
         ok: { description: "Factura eliminada correctamente", schema: ref("DeleteResult") },
-        errors: { 400: "ID inválido", 404: "Factura no encontrada" },
+        errors: { 400: "ID inválido", 404: "Factura no encontrada", 409: "La cuenta ya se cobró" },
+      }),
+    },
+    "/bills/{id}/void": {
+      post: op({
+        id: "voidBill",
+        tag: "Bills",
+        summary: "Anular factura",
+        description:
+          "Pasa la factura a void conservando sus líneas; deja de contar como venta. Si estaba en curso devuelve el stock y libera la mesa.",
+        roles: "admin",
+        parameters: [idParam("factura")],
+        ok: { description: "Factura anulada correctamente", schema: ref("Bill") },
+        errors: { 400: "ID inválido", 404: "Factura no encontrada", 409: "Ya estaba anulada" },
       }),
     },
 

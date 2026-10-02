@@ -1,6 +1,9 @@
 import { Repository } from "typeorm";
 import { IService } from "../../core/interfaces/IService";
 import { UserType } from "../../core/entities/UserType";
+import { User } from "../../core/entities/User";
+import { Role } from "../../core/enums/Role";
+import { AppError } from "../errors/AppError";
 
 export class UserTypeService implements IService {
   private typeRepo: Repository<UserType>;
@@ -30,6 +33,14 @@ export class UserTypeService implements IService {
   }
 
   async delete(id: number): Promise<any> {
+    const users = await this.typeRepo.manager.count(User, {
+      where: { userTypeId: id },
+    });
+    if (users > 0) {
+      throw AppError.conflict(
+        `El rol tiene ${users} usuarios asignados y no se puede eliminar`,
+      );
+    }
     const result = await this.typeRepo.delete(id);
     if (result.affected === 0) {
       throw new Error(`Tipo de usuario con ID ${id} no encontrado`);
@@ -38,7 +49,7 @@ export class UserTypeService implements IService {
   }
 
   async update(body: any): Promise<any> {
-    const { userTypeId, ...updateData } = body;
+    const { userTypeId, actorId, ...updateData } = body;
 
     if (!userTypeId) {
       throw new Error("userTypeId es requerido para actualizar");
@@ -47,6 +58,18 @@ export class UserTypeService implements IService {
     const userType = await this.typeRepo.findOne({ where: { userTypeId } });
     if (!userType) {
       throw new Error(`Tipo de usuario con ID ${userTypeId} no encontrado`);
+    }
+
+    // Quitar el rol admin al tipo del propio admin lo dejaría sin acceso
+    if (actorId !== undefined && updateData.role && updateData.role !== Role.ADMIN) {
+      const actor = await this.typeRepo.manager.findOne(User, {
+        where: { userId: actorId },
+      });
+      if (actor?.userTypeId === userTypeId) {
+        throw AppError.conflict(
+          "No puedes quitar el rol de administrador a tu propio tipo de usuario",
+        );
+      }
     }
 
     Object.assign(userType, updateData);

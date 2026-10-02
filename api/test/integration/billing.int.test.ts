@@ -234,6 +234,50 @@ describe("Cuentas (BillService)", () => {
   });
 });
 
+describe("Anulación", () => {
+  it("anular una cuenta abierta devuelve stock, libera la mesa y conserva las líneas", async () => {
+    const bill = await openTableBill();
+    await details.saveAll({
+      billId: bill.billId!,
+      billDetails: [{ productId: latte.productId, quantity: 2 }],
+    });
+
+    const voided = await bills.void(bill.billId!);
+
+    expect(voided.status).toBe(Status.VOID);
+    expect(await stockOf(milk)).toBeCloseTo(1);
+    expect(await tableStatus("M1")).toBe(TableStatus.DISPONIBLE);
+    expect(await details.getById(bill.billId!)).toHaveLength(1);
+  });
+
+  it("anular una cuenta cobrada no devuelve stock y no se puede repetir ni editar", async () => {
+    const bill = await openTableBill();
+    await details.saveAll({
+      billId: bill.billId!,
+      billDetails: [{ productId: latte.productId, quantity: 2 }],
+    });
+    await bills.closeBillsByTable("M1", register.cashRegisterId);
+
+    await bills.void(bill.billId!);
+
+    expect(await stockOf(milk)).toBeCloseTo(0.5);
+    await expect(bills.void(bill.billId!)).rejects.toMatchObject({ statusCode: 409 });
+    await expect(
+      bills.update({ billId: bill.billId, customer: "Otro" }),
+    ).rejects.toMatchObject({ statusCode: 409 });
+  });
+
+  it("no se puede anular con PUT ni eliminar una cuenta cobrada", async () => {
+    const bill = await openTableBill();
+    await expect(
+      bills.update({ billId: bill.billId, status: Status.VOID }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    await bills.closeBillsByTable("M1", register.cashRegisterId);
+    await expect(bills.delete(bill.billId!)).rejects.toMatchObject({ statusCode: 409 });
+  });
+});
+
 describe("Detalles (BillDetailsService)", () => {
   it("agrega productos con precio del servidor, descuenta stock y calcula total", async () => {
     const bill = await openTableBill();

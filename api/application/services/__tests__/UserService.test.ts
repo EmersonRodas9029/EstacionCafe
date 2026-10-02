@@ -25,6 +25,10 @@ describe("UserService", () => {
       findOne: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      exists: jest.fn().mockResolvedValue(false),
+      manager: {
+        findOne: jest.fn().mockResolvedValue({ userTypeId: 1, role: "mesero" }),
+      },
     } as any;
 
     // Crear instancia del servicio con el repositorio mock

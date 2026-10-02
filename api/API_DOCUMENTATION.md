@@ -79,7 +79,7 @@ Usuarios demo del seeder (`npm run seed:run`): `admin.demo`, `mesero.demo`, `caj
 | Enum | Valores |
 |---|---|
 | Rol | `admin`, `mesero`, `cajero` |
-| Estado de cuenta | `draft` (en edición), `open` (activa), `finished` (para llevar entregada), `closed` (cobrada) |
+| Estado de cuenta | `draft` (en edición), `open` (activa), `finished` (para llevar entregada), `closed` (cobrada), `void` (anulada por un admin) |
 | Tipo de orden | `dine_in` (en mesa, requiere `tableId`), `takeaway` (sin mesa) |
 | Estado de mesa | `disponible`, `ocupada`, `reservada` |
 | Unidad | `g`, `kg`, `l`, `ml`, `oz`, `lb`, `unit`, `tbsp`, `tsp`, `cup`, `piece` |
@@ -153,7 +153,9 @@ Cada cuenta trae `waiter` (sin contraseña), `table` y `cashRegister`.
 
 También existen `GET /bills/{id}`, `/bills/table/{tableId}`, `/bills/customer/{customer}` y `/bills/date-range?startDate&endDate`.
 
-`DELETE /bills/{id}` (admin) anula la cuenta; si estaba `open`/`draft` devuelve el stock.
+- `POST /bills/{id}/void` (admin) anula: la factura pasa a `void`, conserva sus líneas y deja de contar como venta. Si estaba en curso devuelve el stock y libera la mesa; si ya se cobró no devuelve stock. Una factura anulada no se modifica (409).
+- `DELETE /bills/{id}` (admin) borra solo cuentas `open`/`draft` y devuelve su stock; las cobradas responden 409 (se anulan).
+- `PUT` no acepta `status: "void"` (400).
 
 Un job elimina cada 10 min los `draft` **sin productos** con más de 2 h.
 
@@ -199,8 +201,8 @@ Un job elimina cada 10 min los `draft` **sin productos** con más de 2 h.
 
 - Mesas: `POST /tables` `{ tableId (A-Z0-9), zone, status? }` (409 si existe).
 - Cajas: `/cash-registers` `{ number, active }`; `number` único (409); `DELETE` desactiva.
-- Usuarios: `/users` `{ username, password, email, typeId }`; las respuestas nunca incluyen la contraseña; `DELETE` desactiva.
-- Tipos de usuario: `/user-types` `{ name, permissionLevel (0–10), role }`.
+- Usuarios: `/users` `{ username, password, email, typeId }`; las respuestas nunca incluyen la contraseña; `DELETE` desactiva y `PUT` con `active: true` reactiva. `username` único (409) y `typeId` debe existir (400). Un admin no puede desactivarse ni quitarse el rol de admin (409).
+- Tipos de usuario: `/user-types` `{ name, permissionLevel (0–10), role }`. `DELETE` responde 409 si tiene usuarios; no se puede quitar `role: admin` al tipo del propio usuario.
 
 ### Reportes
 
@@ -242,6 +244,7 @@ Cuenta como venta: cuentas `closed` o `finished` en el rango.
 | GET | `/bills`, `/bills/{id}`, `/bills/date-range`, `/bills/customer/{c}`, `/bills/table/{t}` | todos |
 | POST | `/bills`, `/bills/table/{t}/close` | admin, mesero, cajero |
 | PUT | `/bills/{id}` | admin, mesero, cajero |
+| POST | `/bills/{id}/void` | admin |
 | DELETE | `/bills/{id}` | admin |
 | GET | `/bill-details` | admin |
 | GET | `/bill-details/bill/{billId}` | todos |

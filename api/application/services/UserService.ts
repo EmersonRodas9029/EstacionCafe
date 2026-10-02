@@ -3,6 +3,9 @@ import { User } from "../../core/entities/User";
 import { loginUser, SaveUserDTO } from "../DTOs/UserDTO";
 import * as bcrypt from "bcrypt";
 import { IUserService } from "../../core/interfaces/IUserService";
+import { UserType } from "../../core/entities/UserType";
+import { Role } from "../../core/enums/Role";
+import { AppError } from "../errors/AppError";
 
 export class UserService implements IUserService {
   private userRepository: Repository<User>;
@@ -28,6 +31,8 @@ export class UserService implements IUserService {
 
   async save(body: SaveUserDTO): Promise<any> {
     const userData: SaveUserDTO = body;
+    await this.ensureUniqueUsername(userData.username);
+    await this.getUserType(userData.typeId);
     const user: User = new User();
     user.username = userData.username;
     user.password = await this.encryptPassword(userData.password);
@@ -38,7 +43,11 @@ export class UserService implements IUserService {
     return this.withoutPassword(await this.userRepository.save(user));
   }
 
-  async delete(id: number): Promise<any> {
+  /** Baja lógica. `actorId` evita que un admin se deje fuera a sí mismo. */
+  async delete(id: number, actorId?: number): Promise<any> {
+    if (actorId !== undefined && id === actorId) {
+      throw AppError.conflict("No puedes desactivar tu propio usuario");
+    }
     const user = await this.getById(id);
     user.active = false;
 
@@ -47,7 +56,7 @@ export class UserService implements IUserService {
   }
 
   async update(body: any): Promise<any> {
-    const { userId, ...updateData } = body;
+    const { userId, actorId, ...updateData } = body;
 
     if (!userId) {
       throw new Error("userId es requerido para actualizar");
@@ -56,6 +65,24 @@ export class UserService implements IUserService {
     const user = await this.userRepository.findOne({ where: { userId } });
     if (!user) {
       throw new Error(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    if (updateData.username && updateData.username !== user.username) {
+      await this.ensureUniqueUsername(updateData.username);
+    }
+
+    if (actorId !== undefined && userId === actorId) {
+      if (updateData.active === false) {
+        throw AppError.conflict("No puedes desactivar tu propio usuario");
+      }
+      if (updateData.typeId) {
+        const type = await this.getUserType(updateData.typeId);
+        if (type.role !== Role.ADMIN) {
+          throw AppError.conflict("No puedes quitarte el rol de administrador");
+        }
+      }
+    } else if (updateData.typeId) {
+      await this.getUserType(updateData.typeId);
     }
 
     if (updateData.password) {
@@ -104,6 +131,19 @@ export class UserService implements IUserService {
       where: { username },
       relations: ["userType"] as any,
     });
+  }
+
+  private async ensureUniqueUsername(username: string) {
+    const taken = await this.userRepository.exists({ where: { username } });
+    if (taken) throw AppError.conflict(`El usuario ${username} ya existe`);
+  }
+
+  private async getUserType(typeId: number): Promise<UserType> {
+    const type = await this.userRepository.manager.findOne(UserType, {
+      where: { userTypeId: typeId },
+    });
+    if (!type) throw AppError.badRequest(`El rol ${typeId} no existe`);
+    return type;
   }
 
   private withoutPassword<T extends Partial<User>>(user: T): Omit<T, "password"> {

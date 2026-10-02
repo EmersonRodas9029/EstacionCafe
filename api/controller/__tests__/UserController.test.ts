@@ -523,7 +523,7 @@ describe("UserController", () => {
       await userController.deleteUser(mockReq, mockRes);
 
       expect(mockedUserIdSchema.parse).toHaveBeenCalledWith({ id: "1" });
-      expect(mockService.delete).toHaveBeenCalledWith(1);
+      expect(mockService.delete).toHaveBeenCalledWith(1, undefined);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
@@ -573,7 +573,7 @@ describe("UserController", () => {
       await userController.deleteUser(mockReq, mockRes);
 
       expect(mockedUserIdSchema.parse).toHaveBeenCalledWith({ id: "999" });
-      expect(mockService.delete).toHaveBeenCalledWith(999);
+      expect(mockService.delete).toHaveBeenCalledWith(999, undefined);
       expect(mockRes.status).toHaveBeenCalledWith(404);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "error",
@@ -591,7 +591,7 @@ describe("UserController", () => {
       await userController.deleteUser(mockReq, mockRes);
 
       expect(mockedUserIdSchema.parse).toHaveBeenCalledWith({ id: "1" });
-      expect(mockService.delete).toHaveBeenCalledWith(1);
+      expect(mockService.delete).toHaveBeenCalledWith(1, undefined);
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "error",

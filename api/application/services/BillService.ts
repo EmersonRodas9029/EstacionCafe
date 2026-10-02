@@ -48,10 +48,16 @@ export class BillService implements IService {
   }
 
   /** Anula la factura. Si seguía activa, devuelve el stock consumido. */
+  /** Solo cuentas en curso: las cobradas se anulan para no perder el historial. */
   async delete(id: number): Promise<any> {
     await this.billRepository.manager.transaction(async (manager) => {
       const bill = await manager.findOne(Bill, { where: { billId: id } });
       if (!bill) throw new Error(`Factura con ID ${id} no encontrada`);
+      if (!ACTIVE_STATUSES.includes(bill.status)) {
+        throw AppError.conflict(
+          "Solo se eliminan cuentas en curso; las cobradas se anulan",
+        );
+      }
 
       const details = await manager.find(BillDetails, {
         where: { billId: id },
@@ -71,6 +77,36 @@ export class BillService implements IService {
     return { message: "Factura eliminada correctamente", id };
   }
 
+  /**
+   * Anula una cuenta conservando sus líneas. Si estaba en curso devuelve el
+   * stock y libera la mesa; si ya se cobró, lo vendido ya se consumió.
+   */
+  async void(id: number): Promise<Bill> {
+    return this.billRepository.manager.transaction(async (manager) => {
+      const bill = await manager.findOne(Bill, { where: { billId: id } });
+      if (!bill) throw AppError.notFound(`Factura con ID ${id} no encontrada`);
+      if (bill.status === Status.VOID) {
+        throw AppError.conflict(`La factura ${id} ya está anulada`);
+      }
+
+      if (ACTIVE_STATUSES.includes(bill.status)) {
+        const details = await manager.find(BillDetails, {
+          where: { billId: id },
+        });
+        const deltas = new Map<number, number>();
+        for (const d of details) {
+          deltas.set(d.productId, (deltas.get(d.productId) ?? 0) - d.quantity);
+        }
+        if (deltas.size > 0) await adjustStockForProducts(manager, deltas);
+      }
+
+      bill.status = Status.VOID;
+      const saved = await manager.save(bill);
+      if (bill.tableId) await this.releaseTableIfFree(manager, bill.tableId);
+      return saved;
+    });
+  }
+
   async update(body: UpdateBillDTO): Promise<Bill> {
     const { billId, ...data } = body;
     if (!billId) throw new Error("billId es requerido para actualizar");
@@ -78,6 +114,13 @@ export class BillService implements IService {
     return this.billRepository.manager.transaction(async (manager) => {
       const bill = await manager.findOne(Bill, { where: { billId } });
       if (!bill) throw new Error(`Factura con ID ${billId} no encontrada`);
+
+      if (bill.status === Status.VOID) {
+        throw AppError.conflict(`La factura ${billId} está anulada`);
+      }
+      if (data.status === Status.VOID) {
+        throw AppError.badRequest("Para anular usa POST /bills/{id}/void");
+      }
 
       const previousTable = bill.tableId ?? null;
 

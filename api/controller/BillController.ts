@@ -201,6 +201,33 @@ export const deleteBill = async (req: any, res: any) => {
   }
 };
 
+export const voidBill = async (req: any, res: any) => {
+  try {
+    const { id } = billIdSchema.parse(req.params);
+    const result = await (getService() as any).void(parseInt(String(id)));
+
+    return res.status(200).send({
+      status: "success",
+      message: "Factura anulada correctamente",
+      data: result,
+    });
+  } catch (error: any) {
+    if (error instanceof AppError) return sendAppError(res, error);
+    if (error.name === "ZodError") {
+      return res.status(400).send({
+        status: "error",
+        message: "ID inválido: " + error.issues[0].message,
+      });
+    }
+
+    console.error("Error al anular factura:", error);
+    return res.status(500).send({
+      status: "error",
+      message: `Error interno del servidor: ${error.message}`,
+    });
+  }
+};
+
 export const getBillsByDateRange = async (req: any, res: any) => {
   try {
     const { startDate, endDate } = req.query;
