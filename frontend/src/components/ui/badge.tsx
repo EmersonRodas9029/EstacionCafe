@@ -8,8 +8,8 @@ const badgeVariants = cva(
     variants: {
       tone: {
         neutral: 'bg-muted text-primary',
-        available: 'bg-status-available/12 text-status-available',
-        occupied: 'bg-accent/15 text-accent-strong',
+        available: 'bg-status-available/12 text-status-available-text',
+        occupied: 'bg-accent/15 text-accent-text',
         reserved: 'bg-primary/10 text-primary',
         solid: 'bg-primary text-primary-foreground',
         void: 'bg-destructive/10 text-destructive',

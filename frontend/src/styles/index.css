@@ -21,6 +21,11 @@
   --primary-foreground: #ffffff;
   --accent: var(--brand-orange);
   --accent-strong: #b5531c;
+  /* Naranja aclarado para texto sobre el ciruela (5.6:1, AA) */
+  --accent-on-dark: #e8894f;
+  /* Texto de badges (12px sobre su tinte): ≥ 5:1 en card, fondo y surface */
+  --status-available-text: #245f3c;
+  --accent-text: #8f3f12;
   --accent-foreground: #ffffff;
   --muted: #efe6d8;
   --muted-foreground: #6b5a6e;
@@ -48,6 +53,9 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-accent-on-dark: var(--accent-on-dark);
+  --color-status-available-text: var(--status-available-text);
+  --color-accent-text: var(--accent-text);
   --color-accent-foreground: var(--accent-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);

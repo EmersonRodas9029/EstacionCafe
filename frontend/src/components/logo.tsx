@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-/** Marca: taza vista desde arriba con una vía de tren curva (Estación + Café). */
+/** Marca: taza vista desde arriba con una vía de tren curva (Estación + Café). Va sobre fondo ciruela. */
 export function Logo({ className, withText = true }: { className?: string; withText?: boolean }) {
   return (
     <span className={cn('inline-flex items-center gap-2.5', className)}>
@@ -25,7 +25,7 @@ export function Logo({ className, withText = true }: { className?: string; withT
       </svg>
       {withText ? (
         <span className="font-display text-xl leading-none font-semibold tracking-tight">
-          Estación<span className="text-accent">Café</span>
+          Estación<span className="text-accent-on-dark">Café</span>
         </span>
       ) : null}
     </span>
