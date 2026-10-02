@@ -8,6 +8,7 @@ import type { IngredientUpdate } from '@/api/generated/model/ingredientUpdate'
 import type { Product } from '@/api/generated/model/product'
 import type { ProductInput } from '@/api/generated/model/productInput'
 import type { ProductUpdate } from '@/api/generated/model/productUpdate'
+import { localDay } from '@/lib/dates'
 import { DEMO_PASSWORD } from './data'
 import {
   consumableView,
@@ -132,6 +133,104 @@ export const handlers = [
       )
     db.productTypes = db.productTypes.filter((t) => t.productTypeId !== id)
     return ok({ message: 'Tipo de producto eliminado correctamente', id })
+  }),
+
+  // ---------- Reportes ----------
+  http.get('*/api/reports/sales', ({ request }) => {
+    const query = new URL(request.url).searchParams
+    const from = new Date(query.get('from') ?? 0)
+    const to = new Date(query.get('to') ?? Date.now())
+    const top = Number(query.get('top') ?? 10)
+    const sold = db.bills.filter(
+      (b) =>
+        (b.status === 'closed' || b.status === 'finished') &&
+        new Date(b.date) >= from &&
+        new Date(b.date) <= to,
+    )
+    const ids = new Set(sold.map((b) => b.billId))
+    const lines = db.details
+      .filter((d) => ids.has(d.billId))
+      .map((d) => ({ ...d, product: db.products.find((p) => p.productId === d.productId)! }))
+    const totalSales = sold.reduce((acc, b) => acc + b.total, 0)
+    const costOfGoods = lines.reduce((acc, l) => acc + l.quantity * l.product.cost, 0)
+    const group = <K extends string | number | null>(
+      items: typeof lines,
+      key: (l: (typeof lines)[number]) => K,
+    ) => {
+      const map = new Map<K, { quantity: number; total: number; first: (typeof lines)[number] }>()
+      for (const l of items) {
+        const g = map.get(key(l)) ?? { quantity: 0, total: 0, first: l }
+        g.quantity += l.quantity
+        g.total += l.quantity * l.unitPrice
+        map.set(key(l), g)
+      }
+      return [...map.entries()]
+    }
+    const byDay = new Map<string, { total: number; bills: number }>()
+    for (const b of sold) {
+      const day = localDay(new Date(b.date))
+      const g = byDay.get(day) ?? { total: 0, bills: 0 }
+      g.total += b.total
+      g.bills += 1
+      byDay.set(day, g)
+    }
+    const byWaiter = new Map<number, { bills: number; total: number }>()
+    for (const b of sold) {
+      const g = byWaiter.get(b.waiterId) ?? { bills: 0, total: 0 }
+      g.bills += 1
+      g.total += b.total
+      byWaiter.set(b.waiterId, g)
+    }
+    const purchasesTotal = db.purchases
+      .filter((p) => new Date(p.date) >= from && new Date(p.date) <= to)
+      .reduce((acc, p) => acc + p.total, 0)
+    return ok({
+      range: { from: from.toISOString(), to: to.toISOString() },
+      summary: {
+        totalSales,
+        billsCount: sold.length,
+        averageTicket: sold.length ? Math.round((totalSales / sold.length) * 100) / 100 : 0,
+        costOfGoods: Math.round(costOfGoods * 100) / 100,
+        grossProfit: Math.round((totalSales - costOfGoods) * 100) / 100,
+        purchasesTotal,
+      },
+      byDay: [...byDay.entries()]
+        .toSorted(([a], [b]) => a.localeCompare(b))
+        .map(([date, g]) => ({ date, ...g })),
+      topProducts: group(lines, (l) => l.productId)
+        .map(([productId, g]) => ({
+          productId,
+          name: g.first.product.name,
+          quantity: g.quantity,
+          total: g.total,
+        }))
+        .toSorted((a, b) => b.quantity - a.quantity || b.total - a.total)
+        .slice(0, top),
+      byProductType: group(lines, (l) => l.product.productTypeId)
+        .map(([productTypeId, g]) => ({
+          productTypeId,
+          name:
+            db.productTypes.find((t) => t.productTypeId === productTypeId)?.name ?? 'Sin categoría',
+          quantity: g.quantity,
+          total: g.total,
+        }))
+        .toSorted((a, b) => b.total - a.total),
+      byWaiter: [...byWaiter.entries()].map(([waiterId, g]) => ({
+        waiterId,
+        username: db.users.find((u) => u.userId === waiterId)?.username ?? '',
+        ...g,
+      })),
+      byOrderType: (['dine_in', 'takeaway'] as const)
+        .map((orderType) => {
+          const bills = sold.filter((b) => b.orderType === orderType)
+          return {
+            orderType,
+            bills: bills.length,
+            total: bills.reduce((acc, b) => acc + b.total, 0),
+          }
+        })
+        .filter((g) => g.bills > 0),
+    })
   }),
 
   // ---------- Inventario ----------

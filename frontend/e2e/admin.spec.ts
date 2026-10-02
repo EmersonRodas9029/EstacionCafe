@@ -133,3 +133,43 @@ test.describe('Administración', () => {
     await expect(page.getByText('Mesa E9 eliminada')).toBeVisible()
   })
 })
+
+test.describe('Dashboard y reportes', () => {
+  test('las cifras cuadran con el reporte de la API', async ({ page, request }) => {
+    const waiter = await api(request, 'mesero.demo')
+    const cashier = await api(request, 'cajero.demo')
+    const bill = await waiter.post('/bills', { customer: 'Reporte e2e' })
+    const [product] = await waiter.get('/products/active')
+    await waiter.post('/bill-details', {
+      billId: bill.billId,
+      billDetails: [{ productId: product.productId, quantity: 2 }],
+    })
+    const [register] = await cashier.get('/cash-registers/active')
+    await cashier.put(`/bills/${bill.billId}`, {
+      status: 'closed',
+      cashRegisterId: register.cashRegisterId,
+    })
+
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/El_Salvador' }).format(
+      new Date(),
+    )
+    const admin = await api(request)
+    const report = await admin.get(
+      `/reports/sales?from=${today}T00:00:00-06:00&to=${today}T23:59:59.999-06:00`,
+    )
+    expect(report.summary.totalSales).toBeGreaterThan(0)
+    const money = new Intl.NumberFormat('es-SV', { style: 'currency', currency: 'USD' })
+
+    await login(page, 'admin.demo')
+    const todayCard = page.getByText('Ventas de hoy', { exact: true }).locator('..')
+    await expect(todayCard).toContainText(money.format(report.summary.totalSales))
+    await expect(todayCard).toContainText(`${report.summary.billsCount} cuentas`)
+
+    await page.goto('/admin/reportes')
+    await page.getByRole('button', { name: 'Hoy' }).click()
+    const sales = page.getByRole('main').getByText('Ventas', { exact: true }).locator('..')
+    await expect(sales).toContainText(money.format(report.summary.totalSales))
+    await expect(page.getByRole('heading', { name: 'Productos más vendidos' })).toBeVisible()
+    await expect(page.getByText(product.name).first()).toBeVisible()
+  })
+})

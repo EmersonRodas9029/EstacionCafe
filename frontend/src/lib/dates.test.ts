@@ -1,6 +1,7 @@
 import {
   dayRange,
   daysRange,
+  eachDay,
   fromLocalDateTime,
   localDateTimeInput,
   localDay,
@@ -37,5 +38,15 @@ describe('dates', () => {
     expect(new Date(fromLocalDateTime('2026-03-01T21:05')).toISOString()).toBe(
       '2026-03-02T03:05:00.000Z',
     )
+  })
+
+  it('enumera los días de un rango', () => {
+    expect(eachDay('2026-02-27', '2026-03-02')).toEqual([
+      '2026-02-27',
+      '2026-02-28',
+      '2026-03-01',
+      '2026-03-02',
+    ])
+    expect(eachDay('2026-03-02', '2026-03-01')).toEqual([])
   })
 })

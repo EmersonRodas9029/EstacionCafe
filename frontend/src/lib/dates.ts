@@ -46,3 +46,10 @@ export const localDateTimeInput = (date: Date = new Date()) =>
 
 /** De "YYYY-MM-DDTHH:mm" (hora SV) a ISO con zona. */
 export const fromLocalDateTime = (value: string) => `${value}:00${OFFSET}`
+
+/** Todos los días entre from y to (inclusive), para rellenar huecos en gráficas. */
+export const eachDay = (from: string, to: string) => {
+  const days: string[] = []
+  for (let day = from; day <= to && days.length < 400; day = shiftDay(day, 1)) days.push(day)
+  return days
+}

@@ -6,16 +6,10 @@ import {
   RoleHomeRedirect,
 } from '@/features/auth/components/route-guards'
 import { ADMIN_ROLES, OPERATION_ROLES } from '@/features/auth/roles'
-import { ComingSoonPage } from './pages/coming-soon-page'
 import { ForbiddenPage } from './pages/forbidden-page'
 import { NotFoundPage } from './pages/not-found-page'
 import { RouteErrorPage } from './pages/route-error-page'
 import { Root, Splash } from './root'
-
-const soon = (path: string, title: string, phase: number): RouteObject => ({
-  path,
-  element: <ComingSoonPage title={title} phase={phase} />,
-})
 
 const profile: RouteObject = {
   path: 'perfil',
@@ -116,7 +110,13 @@ export const routes: RouteObject[] = [
                   Component: (await import('./layouts/admin-layout')).AdminLayout,
                 }),
                 children: [
-                  { index: true, element: <ComingSoonPage title="Dashboard" phase={8} /> },
+                  {
+                    index: true,
+                    lazy: async () => ({
+                      Component: (await import('@/features/dashboard/pages/dashboard-page'))
+                        .DashboardPage,
+                    }),
+                  },
                   {
                     path: 'facturas',
                     lazy: async () => ({
@@ -131,7 +131,13 @@ export const routes: RouteObject[] = [
                         .InvoiceDetailPage,
                     }),
                   },
-                  soon('reportes', 'Reportes', 8),
+                  {
+                    path: 'reportes',
+                    lazy: async () => ({
+                      Component: (await import('@/features/reports/pages/reports-page'))
+                        .ReportsPage,
+                    }),
+                  },
                   {
                     path: 'productos',
                     lazy: async () => ({
