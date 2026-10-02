@@ -16,7 +16,11 @@ const money = (message: string) =>
 export const purchaseDetailSchema = z.object({
   consumableId: id("El consumible debe ser un ID válido"),
   quantity: z.coerce.number<number>().positive("La cantidad debe ser mayor a 0"),
-  unitCost: money("El costo unitario debe ser mayor a 0"),
+  // Costo por unidad de medida (g, ml…): admite 4 decimales como la columna
+  unitCost: z.coerce
+    .number<number>()
+    .positive("El costo unitario debe ser mayor a 0")
+    .transform((val) => Math.round(val * 10000) / 10000),
 });
 
 export const createPurchaseSchema = z

@@ -30,8 +30,8 @@ export class PurchaseDetail {
 
   @Column("decimal", {
     name: "unit_cost",
-    precision: 10,
-    scale: 2,
+    precision: 12,
+    scale: 4,
     transformer: decimal,
   })
   unitCost!: number;

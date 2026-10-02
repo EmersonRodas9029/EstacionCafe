@@ -192,6 +192,7 @@ Un job elimina cada 10 min los `draft` **sin productos** con más de 2 h.
 ```
 
 - Con `details`: suma stock, actualiza `cost` del consumible y calcula `total`.
+- `unitCost` y el `cost` del consumible admiten 4 decimales (costo por g/ml); los totales se redondean a 2.
 - Sin `details`: enviar `total` (gasto sin inventario). No se aceptan ambos.
 - `GET /purchases/{id}` incluye `details` con su `consumable`.
 - `PUT` solo cambia datos generales (`total` solo sin detalles).

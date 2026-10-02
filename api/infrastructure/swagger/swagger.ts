@@ -828,7 +828,7 @@ const swaggerDocument: any = {
         properties: {
           consumableId: integerish(),
           quantity: numeric({ exclusiveMinimum: true, minimum: 0 }),
-          unitCost: numeric({ exclusiveMinimum: true, minimum: 0 }),
+          unitCost: numeric({ exclusiveMinimum: true, minimum: 0, description: "Costo por unidad de medida; hasta 4 decimales" }),
         },
         required: ["consumableId", "quantity", "unitCost"],
       },

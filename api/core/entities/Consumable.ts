@@ -29,9 +29,10 @@ export class Consumable {
   quantity: number = 0;
   @Column({ name: "unitMeasurement", type: "varchar", length: 20 })
   unitMeasurement!: UnitMeasurement;
+  // 4 decimales: el costo suele ser por gramo o mililitro (p. ej. $0.0025/ml)
   @Column("numeric", {
-    precision: 10,
-    scale: 2,
+    precision: 12,
+    scale: 4,
     transformer: {
       to: (value: number) => value,
       from: (value: string) => parseFloat(value),

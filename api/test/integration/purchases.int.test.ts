@@ -134,3 +134,19 @@ describe("Tipos de consumible", () => {
     });
   });
 });
+
+describe("Precisión de costos", () => {
+  it("conserva costos unitarios con 4 decimales", async () => {
+    const purchase = await purchases.save({
+      date: new Date(),
+      supplierId: supplier.supplierId,
+      details: [{ consumableId: coffee.consumableId, quantity: 1000, unitCost: 0.0025 }],
+    } as any);
+
+    const saved = await ds.getRepository(Consumable).findOneByOrFail({
+      consumableId: coffee.consumableId,
+    });
+    expect(saved.cost).toBe(0.0025);
+    expect(purchase.total).toBe(2.5);
+  });
+});
