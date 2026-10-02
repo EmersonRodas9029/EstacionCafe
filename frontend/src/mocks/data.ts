@@ -68,4 +68,28 @@ export const users: CurrentUser[] = [
     userType: userType(2, 'Mesero', 'mesero'),
     role: 'mesero',
   },
+  {
+    userId: 3,
+    username: 'cajero.demo',
+    email: 'cajero.demo@estacioncafe.test',
+    userTypeId: 3,
+    active: true,
+    userType: userType(3, 'Cajero', 'cajero'),
+    role: 'cajero',
+  },
+  {
+    userId: 4,
+    username: 'mesero.baja',
+    email: 'baja@estacioncafe.test',
+    userTypeId: 2,
+    active: false,
+    userType: userType(2, 'Mesero', 'mesero'),
+    role: 'mesero',
+  },
+]
+
+export const userTypes = [
+  userType(1, 'Administrador', 'admin'),
+  userType(2, 'Mesero', 'mesero'),
+  userType(3, 'Cajero', 'cajero'),
 ]

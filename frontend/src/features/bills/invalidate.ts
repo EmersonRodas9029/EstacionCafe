@@ -1,7 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { invalidatePrefixes } from '@/lib/query'
 
-const OPERATION_PREFIXES = ['/bills', '/tables', '/bill-details']
+// /reports: anular o cobrar cambia las cifras de ventas
+export const OPERATION_PREFIXES = ['/bills', '/tables', '/bill-details', '/reports']
 
 /**
  * Las cuentas afectan mesas (estado), totales y detalles: tras cualquier

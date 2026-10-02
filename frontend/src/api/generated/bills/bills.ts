@@ -39,7 +39,8 @@ import type {
   ListBillsByDateRangeParams,
   ListBillsByTable200,
   ListBillsParams,
-  UpdateBill200
+  UpdateBill200,
+  VoidBill200
 } from '../model';
 
 import { orvalMutator } from '../../client';
@@ -867,10 +868,10 @@ export const useUpdateBill = <TError = ErrorType<ErrorResponse>,
 }
 
 /**
- * Si estaba activa (open/draft) devuelve el stock consumido.
+ * Solo cuentas open/draft: borra la cuenta y devuelve el stock. Las cobradas se anulan con POST /bills/{id}/void.
  *
  * Roles: admin.
- * @summary Anular cuenta
+ * @summary Eliminar cuenta en curso
  */
 export const deleteBill = async (id: number, options?: Parameters<typeof orvalMutator>[1]): Promise<DeleteBill200> => {
 
@@ -922,7 +923,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteBillMutationVariables = {id: number}
 
     /**
- * @summary Anular cuenta
+ * @summary Eliminar cuenta en curso
  */
 export const useDeleteBill = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBill>>, TError,DeleteBillMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
@@ -933,4 +934,80 @@ export const useDeleteBill = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getDeleteBillMutationOptions(options), queryClient);
+    }
+    export const getVoidBillUrl = (id: number,) => {
+
+
+
+
+  return `/bills/${id}/void`
+}
+
+/**
+ * Pasa la factura a void conservando sus líneas; deja de contar como venta. Si estaba en curso devuelve el stock y libera la mesa.
+ *
+ * Roles: admin.
+ * @summary Anular factura
+ */
+export const voidBill = async (id: number, options?: Parameters<typeof orvalMutator>[1]): Promise<VoidBill200> => {
+
+  return orvalMutator<VoidBill200>(getVoidBillUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getVoidBillMutationKey = () => ['voidBill'] as const;
+
+export const getVoidBillMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof voidBill>>, TError,VoidBillMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
+): UseMutationOptions<Awaited<ReturnType<typeof voidBill>>, TError,VoidBillMutationVariables, TContext> => {
+
+const mutationKey = getVoidBillMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof voidBill>>, VoidBillMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  voidBill(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VoidBillMutationResult = NonNullable<Awaited<ReturnType<typeof voidBill>>>
+
+    export type VoidBillMutationError = ErrorType<ErrorResponse>
+    export type VoidBillMutationVariables = {id: number}
+
+    /**
+ * @summary Anular factura
+ */
+export const useVoidBill = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof voidBill>>, TError,VoidBillMutationVariables, TContext>, request?: SecondParameter<typeof orvalMutator>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof voidBill>>,
+        TError,
+        VoidBillMutationVariables,
+        TContext
+      > => {
+      return useMutation(getVoidBillMutationOptions(options), queryClient);
     }

@@ -5,20 +5,11 @@
  * API REST de EstacionCafé. Todas las rutas requieren JWT (header `Authorization: Bearer <token>` o cookie `auth_token`) excepto login y logout. Los roles permitidos de cada operación están en su descripción y en `x-roles`.
  * OpenAPI spec version: 2.0.0
  */
+import type { Bill } from './bill';
+import type { VoidBill200Status } from './voidBill200Status';
 
-export interface UserUpdate {
-  /**
-     * @minLength 3
-     * @maxLength 50
-     */
-  username?: string;
-  /**
-     * @minLength 6
-     * @maxLength 100
-     */
-  password?: string;
-  email?: string;
-  typeId?: number | string;
-  /** false desactiva, true reactiva */
-  active?: boolean;
-}
+export type VoidBill200 = {
+  status: VoidBill200Status;
+  message: string;
+  data: Bill;
+};

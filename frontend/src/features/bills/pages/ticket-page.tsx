@@ -26,6 +26,7 @@ export function TicketPage() {
   const data = bill.data
   const total = lines.data.reduce((acc, l) => acc + l.subTotal, 0)
   const preBill = isEditable(data.status)
+  const voided = data.status === 'void'
 
   return (
     <div className="min-h-dvh bg-surface-soft py-8 print:bg-white print:py-0">
@@ -47,7 +48,13 @@ export function TicketPage() {
       >
         <header className="mb-3 text-center">
           <p className="font-sans text-base font-bold">EstaciónCafé</p>
-          <p>{preBill ? 'PRE-CUENTA · NO VÁLIDO COMO FACTURA' : 'TICKET DE VENTA'}</p>
+          <p>
+            {voided
+              ? '*** ANULADA ***'
+              : preBill
+                ? 'PRE-CUENTA · NO VÁLIDO COMO FACTURA'
+                : 'TICKET DE VENTA'}
+          </p>
         </header>
 
         <dl className="mb-3 grid grid-cols-[auto_1fr] gap-x-3 border-y border-dashed border-black py-2">

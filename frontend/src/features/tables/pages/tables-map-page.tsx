@@ -7,22 +7,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/ui/state'
 import { formatCurrency } from '@/lib/format'
 import { TableCard } from '../components/table-card'
-import { useTablesBoard, type BoardTable } from '../hooks/use-tables-board'
+import { useTablesBoard } from '../hooks/use-tables-board'
 import { TABLE_STATUS } from '../table-status'
+import { groupByZone } from '../group-by-zone'
 
 type StatusFilter = 'todas' | TableStatus
-
-const byTableId = new Intl.Collator('es', { numeric: true })
-
-/** Secciones por zona, mesas en orden natural (A2 antes que A10). */
-const groupByZone = (tables: BoardTable[]) => {
-  const zones = new Map<string, BoardTable[]>()
-  for (const table of tables) zones.set(table.zone, [...(zones.get(table.zone) ?? []), table])
-  return [...zones.entries()].map(
-    ([zone, list]) =>
-      [zone, list.toSorted((a, b) => byTableId.compare(a.tableId, b.tableId))] as const,
-  )
-}
 
 export function TablesMapPage() {
   const board = useTablesBoard()

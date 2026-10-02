@@ -17,3 +17,18 @@ export const dayRange = (day: string) => ({
   from: `${day}T00:00:00${OFFSET}`,
   to: `${day}T23:59:59.999${OFFSET}`,
 })
+
+/** Suma días a un YYYY-MM-DD (aritmética en UTC: sin saltos de horario). */
+export const shiftDay = (day: string, delta: number) => {
+  const date = new Date(`${day}T00:00:00Z`)
+  date.setUTCDate(date.getUTCDate() + delta)
+  return date.toISOString().slice(0, 10)
+}
+
+export const monthStart = (day: string) => `${day.slice(0, 7)}-01`
+
+/** Rango ISO desde el inicio de `from` hasta el final de `to` (días locales). */
+export const daysRange = (from: string, to: string) => ({
+  from: dayRange(from).from,
+  to: dayRange(to).to,
+})

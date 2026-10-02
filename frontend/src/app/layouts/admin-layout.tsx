@@ -10,7 +10,7 @@ import { UserChip } from './user-chip'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
-    'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition-colors',
+    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition-colors',
     isActive
       ? 'bg-accent-strong text-accent-foreground'
       : 'text-primary-foreground/75 hover:bg-white/10 hover:text-primary-foreground',
@@ -20,9 +20,9 @@ function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const logout = useLogout()
 
   return (
-    <div className="flex h-full flex-col gap-6 bg-primary p-4 text-primary-foreground">
+    <div className="flex h-full flex-col gap-5 bg-primary p-4 text-primary-foreground">
       <Logo className="px-2 pt-2" />
-      <nav aria-label="Administración" className="flex-1 space-y-5 overflow-y-auto">
+      <nav aria-label="Administración" className="flex-1 space-y-4 overflow-y-auto">
         {ADMIN_NAV.map((group) => (
           <div key={group.title} className="space-y-1">
             <p className="px-3 text-xs font-semibold tracking-wider text-surface/80 uppercase">

@@ -6,6 +6,7 @@ export const BILL_STATUS: Record<BillStatus, { label: string; tone: BadgeTone }>
   open: { label: 'Abierta', tone: 'occupied' },
   finished: { label: 'Entregada', tone: 'reserved' },
   closed: { label: 'Cobrada', tone: 'available' },
+  void: { label: 'Anulada', tone: 'void' },
 }
 
 /** Para llevar: abierta = en preparación → cobrada = por entregar → entregada. */
@@ -14,6 +15,7 @@ export const TAKEAWAY_STAGE: Record<BillStatus, string> = {
   open: 'En preparación',
   closed: 'Por entregar',
   finished: 'Entregada',
+  void: 'Anulada',
 }
 
 export const isSold = (status: BillStatus) => status === 'closed' || status === 'finished'

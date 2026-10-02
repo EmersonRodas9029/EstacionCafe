@@ -117,7 +117,20 @@ export const routes: RouteObject[] = [
                 }),
                 children: [
                   { index: true, element: <ComingSoonPage title="Dashboard" phase={8} /> },
-                  soon('facturas', 'Facturas', 6),
+                  {
+                    path: 'facturas',
+                    lazy: async () => ({
+                      Component: (await import('@/features/invoices/pages/invoices-page'))
+                        .InvoicesPage,
+                    }),
+                  },
+                  {
+                    path: 'facturas/:billId',
+                    lazy: async () => ({
+                      Component: (await import('@/features/invoices/pages/invoice-detail-page'))
+                        .InvoiceDetailPage,
+                    }),
+                  },
                   soon('reportes', 'Reportes', 8),
                   {
                     path: 'productos',
@@ -143,9 +156,27 @@ export const routes: RouteObject[] = [
                   soon('inventario', 'Consumibles', 7),
                   soon('proveedores', 'Proveedores', 7),
                   soon('compras', 'Compras', 7),
-                  soon('mesas', 'Mesas y zonas', 6),
-                  soon('cajas', 'Cajas registradoras', 6),
-                  soon('usuarios', 'Usuarios y roles', 6),
+                  {
+                    path: 'mesas',
+                    lazy: async () => ({
+                      Component: (await import('@/features/tables/pages/tables-admin-page'))
+                        .TablesAdminPage,
+                    }),
+                  },
+                  {
+                    path: 'cajas',
+                    lazy: async () => ({
+                      Component: (
+                        await import('@/features/cash-registers/pages/cash-registers-page')
+                      ).CashRegistersPage,
+                    }),
+                  },
+                  {
+                    path: 'usuarios',
+                    lazy: async () => ({
+                      Component: (await import('@/features/users/pages/users-page')).UsersPage,
+                    }),
+                  },
                   profile,
                 ],
               },

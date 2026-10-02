@@ -5,7 +5,9 @@ import type { Ingredient } from '@/api/generated/model/ingredient'
 import type { Product } from '@/api/generated/model/product'
 import type { ProductType } from '@/api/generated/model/productType'
 import type { Table } from '@/api/generated/model/table'
-import { products, users } from './data'
+import type { CurrentUser } from '@/api/generated/model/currentUser'
+import type { UserType } from '@/api/generated/model/userType'
+import { products, users, userTypes } from './data'
 
 type DetailRow = {
   billDetailId: number
@@ -36,6 +38,11 @@ const consumable = (
 })
 
 const seed = () => ({
+  users: structuredClone(users) as CurrentUser[],
+  userTypes: structuredClone(userTypes) as UserType[],
+  nextUserId: 5,
+  nextUserTypeId: 4,
+  nextCashRegisterId: 3,
   products: structuredClone(products) as Product[],
   consumables: [
     consumable(1, 'Café en grano', 'g', 0.02, 5000),
@@ -78,7 +85,10 @@ const seed = () => ({
     { productTypeId: 2, name: 'Bebidas frías' },
     { productTypeId: 3, name: 'Panadería' },
   ] as ProductType[],
-  cashRegisters: [{ cashRegisterId: 1, number: '001', active: true }] as CashRegister[],
+  cashRegisters: [
+    { cashRegisterId: 1, number: '001', active: true },
+    { cashRegisterId: 2, number: '002', active: false },
+  ] as CashRegister[],
   bills: [
     {
       billId: 1,
@@ -134,7 +144,7 @@ const ACTIVE = ['open', 'draft']
 
 export const withWaiter = (bill: Bill): Bill => ({
   ...bill,
-  waiter: users.find((u) => u.userId === bill.waiterId),
+  waiter: db.users.find((u) => u.userId === bill.waiterId),
   cashRegister: db.cashRegisters.find((c) => c.cashRegisterId === bill.cashRegisterId) ?? null,
 })
 

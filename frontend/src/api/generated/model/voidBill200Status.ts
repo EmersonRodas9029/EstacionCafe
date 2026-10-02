@@ -6,16 +6,9 @@
  * OpenAPI spec version: 2.0.0
  */
 
-/**
- * draft = orden en edición, open = cuenta activa, finished = para llevar entregada, closed = cobrada, void = anulada por un admin
- */
-export type BillStatus = typeof BillStatus[keyof typeof BillStatus];
+export type VoidBill200Status = typeof VoidBill200Status[keyof typeof VoidBill200Status];
 
 
-export const BillStatus = {
-  open: 'open',
-  closed: 'closed',
-  draft: 'draft',
-  finished: 'finished',
-  void: 'void',
+export const VoidBill200Status = {
+  success: 'success',
 } as const;

@@ -7,20 +7,12 @@ import { Badge } from '@/components/ui/badge'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Stat } from '@/components/ui/stat'
 import { EmptyState, ErrorState } from '@/components/ui/state'
 import { useRole } from '@/features/auth/session-store'
 import { BILL_STATUS, isSold } from '@/features/bills/bill-status'
 import { dayRange, localDay } from '@/lib/dates'
 import { formatCurrency, formatTime } from '@/lib/format'
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border bg-card px-4 py-3">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="font-display text-2xl font-semibold text-primary tabular-nums">{value}</p>
-    </div>
-  )
-}
 
 export function HistoryPage() {
   const role = useRole()

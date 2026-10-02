@@ -1,12 +1,14 @@
 import { http, HttpResponse } from 'msw'
 import type { Bill } from '@/api/generated/model/bill'
+import type { CurrentUser } from '@/api/generated/model/currentUser'
+import type { UserType } from '@/api/generated/model/userType'
 import type { Ingredient } from '@/api/generated/model/ingredient'
 import type { IngredientInput } from '@/api/generated/model/ingredientInput'
 import type { IngredientUpdate } from '@/api/generated/model/ingredientUpdate'
 import type { Product } from '@/api/generated/model/product'
 import type { ProductInput } from '@/api/generated/model/productInput'
 import type { ProductUpdate } from '@/api/generated/model/productUpdate'
-import { DEMO_PASSWORD, users } from './data'
+import { DEMO_PASSWORD } from './data'
 import { db, isActive, linesOf, recalcTotal, syncTable, withWaiter } from './db'
 
 const ok = <T>(data: T, message = 'OK', status = 200) =>
@@ -17,7 +19,18 @@ const fail = (status: number, message: string, type?: string) =>
 // Token simulado: "mock-<userId>"
 const userFromRequest = (request: Request) => {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-  return users.find((u) => token === `mock-${u.userId}`)
+  return db.users.find((u) => token === `mock-${u.userId}`)
+}
+
+/** Como la API: sin contraseña y con su tipo de usuario. */
+const publicUser = ({ role: _role, ...user }: CurrentUser) => ({
+  ...user,
+  userType: db.userTypes.find((t) => t.userTypeId === user.userTypeId),
+})
+
+const applyUserType = (user: CurrentUser, typeId: number) => {
+  const type = db.userTypes.find((t) => t.userTypeId === typeId)!
+  Object.assign(user, { userTypeId: typeId, userType: type, role: type.role })
 }
 
 const findProduct = (id: string | readonly string[] | undefined) =>
@@ -30,8 +43,9 @@ export const handlers = [
   // ---------- Auth ----------
   http.post('*/api/users/login', async ({ request }) => {
     const { username, password } = (await request.json()) as Record<string, string>
-    const user = users.find((u) => u.username === username)
-    if (!user || password !== DEMO_PASSWORD) return fail(401, 'Usuario o contraseña incorrectos')
+    const user = db.users.find((u) => u.username === username)
+    if (!user || !user.active || password !== DEMO_PASSWORD)
+      return fail(401, 'Usuario o contraseña incorrectos')
     return ok({ token: `mock-${user.userId}`, expiresIn: 43200 }, 'Inicio de sesión exitoso')
   }),
   http.post('*/api/users/logout', () => ok(null, 'Sesión cerrada')),
@@ -101,7 +115,10 @@ export const handlers = [
     const id = Number(params.id)
     const count = db.products.filter((p) => p.productTypeId === id).length
     if (count > 0)
-      return fail(409, `La categoría tiene ${count} productos asociados y no se puede eliminar`)
+      return fail(
+        409,
+        `La categoría tiene ${count} ${count === 1 ? 'producto asociado' : 'productos asociados'} y no se puede eliminar`,
+      )
     db.productTypes = db.productTypes.filter((t) => t.productTypeId !== id)
     return ok({ message: 'Tipo de producto eliminado correctamente', id })
   }),
@@ -149,6 +166,118 @@ export const handlers = [
     return ok({ message: 'Ingrediente eliminado correctamente', id })
   }),
 
+  // ---------- Usuarios y roles ----------
+  http.get('*/api/users', () => ok(db.users.map(publicUser))),
+  http.post('*/api/users', async ({ request }) => {
+    const body = (await request.json()) as { username: string; email: string; typeId: number }
+    if (db.users.some((u) => u.username === body.username))
+      return fail(409, `El usuario ${body.username} ya existe`)
+    if (!db.userTypes.some((t) => t.userTypeId === Number(body.typeId)))
+      return fail(400, `El rol ${body.typeId} no existe`)
+    const user = {
+      userId: db.nextUserId++,
+      username: body.username,
+      email: body.email,
+      active: true,
+    } as CurrentUser
+    applyUserType(user, Number(body.typeId))
+    db.users.push(user)
+    return ok(publicUser(user), 'Usuario creado correctamente', 201)
+  }),
+  http.put('*/api/users/:id', async ({ params, request }) => {
+    const user = db.users.find((u) => u.userId === Number(params.id))
+    if (!user) return fail(404, `Usuario con ID ${params.id} no encontrado`)
+    const actor = userFromRequest(request)
+    const body = (await request.json()) as {
+      username?: string
+      email?: string
+      typeId?: number
+      active?: boolean
+    }
+    if (
+      body.username &&
+      body.username !== user.username &&
+      db.users.some((u) => u.username === body.username)
+    )
+      return fail(409, `El usuario ${body.username} ya existe`)
+    if (actor?.userId === user.userId) {
+      if (body.active === false) return fail(409, 'No puedes desactivar tu propio usuario')
+      const type = db.userTypes.find((t) => t.userTypeId === Number(body.typeId))
+      if (type && type.role !== 'admin')
+        return fail(409, 'No puedes quitarte el rol de administrador')
+    }
+    if (body.username) user.username = body.username
+    if (body.email) user.email = body.email
+    if (body.active !== undefined) user.active = body.active
+    if (body.typeId) applyUserType(user, Number(body.typeId))
+    return ok(publicUser(user), 'Usuario actualizado correctamente')
+  }),
+  http.delete('*/api/users/:id', ({ params, request }) => {
+    const user = db.users.find((u) => u.userId === Number(params.id))
+    if (!user) return fail(404, `Usuario con ID ${params.id} no encontrado`)
+    if (userFromRequest(request)?.userId === user.userId)
+      return fail(409, 'No puedes desactivar tu propio usuario')
+    user.active = false
+    return ok({ message: 'Usuario desactivado correctamente', id: user.userId })
+  }),
+  http.get('*/api/user-types', () => ok(db.userTypes)),
+  http.post('*/api/user-types', async ({ request }) => {
+    const body = (await request.json()) as Omit<UserType, 'userTypeId'>
+    const type: UserType = { ...body, role: body.role ?? 'mesero', userTypeId: db.nextUserTypeId++ }
+    db.userTypes.push(type)
+    return ok(type, 'Tipo de usuario creado', 201)
+  }),
+  http.put('*/api/user-types/:id', async ({ params, request }) => {
+    const type = db.userTypes.find((t) => t.userTypeId === Number(params.id))
+    if (!type) return fail(404, 'Tipo de usuario no encontrado')
+    const body = (await request.json()) as Partial<UserType>
+    const actor = userFromRequest(request)
+    if (body.role && body.role !== 'admin' && actor?.userTypeId === type.userTypeId)
+      return fail(409, 'No puedes quitar el rol de administrador a tu propio tipo de usuario')
+    Object.assign(type, body)
+    for (const user of db.users.filter((u) => u.userTypeId === type.userTypeId))
+      applyUserType(user, type.userTypeId)
+    return ok(type, 'Tipo de usuario actualizado')
+  }),
+  http.delete('*/api/user-types/:id', ({ params }) => {
+    const id = Number(params.id)
+    const count = db.users.filter((u) => u.userTypeId === id).length
+    if (count > 0)
+      return fail(
+        409,
+        `El rol tiene ${count} ${count === 1 ? 'usuario asignado' : 'usuarios asignados'} y no se puede eliminar`,
+      )
+    db.userTypes = db.userTypes.filter((t) => t.userTypeId !== id)
+    return ok({ message: 'Tipo de usuario eliminado correctamente', id })
+  }),
+
+  // ---------- Cajas ----------
+  http.get('*/api/cash-registers', () => ok(db.cashRegisters)),
+  http.post('*/api/cash-registers', async ({ request }) => {
+    const { number } = (await request.json()) as { number: string }
+    if (db.cashRegisters.some((c) => c.number === String(number)))
+      return fail(409, `Ya existe la caja registradora ${number}`)
+    const register = {
+      cashRegisterId: db.nextCashRegisterId++,
+      number: String(number),
+      active: true,
+    }
+    db.cashRegisters.push(register)
+    return ok(register, 'Caja registradora creada', 201)
+  }),
+  http.put('*/api/cash-registers/:id', async ({ params, request }) => {
+    const register = db.cashRegisters.find((c) => c.cashRegisterId === Number(params.id))
+    if (!register) return fail(404, 'Caja registradora no encontrada')
+    const body = (await request.json()) as { number?: string; active?: boolean }
+    if (
+      body.number !== undefined &&
+      body.number !== register.number &&
+      db.cashRegisters.some((c) => c.number === String(body.number))
+    )
+      return fail(409, `Ya existe la caja registradora ${body.number}`)
+    Object.assign(register, body)
+    return ok(register)
+  }),
   http.get('*/api/cash-registers/active', () => ok(db.cashRegisters.filter((c) => c.active))),
 
   // ---------- Mesas ----------
@@ -156,6 +285,30 @@ export const handlers = [
   http.get('*/api/tables/:id', ({ params }) => {
     const table = db.tables.find((t) => t.tableId === params.id)
     return table ? ok(table) : fail(404, `Mesa con ID ${String(params.id)} no encontrada`)
+  }),
+  http.post('*/api/tables', async ({ request }) => {
+    const body = (await request.json()) as { tableId: string; zone: string }
+    if (db.tables.some((t) => t.tableId === body.tableId))
+      return fail(409, `La mesa con ID ${body.tableId} ya existe`)
+    const table = { tableId: body.tableId, zone: body.zone, status: 'disponible' as const }
+    db.tables.push(table)
+    return ok(table, 'Mesa creada correctamente', 201)
+  }),
+  http.put('*/api/tables/:id', async ({ params, request }) => {
+    const table = db.tables.find((t) => t.tableId === params.id)
+    if (!table) return fail(404, `Mesa con ID ${String(params.id)} no encontrada`)
+    Object.assign(table, (await request.json()) as { zone?: string })
+    return ok(table)
+  }),
+  http.delete('*/api/tables/:id', ({ params }) => {
+    const count = db.bills.filter((b) => b.tableId === params.id).length
+    if (count > 0)
+      return fail(
+        409,
+        `La mesa ${String(params.id)} tiene ${count} ${count === 1 ? 'factura asociada' : 'facturas asociadas'} y no se puede eliminar`,
+      )
+    db.tables = db.tables.filter((t) => t.tableId !== params.id)
+    return ok({ message: 'Mesa eliminada correctamente', id: params.id })
   }),
   http.patch('*/api/tables/:id/status', async ({ params, request }) => {
     const table = db.tables.find((t) => t.tableId === params.id)
@@ -221,6 +374,14 @@ export const handlers = [
     syncTable(previousTable)
     syncTable(bill.tableId)
     return ok(withWaiter(bill))
+  }),
+  http.post('*/api/bills/:id/void', ({ params }) => {
+    const bill = findBill(params.id)
+    if (!bill) return fail(404, 'Factura no encontrada')
+    if (bill.status === 'void') return fail(409, `La factura ${bill.billId} ya está anulada`)
+    bill.status = 'void'
+    syncTable(bill.tableId)
+    return ok(withWaiter(bill), 'Factura anulada correctamente')
   }),
   http.post('*/api/bills/table/:tableId/close', async ({ params, request }) => {
     const { cashRegisterId } = (await request.json()) as { cashRegisterId?: number }

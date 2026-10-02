@@ -254,3 +254,5 @@ export * from './userType';
 export * from './userTypeInput';
 export * from './userTypeUpdate';
 export * from './userUpdate';
+export * from './voidBill200';
+export * from './voidBill200Status';

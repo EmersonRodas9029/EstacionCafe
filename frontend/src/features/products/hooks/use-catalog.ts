@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { useMutation, type QueryClient } from '@tanstack/react-query'
 import {
   createIngredient,
   deleteIngredient,
@@ -14,7 +13,7 @@ import {
   useDeleteProductType,
   useUpdateProductType,
 } from '@/api/generated/product-types/product-types'
-import { errorMessage } from '@/lib/errors'
+import { useInvalidatingOptions } from '@/lib/mutation-options'
 import { invalidatePrefixes } from '@/lib/query'
 import type { ProductFormValues } from '../schemas'
 
@@ -24,13 +23,7 @@ const CATALOG_PREFIXES = ['/products', '/product-type', '/ingredient']
 export const invalidateCatalog = (queryClient: QueryClient) =>
   invalidatePrefixes(queryClient, CATALOG_PREFIXES)
 
-function useCatalogOptions() {
-  const queryClient = useQueryClient()
-  return {
-    onSettled: () => invalidateCatalog(queryClient),
-    onError: (error: unknown) => toast.error(errorMessage(error)),
-  }
-}
+const useCatalogOptions = () => useInvalidatingOptions(CATALOG_PREFIXES)
 
 export const useCreateCategory = () => useCreateProductType({ mutation: useCatalogOptions() })
 export const useRenameCategory = () => useUpdateProductType({ mutation: useCatalogOptions() })
