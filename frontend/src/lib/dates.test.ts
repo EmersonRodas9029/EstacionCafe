@@ -1,4 +1,12 @@
-import { dayRange, daysRange, localDay, monthStart, shiftDay } from './dates'
+import {
+  dayRange,
+  daysRange,
+  fromLocalDateTime,
+  localDateTimeInput,
+  localDay,
+  monthStart,
+  shiftDay,
+} from './dates'
 
 describe('dates', () => {
   it('usa el día de El Salvador aunque en UTC ya sea mañana', () => {
@@ -21,5 +29,13 @@ describe('dates', () => {
       from: '2026-03-01T00:00:00-06:00',
       to: '2026-03-07T23:59:59.999-06:00',
     })
+  })
+
+  it('convierte fecha y hora local para datetime-local', () => {
+    expect(localDateTimeInput(new Date('2026-03-02T03:05:00Z'))).toBe('2026-03-01T21:05')
+    expect(fromLocalDateTime('2026-03-01T21:05')).toBe('2026-03-01T21:05:00-06:00')
+    expect(new Date(fromLocalDateTime('2026-03-01T21:05')).toISOString()).toBe(
+      '2026-03-02T03:05:00.000Z',
+    )
   })
 })

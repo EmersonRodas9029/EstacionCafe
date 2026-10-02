@@ -31,3 +31,25 @@ export const formatDate = (value: string | Date) => dateFormatter.format(new Dat
 /** Margen bruto en % sobre el precio de venta. */
 export const marginPercent = (price: number, cost: number) =>
   price > 0 ? Math.round(((price - cost) / price) * 100) : 0
+
+const quantityFormatter = new Intl.NumberFormat('es-SV', { maximumFractionDigits: 3 })
+
+/** Cantidades de inventario: hasta 3 decimales, sin ceros de relleno. */
+export const formatQuantity = (value: number) => quantityFormatter.format(value)
+
+const unitCostFormatter = new Intl.NumberFormat('es-SV', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 4,
+})
+
+/** Costos por g/ml: hasta 4 decimales ($0.0025). */
+export const formatUnitCost = (value: number) => unitCostFormatter.format(value)
+
+/** Teléfono SV: 22223333 → 2222-3333; +50377778888 → +503 7777-8888. */
+export const formatPhone = (phone: string) => {
+  const match = /^(\+503)?(\d{4})(\d{4})$/.exec(phone.replace(/[\s-]/g, ''))
+  if (!match) return phone
+  return `${match[1] ? '+503 ' : ''}${match[2]}-${match[3]}`
+}

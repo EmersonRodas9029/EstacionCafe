@@ -32,3 +32,17 @@ export const daysRange = (from: string, to: string) => ({
   from: dayRange(from).from,
   to: dayRange(to).to,
 })
+
+const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+  timeZone: TIME_ZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
+/** Valor para <input type="datetime-local"> en hora de El Salvador. */
+export const localDateTimeInput = (date: Date = new Date()) =>
+  `${localDay(date)}T${timeFormatter.format(date)}`
+
+/** De "YYYY-MM-DDTHH:mm" (hora SV) a ISO con zona. */
+export const fromLocalDateTime = (value: string) => `${value}:00${OFFSET}`

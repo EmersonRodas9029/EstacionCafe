@@ -27,6 +27,8 @@ export default defineConfig(({ mode }) => {
       globals: true,
       setupFiles: ['./src/test/setup.ts'],
       css: false,
+      // Flujos completos con rutas lazy: holgura cuando corren en paralelo
+      testTimeout: 20_000,
       // fetch de Node necesita URL absoluta
       env: { VITE_API_URL: 'http://localhost:3484/api' },
     },

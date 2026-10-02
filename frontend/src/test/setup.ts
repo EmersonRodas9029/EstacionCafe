@@ -1,7 +1,10 @@
 import '@testing-library/jest-dom/vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { resetDb } from '@/mocks/db'
 import { server } from '@/mocks/server'
+
+// findBy* espera hasta 5 s: las rutas lazy y MSW tardan más con todos los archivos en paralelo
+configure({ asyncUtilTimeout: 5000 })
 
 // jsdom no implementa <dialog> modal
 HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {

@@ -147,7 +147,7 @@ describe('Catálogo del admin', () => {
 
     await user.type(within(dialog).getByLabelText('Nueva categoría'), 'panadería')
     await user.click(within(dialog).getByRole('button', { name: /agregar/i }))
-    expect(within(dialog).getByText('Ya existe una categoría con ese nombre')).toBeInTheDocument()
+    expect(within(dialog).getByText('Ya existe uno con ese nombre')).toBeInTheDocument()
 
     await user.clear(within(dialog).getByLabelText('Nueva categoría'))
     await user.type(within(dialog).getByLabelText('Nueva categoría'), 'Postres')

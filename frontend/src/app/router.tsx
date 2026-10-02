@@ -153,9 +153,48 @@ export const routes: RouteObject[] = [
                         .ProductFormPage,
                     }),
                   },
-                  soon('inventario', 'Consumibles', 7),
-                  soon('proveedores', 'Proveedores', 7),
-                  soon('compras', 'Compras', 7),
+                  {
+                    path: 'inventario',
+                    lazy: async () => ({
+                      Component: (await import('@/features/inventory/pages/inventory-page'))
+                        .InventoryPage,
+                    }),
+                  },
+                  {
+                    path: 'proveedores',
+                    lazy: async () => ({
+                      Component: (await import('@/features/suppliers/pages/suppliers-page'))
+                        .SuppliersPage,
+                    }),
+                  },
+                  {
+                    path: 'proveedores/:supplierId',
+                    lazy: async () => ({
+                      Component: (await import('@/features/suppliers/pages/supplier-detail-page'))
+                        .SupplierDetailPage,
+                    }),
+                  },
+                  {
+                    path: 'compras',
+                    lazy: async () => ({
+                      Component: (await import('@/features/purchases/pages/purchases-page'))
+                        .PurchasesPage,
+                    }),
+                  },
+                  {
+                    path: 'compras/nueva',
+                    lazy: async () => ({
+                      Component: (await import('@/features/purchases/pages/new-purchase-page'))
+                        .NewPurchasePage,
+                    }),
+                  },
+                  {
+                    path: 'compras/:purchaseId',
+                    lazy: async () => ({
+                      Component: (await import('@/features/purchases/pages/purchase-detail-page'))
+                        .PurchaseDetailPage,
+                    }),
+                  },
                   {
                     path: 'mesas',
                     lazy: async () => ({

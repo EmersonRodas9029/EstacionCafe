@@ -8,9 +8,10 @@ import type { ListBillsParams } from '@/api/generated/model/listBillsParams'
 import type { OrderType } from '@/api/generated/model/orderType'
 import { useListTables } from '@/api/generated/tables/tables'
 import { PageHeader } from '@/components/page-header'
+import { PeriodFilter } from '@/components/period-filter'
+import { describePeriod, usePeriod } from '@/lib/period'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ChipGroup } from '@/components/ui/chip-group'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { Pagination } from '@/components/ui/pagination'
@@ -20,26 +21,11 @@ import { EmptyState, ErrorState } from '@/components/ui/state'
 import { Stat } from '@/components/ui/stat'
 import { BILL_STATUS, isSold } from '@/features/bills/bill-status'
 import { downloadCsv, toCsv, type CsvColumn } from '@/lib/csv'
-import { daysRange, localDay, monthStart, shiftDay } from '@/lib/dates'
+import { daysRange } from '@/lib/dates'
 import { formatCurrency, formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 25
-
-type Preset = 'today' | 'yesterday' | 'week' | 'month' | 'custom'
-
-const presetRange = (preset: Exclude<Preset, 'custom'>, today: string) => {
-  switch (preset) {
-    case 'today':
-      return { from: today, to: today }
-    case 'yesterday':
-      return { from: shiftDay(today, -1), to: shiftDay(today, -1) }
-    case 'week':
-      return { from: shiftDay(today, -6), to: today }
-    case 'month':
-      return { from: monthStart(today), to: today }
-  }
-}
 
 const normalize = (text: string) =>
   text
@@ -62,9 +48,8 @@ const CSV_COLUMNS: CsvColumn<Bill>[] = [
 ]
 
 export function InvoicesPage() {
-  const today = localDay()
-  const [preset, setPreset] = useState<Preset>('today')
-  const [range, setRange] = useState({ from: today, to: today })
+  const periodState = usePeriod('today')
+  const range = periodState.period
   const [status, setStatus] = useState<BillStatus | 'all'>('all')
   const [orderType, setOrderType] = useState<OrderType | 'all'>('all')
   const [tableId, setTableId] = useState('all')
@@ -100,23 +85,6 @@ export function InvoicesPage() {
       setPage(1)
     }
 
-  const choosePreset = (next: Preset) => {
-    setPreset(next)
-    setPage(1)
-    if (next !== 'custom') setRange(presetRange(next, today))
-  }
-
-  const setDay = (key: 'from' | 'to', value: string) => {
-    if (!value) return
-    setPreset('custom')
-    setPage(1)
-    setRange((current) => {
-      const next = { ...current, [key]: value }
-      // Rango invertido: el otro extremo se mueve a la misma fecha
-      return next.from > next.to ? { from: value, to: value } : next
-    })
-  }
-
   const exportCsv = () =>
     downloadCsv(`facturas_${range.from}_${range.to}.csv`, toCsv(filtered, CSV_COLUMNS))
 
@@ -124,9 +92,7 @@ export function InvoicesPage() {
     <>
       <PageHeader
         title="Facturas"
-        subtitle={
-          range.from === range.to ? `Del ${range.from}` : `Del ${range.from} al ${range.to}`
-        }
+        subtitle={describePeriod(range)}
         actions={
           <Button variant="outline" onClick={exportCsv} disabled={filtered.length === 0}>
             <Download /> Exportar CSV
@@ -135,41 +101,8 @@ export function InvoicesPage() {
       />
 
       <div className="mb-5 space-y-4">
-        <ChipGroup
-          label="Periodo"
-          value={preset}
-          onChange={choosePreset}
-          options={[
-            { value: 'today', label: 'Hoy' },
-            { value: 'yesterday', label: 'Ayer' },
-            { value: 'week', label: 'Últimos 7 días' },
-            { value: 'month', label: 'Este mes' },
-            { value: 'custom', label: 'Personalizado' },
-          ]}
-        />
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-          <FormField label="Desde">
-            {(control) => (
-              <Input
-                {...control}
-                type="date"
-                max={today}
-                value={range.from}
-                onChange={(e) => setDay('from', e.target.value)}
-              />
-            )}
-          </FormField>
-          <FormField label="Hasta">
-            {(control) => (
-              <Input
-                {...control}
-                type="date"
-                max={today}
-                value={range.to}
-                onChange={(e) => setDay('to', e.target.value)}
-              />
-            )}
-          </FormField>
+        <PeriodFilter state={periodState} onChange={() => setPage(1)} />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <div className="col-span-2 lg:col-span-1">
             <FormField label="Cliente o número">
               {(control) => (

@@ -9,7 +9,16 @@ import type { Product } from '@/api/generated/model/product'
 import type { ProductInput } from '@/api/generated/model/productInput'
 import type { ProductUpdate } from '@/api/generated/model/productUpdate'
 import { DEMO_PASSWORD } from './data'
-import { db, isActive, linesOf, recalcTotal, syncTable, withWaiter } from './db'
+import {
+  consumableView,
+  db,
+  isActive,
+  purchaseView,
+  linesOf,
+  recalcTotal,
+  syncTable,
+  withWaiter,
+} from './db'
 
 const ok = <T>(data: T, message = 'OK', status = 200) =>
   HttpResponse.json({ status: 'success', message, data }, { status })
@@ -32,6 +41,8 @@ const applyUserType = (user: CurrentUser, typeId: number) => {
   const type = db.userTypes.find((t) => t.userTypeId === typeId)!
   Object.assign(user, { userTypeId: typeId, userType: type, role: type.role })
 }
+
+const SV_PHONE = /^(\+503)?[2-9]\d{3}-?\d{4}$/
 
 const findProduct = (id: string | readonly string[] | undefined) =>
   db.products.find((p) => p.productId === Number(id))
@@ -123,15 +134,190 @@ export const handlers = [
     return ok({ message: 'Tipo de producto eliminado correctamente', id })
   }),
 
+  // ---------- Inventario ----------
+  http.get('*/api/consumable', () => ok(db.consumables.map(consumableView))),
+  http.get('*/api/consumable/low-stock', () =>
+    ok(db.consumables.filter((c) => c.active && c.quantity <= c.minStock).map(consumableView)),
+  ),
+  http.get('*/api/consumable/supplier/:supplierId', ({ params }) =>
+    ok(
+      db.consumables.filter((c) => c.supplierId === Number(params.supplierId)).map(consumableView),
+    ),
+  ),
+  http.post('*/api/consumable', async ({ request }) => {
+    const body = (await request.json()) as Record<string, string | number>
+    const consumable = {
+      consumableId: db.nextConsumableId++,
+      name: String(body.name),
+      supplierId: Number(body.supplierId),
+      consumableTypeId: Number(body.consumableTypeId),
+      quantity: Number(body.quantity),
+      unitMeasurement: body.unitMeasurement as (typeof db.consumables)[number]['unitMeasurement'],
+      cost: Number(body.cost),
+      minStock: Number(body.minStock ?? 0),
+      lowStock: false,
+      active: true,
+    }
+    db.consumables.push(consumable)
+    return ok(consumableView(consumable), 'Consumible guardado', 201)
+  }),
+  http.put('*/api/consumable/:id', async ({ params, request }) => {
+    const consumable = db.consumables.find((c) => c.consumableId === Number(params.id))
+    if (!consumable) return fail(404, 'Consumible no encontrado')
+    const body = (await request.json()) as Record<string, unknown>
+    for (const key of ['quantity', 'cost', 'minStock', 'supplierId', 'consumableTypeId'])
+      if (body[key] !== undefined) body[key] = Number(body[key])
+    if (typeof body.quantity === 'number' && body.quantity < 0)
+      return fail(400, 'Datos inválidos: La cantidad no puede ser negativa')
+    Object.assign(consumable, body)
+    return ok(consumableView(consumable))
+  }),
+  http.delete('*/api/consumable/:id', ({ params }) => {
+    const consumable = db.consumables.find((c) => c.consumableId === Number(params.id))
+    if (!consumable) return fail(404, 'Consumible no encontrado')
+    consumable.active = false
+    return ok({ message: 'Consumible desactivado correctamente', id: consumable.consumableId })
+  }),
+  http.get('*/api/consumable-type', () => ok(db.consumableTypes)),
+  http.post('*/api/consumable-type', async ({ request }) => {
+    const { name } = (await request.json()) as { name: string }
+    const type = { consumableTypeId: db.nextConsumableTypeId++, name }
+    db.consumableTypes.push(type)
+    return ok(type, 'Tipo de consumible guardado', 201)
+  }),
+  http.put('*/api/consumable-type/:id', async ({ params, request }) => {
+    const type = db.consumableTypes.find((t) => t.consumableTypeId === Number(params.id))
+    if (!type) return fail(404, 'Tipo de consumible no encontrado')
+    Object.assign(type, (await request.json()) as { name: string })
+    return ok(type)
+  }),
+  http.delete('*/api/consumable-type/:id', ({ params }) => {
+    const id = Number(params.id)
+    const count = db.consumables.filter((c) => c.consumableTypeId === id).length
+    if (count > 0)
+      return fail(409, `El tipo tiene ${count} consumibles asociados y no se puede eliminar`)
+    db.consumableTypes = db.consumableTypes.filter((t) => t.consumableTypeId !== id)
+    return ok({ message: 'Tipo eliminado', id })
+  }),
+
+  // ---------- Proveedores ----------
+  http.get('*/api/suppliers', () => ok(db.suppliers)),
+  http.get('*/api/suppliers/active', () => ok(db.suppliers.filter((s) => s.active))),
+  http.get('*/api/suppliers/:id', ({ params }) => {
+    const supplier = db.suppliers.find((s) => s.supplierId === Number(params.id))
+    return supplier ? ok(supplier) : fail(404, `Proveedor con ID ${params.id} no encontrado`)
+  }),
+  http.post('*/api/suppliers', async ({ request }) => {
+    const body = (await request.json()) as { name: string; phone: string; email: string }
+    if (!SV_PHONE.test(body.phone))
+      return fail(400, 'Datos inválidos: El teléfono debe tener formato válido')
+    const supplier = {
+      supplierId: db.nextSupplierId++,
+      ...body,
+      phone: body.phone.replace(/\s|-/g, ''),
+      active: true,
+    }
+    db.suppliers.push(supplier)
+    return ok(supplier, 'Proveedor creado', 201)
+  }),
+  http.put('*/api/suppliers/:id', async ({ params, request }) => {
+    const supplier = db.suppliers.find((s) => s.supplierId === Number(params.id))
+    if (!supplier) return fail(404, `Proveedor con ID ${params.id} no encontrado`)
+    const body = (await request.json()) as Partial<typeof supplier>
+    if (body.phone !== undefined) {
+      if (!SV_PHONE.test(body.phone))
+        return fail(400, 'Datos inválidos: El teléfono debe tener formato válido')
+      body.phone = body.phone.replace(/\s|-/g, '')
+    }
+    Object.assign(supplier, body)
+    return ok(supplier)
+  }),
+  http.delete('*/api/suppliers/:id', ({ params }) => {
+    const supplier = db.suppliers.find((s) => s.supplierId === Number(params.id))
+    if (!supplier) return fail(404, `Proveedor con ID ${params.id} no encontrado`)
+    supplier.active = false
+    return ok({ message: 'Proveedor desactivado correctamente', id: supplier.supplierId })
+  }),
+
+  // ---------- Compras ----------
+  http.get('*/api/purchases', () =>
+    ok(db.purchases.map(({ details: _details, ...p }) => purchaseView(p))),
+  ),
+  http.get('*/api/purchases/supplier/:supplierId', ({ params }) =>
+    ok(
+      db.purchases
+        .filter((p) => p.supplierId === Number(params.supplierId))
+        .map(({ details: _details, ...p }) => purchaseView(p)),
+    ),
+  ),
+  http.get('*/api/purchases/:id', ({ params }) => {
+    const purchase = db.purchases.find((p) => p.purchaseId === Number(params.id))
+    return purchase
+      ? ok(purchaseView(purchase))
+      : fail(404, `Compra con ID ${params.id} no encontrada`)
+  }),
+  http.post('*/api/purchases', async ({ request }) => {
+    const body = (await request.json()) as {
+      date: string
+      supplierId: number
+      cashRegisterId?: number
+      total?: number
+      details?: { consumableId: number; quantity: number; unitCost: number }[]
+    }
+    const purchaseId = db.nextPurchaseId++
+    const details = (body.details ?? []).map((d) => {
+      const consumable = db.consumables.find((c) => c.consumableId === Number(d.consumableId))!
+      consumable.quantity += Number(d.quantity)
+      consumable.cost = Number(d.unitCost)
+      return {
+        purchaseDetailId: db.nextPurchaseDetailId++,
+        purchaseId,
+        consumableId: Number(d.consumableId),
+        quantity: Number(d.quantity),
+        unitCost: Number(d.unitCost),
+        subTotal: Math.round(Number(d.quantity) * Number(d.unitCost) * 100) / 100,
+      }
+    })
+    const purchase = {
+      purchaseId,
+      date: body.date,
+      supplierId: Number(body.supplierId),
+      cashRegisterId: body.cashRegisterId ? Number(body.cashRegisterId) : null,
+      total: body.details ? details.reduce((acc, d) => acc + d.subTotal, 0) : Number(body.total),
+      details,
+    }
+    db.purchases.push(purchase)
+    return ok(purchaseView(purchase), 'Compra registrada', 201)
+  }),
+  http.delete('*/api/purchases/:id', ({ params }) => {
+    const purchase = db.purchases.find((p) => p.purchaseId === Number(params.id))
+    if (!purchase) return fail(404, `Compra con ID ${params.id} no encontrada`)
+    for (const d of purchase.details ?? []) {
+      const consumable = db.consumables.find((c) => c.consumableId === d.consumableId)
+      if (consumable && consumable.quantity - d.quantity < 0)
+        return fail(
+          409,
+          `No se puede eliminar: "${consumable.name}" ya se consumió (stock ${consumable.quantity})`,
+        )
+    }
+    for (const d of purchase.details ?? []) {
+      const consumable = db.consumables.find((c) => c.consumableId === d.consumableId)
+      if (consumable) consumable.quantity -= d.quantity
+    }
+    db.purchases = db.purchases.filter((p) => p !== purchase)
+    return ok({ message: 'Compra eliminada correctamente', id: purchase.purchaseId })
+  }),
+
   // ---------- Recetas ----------
-  http.get('*/api/consumable', () => ok(db.consumables)),
   http.get('*/api/ingredient/product/:productId', ({ params }) =>
     ok(
       db.ingredients
         .filter((i) => i.productId === Number(params.productId))
         .map((i) => ({
           ...i,
-          consumable: db.consumables.find((c) => c.consumableId === i.consumableId),
+          consumable: consumableView(
+            db.consumables.find((c) => c.consumableId === i.consumableId)!,
+          ),
         })),
     ),
   ),

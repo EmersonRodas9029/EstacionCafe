@@ -3,6 +3,9 @@ import type { CashRegister } from '@/api/generated/model/cashRegister'
 import type { ConsumableListItem } from '@/api/generated/model/consumableListItem'
 import type { Ingredient } from '@/api/generated/model/ingredient'
 import type { Product } from '@/api/generated/model/product'
+import type { ConsumableType } from '@/api/generated/model/consumableType'
+import type { Purchase } from '@/api/generated/model/purchase'
+import type { Supplier } from '@/api/generated/model/supplier'
 import type { ProductType } from '@/api/generated/model/productType'
 import type { Table } from '@/api/generated/model/table'
 import type { CurrentUser } from '@/api/generated/model/currentUser'
@@ -46,8 +49,14 @@ const seed = () => ({
   products: structuredClone(products) as Product[],
   consumables: [
     consumable(1, 'Café en grano', 'g', 0.02, 5000),
-    consumable(2, 'Leche entera', 'ml', 0.002, 10000),
-    consumable(3, 'Caramelo', 'ml', 0.01, 800),
+    { ...consumable(2, 'Leche entera', 'ml', 0.002, 10000), consumableTypeId: 2 },
+    // Bajo el mínimo: aparece como stock bajo
+    {
+      ...consumable(3, 'Caramelo', 'ml', 0.01, 800),
+      consumableTypeId: 3,
+      minStock: 1000,
+      supplierId: 2,
+    },
   ],
   ingredients: [
     {
@@ -72,6 +81,59 @@ const seed = () => ({
       consumableId: 2,
     },
   ] as Ingredient[],
+  consumableTypes: [
+    { consumableTypeId: 1, name: 'Café' },
+    { consumableTypeId: 2, name: 'Lácteos' },
+    { consumableTypeId: 3, name: 'Jarabes' },
+    { consumableTypeId: 4, name: 'Empaques' },
+  ] as ConsumableType[],
+  suppliers: [
+    {
+      supplierId: 1,
+      name: 'Café de Altura',
+      phone: '22223333',
+      email: 'ventas@altura.sv',
+      active: true,
+    },
+    {
+      supplierId: 2,
+      name: 'Dulces del Valle',
+      phone: '+50377778888',
+      email: 'pedidos@valle.sv',
+      active: true,
+    },
+    {
+      supplierId: 3,
+      name: 'Lácteos Antiguos',
+      phone: '24445555',
+      email: 'info@antiguos.sv',
+      active: false,
+    },
+  ] as Supplier[],
+  purchases: [
+    {
+      purchaseId: 1,
+      date: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+      supplierId: 1,
+      cashRegisterId: 1,
+      total: 40,
+      details: [
+        {
+          purchaseDetailId: 1,
+          purchaseId: 1,
+          consumableId: 1,
+          quantity: 2000,
+          unitCost: 0.02,
+          subTotal: 40,
+        },
+      ],
+    },
+  ] as Purchase[],
+  nextConsumableId: 4,
+  nextConsumableTypeId: 5,
+  nextSupplierId: 4,
+  nextPurchaseId: 2,
+  nextPurchaseDetailId: 2,
   nextProductId: 5,
   nextProductTypeId: 4,
   nextIngredientId: 4,
@@ -178,3 +240,21 @@ export const linesOf = (billId: number) =>
     }))
 
 export const isActive = (bill: Bill) => ACTIVE.includes(bill.status)
+
+/** Consumible como lo devuelve la API: con lowStock y sus relaciones. */
+export const consumableView = (c: (typeof db.consumables)[number]) => ({
+  ...c,
+  lowStock: c.quantity <= c.minStock,
+  consumableType: db.consumableTypes.find((t) => t.consumableTypeId === c.consumableTypeId),
+  supplier: db.suppliers.find((s) => s.supplierId === c.supplierId),
+})
+
+export const purchaseView = (p: Purchase) => ({
+  ...p,
+  supplier: db.suppliers.find((s) => s.supplierId === p.supplierId),
+  cashRegister: db.cashRegisters.find((c) => c.cashRegisterId === p.cashRegisterId) ?? null,
+  details: (p.details ?? []).map((d) => ({
+    ...d,
+    consumable: db.consumables.find((c) => c.consumableId === d.consumableId),
+  })),
+})
