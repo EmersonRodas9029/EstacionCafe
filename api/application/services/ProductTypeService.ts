@@ -1,6 +1,8 @@
 import { Repository } from "typeorm";
 import { IService } from "../../core/interfaces/IService";
 import { ProductType } from "../../core/entities/ProductType";
+import { Product } from "../../core/entities/Producto";
+import { AppError } from "../errors/AppError";
 import {
   SaveProductTypeDTO,
   UpdateProductTypeDTO,
@@ -31,6 +33,14 @@ export class ProductTypeService implements IService {
   }
 
   async delete(id: number): Promise<any> {
+    const products = await this.productTypeRepo.manager.count(Product, {
+      where: { productTypeId: id },
+    });
+    if (products > 0) {
+      throw AppError.conflict(
+        `La categoría tiene ${products} productos asociados y no se puede eliminar`,
+      );
+    }
     const result = await this.productTypeRepo.delete(id);
     if (result.affected === 0) {
       throw new Error(`Tipo de producto con ID ${id} no encontrado`);

@@ -166,7 +166,7 @@ Un job elimina cada 10 min los `draft` **sin productos** con más de 2 h.
 - `POST /products` `{ name, description, price, cost, productTypeId }`; `price` debe ser mayor a `cost`.
 - `PUT /products/{id}` acepta los mismos campos (número o string) y `active`; valida precio > costo contra el resultado.
 - `DELETE /products/{id}` desactiva (baja lógica).
-- Categorías: `/product-type`.
+- Categorías: `/product-type`. `DELETE` responde 409 si la categoría aún tiene productos.
 - Receta: `/ingredient` `{ name, quantity, productId, consumableId }` y `GET /ingredient/product/{productId}`.
 
 ### Inventario

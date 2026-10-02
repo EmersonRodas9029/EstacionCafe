@@ -1248,7 +1248,11 @@ const swaggerDocument: any = {
         roles: "admin",
         parameters: [idParam("tipo de producto")],
         ok: { description: "Tipo de producto eliminado", schema: ref("DeleteResult") },
-        errors: { 400: "ID inválido", 404: "Tipo de producto no encontrado" },
+        errors: {
+          400: "ID inválido",
+          404: "Tipo de producto no encontrado",
+          409: "La categoría tiene productos asociados",
+        },
       }),
     },
 
@@ -1533,7 +1537,11 @@ const swaggerDocument: any = {
         roles: "admin",
         parameters: [strPathParam("id", "ID de la mesa", { type: "string", maxLength: 10 })],
         ok: { description: "Mesa eliminada", schema: ref("DeleteResult") },
-        errors: { 400: "ID inválido", 404: "Mesa no encontrada" },
+        errors: {
+          400: "ID inválido",
+          404: "Mesa no encontrada",
+          409: "La mesa tiene facturas asociadas",
+        },
       }),
     },
     "/tables/{id}/status": {
