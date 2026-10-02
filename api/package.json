@@ -1,0 +1,63 @@
+{
+  "name": "ec_api",
+  "version": "1.0.0",
+  "main": "src/compiled/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "nodemon  ./src/compiled/main.js",
+    "start:prod": "node ./src/compiled/main.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d ./infrastructure/db/Connection.ts",
+    "migration:show": "typeorm-ts-node-commonjs migration:show -d ./infrastructure/db/Connection.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d ./infrastructure/db/Connection.ts",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d ./infrastructure/db/Connection.ts",
+    "seed:run": "ts-node infrastructure/db/seeders/runSeeder.ts",
+    "seed:revert": "ts-node infrastructure/db/seeders/runSeeder.ts revert"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChrisCarcamo1605/EstacionCaf-.git"
+  },
+  "author": "Christian",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ChrisCarcamo1605/EstacionCaf-/issues"
+  },
+  "homepage": "https://github.com/ChrisCarcamo1605/EstacionCaf-#readme",
+  "description": "",
+  "dependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
+    "sqlite3": "^5.1.7",
+    "swagger-ui-express": "^5.0.1",
+    "typeorm": "^0.3.27",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.5.2",
+    "@types/node-cron": "^3.0.11",
+    "@types/reflect-metadata": "^0.0.5",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "prettier-eslint": "^16.3.0",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
