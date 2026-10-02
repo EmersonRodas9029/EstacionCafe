@@ -19,7 +19,14 @@ export class Ingredient {
   @Column()
   name: string = "";
 
-  @Column("decimal", { precision: 10, scale: 2 })
+  @Column("decimal", {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
   quantity: number = 0;
 
   @Column({ name: "product_id" })

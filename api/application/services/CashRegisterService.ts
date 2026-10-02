@@ -71,7 +71,7 @@ export class CashRegisterService implements IService {
       where: { number },
     });
     if (!register) {
-      throw new Error(`Caja registradora ${number} no encontrada`);
+      throw AppError.notFound(`Caja registradora ${number} no encontrada`);
     }
     return register;
   }

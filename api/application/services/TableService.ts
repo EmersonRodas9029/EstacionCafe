@@ -2,6 +2,8 @@ import { Repository } from "typeorm";
 import { IService } from "../../core/interfaces/IService";
 import { Table, TableStatus } from "../../core/entities/Table";
 import { SaveTableDTO, UpdateTableDTO } from "../DTOs/TableDTO";
+import { Bill } from "../../core/entities/Bill";
+import { AppError } from "../errors/AppError";
 
 export class TableService implements IService {
   public constructor(private tableRepository: Repository<Table>) {
@@ -42,6 +44,14 @@ export class TableService implements IService {
 
   async delete(id: number | string): Promise<any> {
     const tableId = String(id);
+    const bills = await this.tableRepository.manager.count(Bill, {
+      where: { tableId },
+    });
+    if (bills > 0) {
+      throw AppError.conflict(
+        `La mesa ${tableId} tiene ${bills} facturas asociadas y no se puede eliminar`,
+      );
+    }
     const result = await this.tableRepository.delete(tableId);
     if (result.affected === 0) {
       throw new Error(`Mesa con ID ${tableId} no encontrada`);
