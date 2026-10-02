@@ -185,7 +185,7 @@ const seed = async () => {
 
     await findOrCreate<Purchase>(purchaseRepository, { total: 640 }, {
       date: new Date(),
-      cashRegister: register.cashRegisterId,
+      cashRegisterId: register.cashRegisterId,
       supplierId: supplier.supplierId,
       total: 640,
     });

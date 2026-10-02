@@ -1,24 +1,48 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from "typeorm";
 import { Supplier } from "./Supplier";
+import { CashRegister } from "./CashRegister";
+import { PurchaseDetail } from "./PurchaseDetail";
 
 @Entity("purchases")
 export class Purchase {
-    @PrimaryGeneratedColumn("increment", { name: "purchase_id" })
-    purchaseId?: number = undefined;
+  @PrimaryGeneratedColumn("increment", { name: "purchase_id" })
+  purchaseId?: number = undefined;
 
-    @Column()
-    date: Date = new Date();
+  @Column({ type: "timestamptz" })
+  date: Date = new Date();
 
-    @Column({ name: "cash_register" })
-    cashRegister: number = 0;
+  /** Caja de la que salió el dinero (opcional). */
+  @Column({ name: "cash_register_id", type: "int", nullable: true })
+  cashRegisterId?: number | null;
 
-    @Column({ name: "supplier_id" })
-    supplierId: number = 0;
+  @ManyToOne(() => CashRegister, { nullable: true })
+  @JoinColumn({ name: "cash_register_id" })
+  cashRegister?: CashRegister | null;
 
-    @ManyToOne(() => Supplier)
-    @JoinColumn({ name: "supplier_id" })
-    supplier!: Supplier;
+  @Column({ name: "supplier_id" })
+  supplierId: number = 0;
 
-    @Column("decimal", { precision: 10, scale: 2 })
-    total: number = 0;
+  @ManyToOne(() => Supplier)
+  @JoinColumn({ name: "supplier_id" })
+  supplier!: Supplier;
+
+  @Column("decimal", {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
+  total: number = 0;
+
+  @OneToMany(() => PurchaseDetail, (detail) => detail.purchase)
+  details!: PurchaseDetail[];
 }

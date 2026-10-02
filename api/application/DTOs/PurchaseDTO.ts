@@ -1,23 +1,23 @@
-export interface SavePurchaseDTO {
-    purchaseId?: number;
-    date: Date;
-    cashRegister: number;
-    supplierId: number;
-    total: number;
+export interface PurchaseDetailInputDTO {
+  consumableId: number;
+  quantity: number;
+  unitCost: number;
 }
 
-export interface PurchaseItemDTO {
-    purchaseId: number;
-    date: Date;
-    cashRegister: number;
-    supplierId: number;
-    supplierName?: string;
-    total: number;
+export interface SavePurchaseDTO {
+  date: Date;
+  supplierId: number;
+  cashRegisterId?: number;
+  /** Con detalles el total se calcula y se suma el stock. */
+  details?: PurchaseDetailInputDTO[];
+  /** Solo para compras sin detalle (gastos sin inventario). */
+  total?: number;
 }
 
 export interface UpdatePurchaseDTO {
-    date?: Date;
-    cashRegister?: number;
-    supplierId?: number;
-    total?: number;
+  purchaseId?: number;
+  date?: Date;
+  cashRegisterId?: number;
+  supplierId?: number;
+  total?: number;
 }

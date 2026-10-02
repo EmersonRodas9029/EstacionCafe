@@ -1,103 +1,50 @@
 import { z } from "zod";
 
-// Esquema para crear compra
-export const createPurchaseSchema = z.object({
-  date: z
-    .union([
-      z
-        .string()
-        .min(1, "La fecha es requerida")
-        .refine((date) => !isNaN(Date.parse(date)), "La fecha debe ser válida")
-        .transform((date) => new Date(date)),
-      z.date(),
-    ])
-    .refine(
-      (date) => date instanceof Date && !isNaN(date.getTime()),
-      "La fecha debe ser válida"
-    )
-    .transform((date) => (date instanceof Date ? date : new Date(date))),
+const id = (message: string) =>
+  z.coerce.number<number>().int(message).positive(message);
 
-  cashRegister: z
-    .union([
-      z.string().transform((val) => parseInt(val, 10)),
-      z.number().int("La caja registradora debe ser un número entero"),
-    ])
-    .refine(
-      (val) => !isNaN(val) && val > 0,
-      "La caja registradora debe ser un número positivo"
-    ),
+const dateField = z.coerce
+  .date<Date>("La fecha debe ser válida")
+  .refine((date) => !isNaN(date.getTime()), "La fecha debe ser válida");
 
-  supplierId: z
-    .union([
-      z.string().transform((val) => parseInt(val, 10)),
-      z.number().int("El ID del proveedor debe ser un número entero"),
-    ])
-    .refine(
-      (val) => !isNaN(val) && val > 0,
-      "El proveedor debe ser un ID válido"
-    ),
+const money = (message: string) =>
+  z.coerce
+    .number<number>()
+    .positive(message)
+    .transform((val) => Math.round(val * 100) / 100);
 
-  total: z
-    .string()
-    .transform((val) => parseFloat(val))
-    .refine((val) => !isNaN(val) && val > 0, "El total debe ser mayor a 0"),
+export const purchaseDetailSchema = z.object({
+  consumableId: id("El consumible debe ser un ID válido"),
+  quantity: z.coerce.number<number>().positive("La cantidad debe ser mayor a 0"),
+  unitCost: money("El costo unitario debe ser mayor a 0"),
 });
 
-// Esquema para actualizar compra
-export const updatePurchaseSchema = z.object({
-  date: z
-    .union([
-      z
-        .string()
-        .min(1, "La fecha es requerida")
-        .refine((date) => !isNaN(Date.parse(date)), "La fecha debe ser válida")
-        .transform((date) => new Date(date)),
-      z.date(),
-    ])
-    .refine(
-      (date) => date instanceof Date && !isNaN(date.getTime()),
-      "La fecha debe ser válida"
-    )
-    .transform((date) => (date instanceof Date ? date : new Date(date)))
-    .optional(),
+export const createPurchaseSchema = z
+  .object({
+    date: dateField,
+    supplierId: id("El proveedor debe ser un ID válido"),
+    cashRegisterId: id("La caja registradora debe ser un ID válido").optional(),
+    details: z.array(purchaseDetailSchema).min(1).optional(),
+    total: money("El total debe ser mayor a 0").optional(),
+  })
+  .refine((p) => p.details || p.total, {
+    path: ["details"],
+    message: "Envía details (con inventario) o total (gasto sin inventario)",
+  })
+  .refine((p) => !(p.details && p.total), {
+    path: ["total"],
+    message: "Con details el total se calcula automáticamente",
+  });
 
-  cashRegister: z
-    .union([
-      z.string().transform((val) => parseInt(val, 10)),
-      z.number().int("La caja registradora debe ser un número entero"),
-    ])
-    .refine(
-      (val) => !isNaN(val) && val > 0,
-      "La caja registradora debe ser un número positivo"
-    )
-    .optional(),
+export const updatePurchaseSchema = z
+  .object({
+    date: dateField.optional(),
+    cashRegisterId: id("La caja registradora debe ser un ID válido").optional(),
+    supplierId: id("El proveedor debe ser un ID válido").optional(),
+    total: money("El total debe ser mayor a 0").optional(),
+  })
+  .strict();
 
-  supplierId: z
-    .union([
-      z.string().transform((val) => parseInt(val, 10)),
-      z.number().int("El ID del proveedor debe ser un número entero"),
-    ])
-    .refine(
-      (val) => !isNaN(val) && val > 0,
-      "El proveedor debe ser un ID válido"
-    )
-    .optional(),
-
-  total: z
-    .union([z.string().transform((val) => parseFloat(val)), z.number()])
-    .refine((val) => !isNaN(val) && val > 0, "El total debe ser mayor a 0")
-    .optional(),
-});
-
-// Esquema para ID
 export const purchaseIdSchema = z.object({
-  id: z
-    .union([
-      z.string().transform((val) => parseInt(val, 10)),
-      z.number().int("El ID debe ser un número entero"),
-    ])
-    .refine(
-      (val) => !isNaN(val) && val > 0,
-      "El ID debe ser un número positivo"
-    ),
+  id: id("El ID debe ser un número positivo"),
 });
