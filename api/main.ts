@@ -8,6 +8,10 @@ import { setupSwagger } from "./infrastructure/swagger/swagger";
 import { getDataSource } from "./infrastructure/db/Connection";
 import { initializeDependencies } from "./core/dependencyInjection";
 import { startAllJobs } from "./infrastructure/jobs";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./infrastructure/security/errorHandler";
 
 export const app = express();
 
@@ -41,6 +45,8 @@ app.get("/health", (_req, res) => {
 
 setupSwagger(app);
 app.use("/api", routes);
+app.use("/api", notFoundHandler);
+app.use(errorHandler);
 
 const start = async () => {
   await initializeDependencies();

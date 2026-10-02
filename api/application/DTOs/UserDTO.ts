@@ -3,9 +3,12 @@ export interface loginUser {
   username: string;
   password: string;
   role: string;
+  active: boolean;
 }
 
+/** Payload del JWT y de req.user */
 export interface payloadUser {
+  userId: number;
   username: string;
   role: string;
 }

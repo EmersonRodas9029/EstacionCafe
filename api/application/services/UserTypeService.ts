@@ -12,6 +12,7 @@ export class UserTypeService implements IService {
     const type = new UserType();
     type.name = body.name;
     type.permissionLevel = body.permissionLevel;
+    if (body.role) type.role = body.role;
     console.log("Guardando tipo de usuario...");
     return this.typeRepo.save(type);
   }
@@ -21,6 +22,7 @@ export class UserTypeService implements IService {
       const type = new UserType();
       type.name = data.name;
       type.permissionLevel = data.permissionLevel;
+      if (data.role) type.role = data.role;
       return type;
     });
 

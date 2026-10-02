@@ -71,7 +71,8 @@ describe("UserService", () => {
           email: "john.doe@example.com",
         })
       );
-      expect(result).toEqual(savedUser);
+      const { password: _password, ...sinPassword } = savedUser;
+      expect(result).toEqual(sinPassword);
       expect(console.log).toHaveBeenCalledWith("Guardando usuario...");
     });
 
@@ -282,7 +283,9 @@ describe("UserService", () => {
           email: "user2@example.com",
         }),
       ]));
-      expect(result).toEqual(savedUsers);
+      expect(result).toEqual(
+        savedUsers.map(({ password: _password, ...u }: any) => u),
+      );
     });
 
     it("debería manejar array vacío", async () => {
@@ -399,7 +402,8 @@ describe("UserService", () => {
         username: "johnupdated",
         email: "johnupdated@example.com",
       }));
-      expect(result).toEqual(updatedUser);
+      const { password: _password, ...sinPassword } = updatedUser as any;
+      expect(result).toEqual(sinPassword);
     });
 
     it("debería encriptar nueva contraseña al actualizar", async () => {

@@ -49,3 +49,7 @@ export const userIdSchema = z.object({
             "El ID debe ser un número positivo"
         ),
 });
+export const loginSchema = z.object({
+    username: z.string().trim().min(1, "El usuario es requerido"),
+    password: z.string().min(1, "La contraseña es requerida"),
+});

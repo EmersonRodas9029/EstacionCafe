@@ -237,7 +237,7 @@ describe("UserTypeController", () => {
       };
 
       mockReq.body = datosTipoUsuario;
-      mockedCreateUserTypeSchema.parse.mockReturnValue(datosTipoUsuario);
+      mockedCreateUserTypeSchema.parse.mockReturnValue(datosTipoUsuario as any);
       mockService.save.mockResolvedValue(tipoUsuarioGuardado);
 
       await userTypeController.saveUserType(mockReq, mockRes);
@@ -457,7 +457,7 @@ describe("UserTypeController", () => {
       const errorServidor = new Error("Error interno del servidor");
 
       mockReq.body = datosTipoUsuario;
-      mockedCreateUserTypeSchema.parse.mockReturnValue(datosTipoUsuario);
+      mockedCreateUserTypeSchema.parse.mockReturnValue(datosTipoUsuario as any);
       mockService.save.mockRejectedValue(errorServidor);
 
       await userTypeController.saveUserType(mockReq, mockRes);
@@ -497,7 +497,7 @@ describe("UserTypeController", () => {
       };
 
       mockReq.body = datosConEspacios;
-      mockedCreateUserTypeSchema.parse.mockReturnValue(datosLimpios);
+      mockedCreateUserTypeSchema.parse.mockReturnValue(datosLimpios as any);
       mockService.save.mockResolvedValue(tipoUsuarioGuardado);
 
       await userTypeController.saveUserType(mockReq, mockRes);
@@ -863,7 +863,7 @@ describe("UserTypeController", () => {
         };
 
         mockReq.body = tipoUsuario;
-        mockedCreateUserTypeSchema.parse.mockReturnValue(tipoUsuario);
+        mockedCreateUserTypeSchema.parse.mockReturnValue(tipoUsuario as any);
         mockService.save.mockResolvedValue(tipoUsuarioGuardado);
 
         await userTypeController.saveUserType(mockReq, mockRes);
@@ -890,7 +890,7 @@ describe("UserTypeController", () => {
       };
 
       mockReq.body = datosMinimos;
-      mockedCreateUserTypeSchema.parse.mockReturnValue(datosMinimos);
+      mockedCreateUserTypeSchema.parse.mockReturnValue(datosMinimos as any);
       mockService.save.mockResolvedValue(tipoUsuarioGuardado);
 
       await userTypeController.saveUserType(mockReq, mockRes);
@@ -915,7 +915,7 @@ describe("UserTypeController", () => {
       };
 
       mockReq.body = datosMaximos;
-      mockedCreateUserTypeSchema.parse.mockReturnValue(datosMaximos);
+      mockedCreateUserTypeSchema.parse.mockReturnValue(datosMaximos as any);
       mockService.save.mockResolvedValue(tipoUsuarioGuardado);
 
       await userTypeController.saveUserType(mockReq, mockRes);
@@ -939,7 +939,7 @@ describe("UserTypeController", () => {
       };
 
       mockReq.body = datosLimiteInferior;
-      mockedCreateUserTypeSchema.parse.mockReturnValue(datosLimiteInferior);
+      mockedCreateUserTypeSchema.parse.mockReturnValue(datosLimiteInferior as any);
       mockService.save.mockResolvedValue(tipoUsuarioGuardado);
 
       await userTypeController.saveUserType(mockReq, mockRes);
@@ -963,7 +963,7 @@ describe("UserTypeController", () => {
       };
 
       mockReq.body = datosLimiteSuperior;
-      mockedCreateUserTypeSchema.parse.mockReturnValue(datosLimiteSuperior);
+      mockedCreateUserTypeSchema.parse.mockReturnValue(datosLimiteSuperior as any);
       mockService.save.mockResolvedValue(tipoUsuarioGuardado);
 
       await userTypeController.saveUserType(mockReq, mockRes);

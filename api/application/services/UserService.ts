@@ -10,7 +10,7 @@ export class UserService implements IUserService {
     this.userRepository = userRepo;
   }
 
-  async saveAll(body: SaveUserDTO[]): Promise<User[]> {
+  async saveAll(body: SaveUserDTO[]): Promise<Omit<User, "password">[]> {
     const users = await Promise.all(
       body.map(async (userData) => {
         const user = new User();
@@ -22,7 +22,8 @@ export class UserService implements IUserService {
       }),
     );
 
-    return await this.userRepository.save(users);
+    const saved = await this.userRepository.save(users);
+    return saved.map((u) => this.withoutPassword(u));
   }
 
   async save(body: SaveUserDTO): Promise<any> {
@@ -34,7 +35,7 @@ export class UserService implements IUserService {
     user.email = userData.email;
 
     console.log("Guardando usuario...");
-    return await this.userRepository.save(user);
+    return this.withoutPassword(await this.userRepository.save(user));
   }
 
   async delete(id: number): Promise<any> {
@@ -68,7 +69,7 @@ export class UserService implements IUserService {
     }
 
     Object.assign(user, updateData);
-    return await this.userRepository.save(user);
+    return this.withoutPassword(await this.userRepository.save(user));
   }
 
   async getAll(): Promise<any[]> {
@@ -105,6 +106,11 @@ export class UserService implements IUserService {
     });
   }
 
+  private withoutPassword<T extends Partial<User>>(user: T): Omit<T, "password"> {
+    const { password: _password, ...rest } = user;
+    return rest;
+  }
+
   private async encryptPassword(password: string): Promise<string> {
     const saltRounds = 10;
     return await bcrypt.hash(password, saltRounds);
@@ -118,7 +124,8 @@ export class UserService implements IUserService {
         "user.userId",
         "user.username",
         "user.password",
-        "userType.name",
+        "user.active",
+        "userType.role",
       ])
       .where("user.username = :username", { username })
       .getOne();
@@ -130,8 +137,9 @@ export class UserService implements IUserService {
     const data: loginUser = {
       userId: user.userId,
       username: user.username,
-      role: user.userType!.name,
+      role: user.userType!.role,
       password: user.password,
+      active: user.active,
     };
 
     return data;

@@ -1,4 +1,5 @@
 import express from "express";
+import { authRouter } from "./AuthRoute";
 import { billRouter } from "./BillRoute";
 import { productRouter } from "./ProductRoute";
 import { billDetailsRouter } from "./BillDetailsRoute";
@@ -12,10 +13,16 @@ import { purchaseRouter } from "./PurchaseRoute";
 import { cashRegisterRouter } from "./CashRegisterRoutes";
 import { tableRouter } from "./TableRoute";
 import { productTypeRouter } from "./ProductTypeRoute";
+import { verifyToken } from "../../infrastructure/security/authMiddleware";
 
 const mainRouter = express.Router();
 
-// Usar las rutas de facturas
+// Públicas: login / logout
+mainRouter.use("/", authRouter);
+
+// Todo lo demás requiere token; cada router define los roles permitidos
+mainRouter.use(verifyToken);
+
 mainRouter.use("/", billRouter);
 mainRouter.use("/", productRouter);
 mainRouter.use("/", billDetailsRouter);

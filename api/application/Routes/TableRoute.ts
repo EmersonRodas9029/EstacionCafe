@@ -10,22 +10,16 @@ import {
   getAvailableTables,
   updateTableStatus,
 } from "../../controller/TableController";
-import { verifyToken } from "../../infrastructure/security/authMiddleware";
-import { authorize } from "../../infrastructure/security/rbacMiddleware";
+import { adminOnly, anyRole, staff } from "../../infrastructure/security/rbacMiddleware";
 
 export const tableRouter = Router();
 
-tableRouter.get("/tables", getTables);
-tableRouter.get("/tables/available", getAvailableTables);
-tableRouter.get("/tables/zone/:zone", getTablesByZone);
-tableRouter.get("/tables/status/:status", getTablesByStatus);
-tableRouter.get("/tables/:id", getTableById);
-tableRouter.post("/tables", saveTable);
-tableRouter.put("/tables/:id", updateTable);
-tableRouter.patch("/tables/:id/status", updateTableStatus);
-tableRouter.delete(
-  "/tables/:id",
-  verifyToken,
-  authorize(["admin", "mesero", "cajero"]),
-  deleteTable,
-);
+tableRouter.get("/tables", anyRole, getTables);
+tableRouter.get("/tables/available", anyRole, getAvailableTables);
+tableRouter.get("/tables/zone/:zone", anyRole, getTablesByZone);
+tableRouter.get("/tables/status/:status", anyRole, getTablesByStatus);
+tableRouter.get("/tables/:id", anyRole, getTableById);
+tableRouter.post("/tables", adminOnly, saveTable);
+tableRouter.put("/tables/:id", adminOnly, updateTable);
+tableRouter.patch("/tables/:id/status", staff, updateTableStatus);
+tableRouter.delete("/tables/:id", adminOnly, deleteTable);

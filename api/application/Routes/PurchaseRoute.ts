@@ -7,18 +7,15 @@ import {
   deletePurchase,
   getPurchasesBySupplier,
 } from "../../controller/PurchaseController";
-import { verifyToken } from "../../infrastructure/security/authMiddleware";
-import { authorize } from "../../infrastructure/security/rbacMiddleware";
+import { adminOnly } from "../../infrastructure/security/rbacMiddleware";
 
 export const purchaseRouter = Router();
+
+purchaseRouter.use("/purchases", adminOnly);
+
 purchaseRouter.get("/purchases", getPurchases);
 purchaseRouter.get("/purchases/supplier/:supplierId", getPurchasesBySupplier);
 purchaseRouter.get("/purchases/:id", getPurchaseById);
 purchaseRouter.post("/purchases", createPurchase);
 purchaseRouter.put("/purchases/:id", updatePurchase);
-purchaseRouter.delete(
-  "/purchases/:id",
-  verifyToken,
-  authorize(["admin"]),
-  deletePurchase,
-);
+purchaseRouter.delete("/purchases/:id", deletePurchase);

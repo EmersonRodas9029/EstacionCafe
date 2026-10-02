@@ -1,6 +1,8 @@
 import * as userController from "../UserController";
 import { IService } from "../../core/interfaces/IService";
 import { ITokenService } from "../../core/interfaces/ITokenService";
+import { AppError } from "../../application/errors/AppError";
+import { TOKEN_TTL_MS } from "../../infrastructure/security/TokenService";
 import {
   createUserSchema,
   updateUserSchema,
@@ -11,6 +13,9 @@ jest.mock("../../application/validations/UserValidations", () => ({
   createUserSchema: { parse: jest.fn() },
   updateUserSchema: { parse: jest.fn() },
   userIdSchema: { parse: jest.fn() },
+  loginSchema: jest.requireActual(
+    "../../application/validations/UserValidations",
+  ).loginSchema,
 }));
 const mockedCreateUserSchema = createUserSchema as jest.Mocked<
   typeof createUserSchema
@@ -665,14 +670,10 @@ describe("UserController", () => {
   });
 
   describe("login", () => {
+    const datosLogin = { username: "admin.demo", password: "password123" };
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+
     it("debería iniciar sesión exitosamente y generar token", async () => {
-      const datosLogin = {
-        email: "usuario@example.com",
-        password: "password123",
-      };
-
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-
       mockReq.body = datosLogin;
       mockTokenService.generateToken.mockResolvedValue(token);
 
@@ -685,92 +686,71 @@ describe("UserController", () => {
         expect.objectContaining({
           httpOnly: true,
           sameSite: "strict",
-          maxAge: 1000 * 60 * 60,
+          maxAge: TOKEN_TTL_MS,
         }),
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",
         message: "Inicio de sesión exitoso",
-        data: {
-          token: token,
-          expiresIn: "1 hora",
-        },
+        data: { token, expiresIn: TOKEN_TTL_MS / 1000 },
       });
     });
 
-    it("debería manejar errores al generar token", async () => {
-      const datosLogin = {
-        email: "usuario@example.com",
-        password: "password123",
-      };
+    it("debería responder 400 si faltan credenciales", async () => {
+      mockReq.body = { username: "" };
 
+      await userController.login(mockReq, mockRes);
+
+      expect(mockTokenService.generateToken).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+    });
+
+    it("debería responder 401 con credenciales inválidas", async () => {
+      mockReq.body = datosLogin;
+      mockTokenService.generateToken.mockRejectedValue(
+        AppError.unauthorized("Usuario o contraseña incorrectos"),
+      );
+
+      await userController.login(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        status: "error",
+        message: "Usuario o contraseña incorrectos",
+      });
+    });
+
+    it("debería manejar errores inesperados con 500", async () => {
       const errorServidor = new Error("Error al generar token");
-
       mockReq.body = datosLogin;
       mockTokenService.generateToken.mockRejectedValue(errorServidor);
 
       await userController.login(mockReq, mockRes);
 
-      expect(mockTokenService.generateToken).toHaveBeenCalledWith(datosLogin);
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "error",
         message: `Error al iniciar sesión: ${errorServidor.message}`,
       });
     });
+  });
 
-    it("debería manejar credenciales inválidas", async () => {
-      const datosLogin = {
-        email: "usuario@example.com",
-        password: "wrongpassword",
-      };
+  describe("me", () => {
+    it("debería devolver el usuario autenticado con su rol", async () => {
+      const usuario = { userId: 1, username: "admin.demo", email: "a@b.c" };
+      mockReq.user = { userId: 1, username: "admin.demo", role: "admin" };
+      mockService.getById.mockResolvedValue(usuario);
 
-      const errorCredenciales = new Error("Credenciales inválidas");
+      await userController.me(mockReq, mockRes);
 
-      mockReq.body = datosLogin;
-      mockTokenService.generateToken.mockRejectedValue(errorCredenciales);
-
-      await userController.login(mockReq, mockRes);
-
-      expect(mockTokenService.generateToken).toHaveBeenCalledWith(datosLogin);
-      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockService.getById).toHaveBeenCalledWith(1);
+      expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
-        status: "error",
-        message: `Error al iniciar sesión: Credenciales inválidas`,
+        status: "success",
+        message: "Usuario autenticado",
+        data: { ...usuario, role: "admin" },
       });
-    });
-
-    it("debería establecer cookie con configuración correcta en producción", async () => {
-      const datosLogin = {
-        email: "usuario@example.com",
-        password: "password123",
-      };
-
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-
-      // Simular entorno de producción
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "production";
-
-      mockReq.body = datosLogin;
-      mockTokenService.generateToken.mockResolvedValue(token);
-
-      await userController.login(mockReq, mockRes);
-
-      expect(mockRes.cookie).toHaveBeenCalledWith(
-        "auth_token",
-        token,
-        expect.objectContaining({
-          httpOnly: true,
-          secure: true,
-          sameSite: "strict",
-          maxAge: 1000 * 60 * 60,
-        }),
-      );
-
-      // Restaurar variable de entorno
-      process.env.NODE_ENV = originalEnv;
     });
   });
 

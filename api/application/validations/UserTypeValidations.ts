@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Role } from "../../core/enums/Role";
 
 export const createUserTypeSchema = z.object({
   name: z
@@ -12,6 +13,10 @@ export const createUserTypeSchema = z.object({
     .int("El nivel de permisos debe ser un número entero")
     .min(0, "El nivel de permisos no puede ser negativo")
     .max(10, "El nivel de permisos no puede ser mayor a 10"),
+
+  role: z
+    .nativeEnum(Role, "El rol debe ser admin, mesero o cajero")
+    .default(Role.MESERO),
 });
 
 export const updateUserTypeSchema = z.object({
@@ -27,6 +32,7 @@ export const updateUserTypeSchema = z.object({
     .min(0, "El nivel de permisos no puede ser negativo")
     .max(10, "El nivel de permisos no puede ser mayor a 10")
     .optional(),
+  role: z.nativeEnum(Role, "El rol debe ser admin, mesero o cajero").optional(),
 });
 
 export const userTypeIdSchema = z.object({

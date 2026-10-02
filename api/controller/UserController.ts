@@ -1,9 +1,13 @@
 import { IService } from "../core/interfaces/IService";
 import {
   createUserSchema,
+  loginSchema,
   updateUserSchema,
   userIdSchema,
 } from "../application/validations/UserValidations";
+import { AppError } from "../application/errors/AppError";
+import { TOKEN_TTL_MS } from "../infrastructure/security/TokenService";
+import { env } from "../infrastructure/config/env";
 import { loginUser, SaveUserDTO } from "../application/DTOs/UserDTO";
 import { ITokenService } from "../core/interfaces/ITokenService";
 
@@ -206,26 +210,40 @@ export const getUsersByType = async (req: any, res: any) => {
 
 export const login = async (req: any, res: any) => {
   try {
-    const data: loginUser = req.body;
+    const credentials = loginSchema.parse(req.body);
+    const token = await tokenService!.generateToken(credentials);
 
-    const token = await tokenService?.generateToken(data);
     return res
       .status(200)
       .cookie("auth_token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 1000 * 60 * 60,
+        maxAge: TOKEN_TTL_MS,
       })
       .send({
         status: "success",
         message: "Inicio de sesión exitoso",
         data: {
-          token: token,
-          expiresIn: "1 hora",
+          token,
+          expiresIn: TOKEN_TTL_MS / 1000,
         },
       });
   } catch (error: any) {
+    if (error.name === "ZodError") {
+      return res.status(400).send({
+        status: "error",
+        message: "Datos inválidos: " + error.issues[0].message,
+        campo: error.issues[0].path,
+      });
+    }
+
+    if (error instanceof AppError) {
+      return res
+        .status(error.statusCode)
+        .send({ status: "error", message: error.message });
+    }
+
     return res.status(500).send({
       status: "error",
       message: `Error al iniciar sesión: ${error.message}`,
@@ -233,9 +251,36 @@ export const login = async (req: any, res: any) => {
   }
 };
 
+/** Usuario autenticado actual (rol incluido). */
+export const me = async (req: any, res: any) => {
+  try {
+    const user = await (getService() as any).getById(req.user.userId);
+
+    return res.status(200).send({
+      status: "success",
+      message: "Usuario autenticado",
+      data: { ...user, role: req.user.role },
+    });
+  } catch (error: any) {
+    if (error.message?.includes("no encontrado")) {
+      return res
+        .status(401)
+        .send({ status: "error", message: "Usuario no encontrado" });
+    }
+    return res.status(500).send({
+      status: "error",
+      message: `Error al obtener el usuario: ${error.message}`,
+    });
+  }
+};
+
 export const logout = async (req: any, res: any) => {
   try {
-    res.clearCookie("auth_token");
+    res.clearCookie("auth_token", {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
     return res.status(200).send({
       status: "success",
       message: "Sesión cerrada",

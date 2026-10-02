@@ -7,22 +7,15 @@ import {
   deleteConsumable,
   getConsumablesBySupplier,
 } from "../../controller/ConsumableController";
-import { authorize } from "../../infrastructure/security/rbacMiddleware";
-import { verifyToken } from "../../infrastructure/security/authMiddleware";
+import { adminOnly } from "../../infrastructure/security/rbacMiddleware";
 
 export const consumableRouter = Router();
 
+consumableRouter.use("/consumable", adminOnly);
+
 consumableRouter.get("/consumable", getConsumables);
-consumableRouter.get(
-  "/consumable/supplier/:supplierId",
-  getConsumablesBySupplier,
-);
+consumableRouter.get("/consumable/supplier/:supplierId", getConsumablesBySupplier);
 consumableRouter.get("/consumable/:id", getConsumableById);
 consumableRouter.post("/consumable", saveConsumable);
 consumableRouter.put("/consumable/:id", updateConsumable);
-consumableRouter.delete(
-  "/consumable/:id",
-  verifyToken,
-  authorize(["all"]),
-  deleteConsumable,
-);
+consumableRouter.delete("/consumable/:id", deleteConsumable);

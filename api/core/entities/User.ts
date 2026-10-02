@@ -19,8 +19,9 @@ export class User {
   @Column({ name: "type_id" })
   userTypeId: number = 1;
 
-  @Column()
-  password: string = "";
+  // Nunca se devuelve en consultas normales; usar addSelect explícito
+  @Column({ select: false })
+  password!: string;
 
   @Column()
   email: string = "";

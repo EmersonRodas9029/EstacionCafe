@@ -15,9 +15,15 @@ import { User } from "../../../core/entities/User";
 import { UserType } from "../../../core/entities/UserType";
 import { Status } from "../../../core/enums/Status";
 import { UnitMeasurement } from "../../../core/enums/UnitMeasurement";
+import { Role } from "../../../core/enums/Role";
 
 const DEMO_CUSTOMER = "Cliente demo EstacionCafe";
 const DEMO_USERNAME = "admin.demo";
+const DEMO_PASSWORD = "AdminDemo123!";
+const DEMO_STAFF = [
+  { username: "mesero.demo", email: "mesero.demo@estacioncafe.test", role: Role.MESERO },
+  { username: "cajero.demo", email: "cajero.demo@estacioncafe.test", role: Role.CAJERO },
+];
 
 const seed = async () => {
   await AppDataSource.initialize();
@@ -38,12 +44,21 @@ const seed = async () => {
 
     const adminType = await findOrCreate<UserType>(userTypeRepository, { name: "Administrador" }, {
       name: "Administrador",
-      permissionLevel: 100,
+      permissionLevel: 10,
+      role: Role.ADMIN,
     });
-    await findOrCreate<UserType>(userTypeRepository, { name: "Cajero" }, {
-      name: "Cajero",
-      permissionLevel: 50,
-    });
+    const staffTypes = {
+      [Role.MESERO]: await findOrCreate<UserType>(userTypeRepository, { name: "Mesero" }, {
+        name: "Mesero",
+        permissionLevel: 3,
+        role: Role.MESERO,
+      }),
+      [Role.CAJERO]: await findOrCreate<UserType>(userTypeRepository, { name: "Cajero" }, {
+        name: "Cajero",
+        permissionLevel: 5,
+        role: Role.CAJERO,
+      }),
+    };
 
     const supplier = await findOrCreate<Supplier>(supplierRepository, { email: "proveedor.demo@estacioncafe.test" }, {
       name: "Proveedor Demo",
@@ -77,7 +92,7 @@ const seed = async () => {
       status: TableStatus.DISPONIBLE,
     });
 
-    const password = await bcrypt.hash("AdminDemo123!", 10);
+    const password = await bcrypt.hash(DEMO_PASSWORD, 10);
     const user = await findOrCreate<User>(userRepository, { username: DEMO_USERNAME }, {
       username: DEMO_USERNAME,
       userTypeId: adminType.userTypeId,
@@ -85,6 +100,15 @@ const seed = async () => {
       email: "admin.demo@estacioncafe.test",
       active: true,
     });
+    for (const staff of DEMO_STAFF) {
+      await findOrCreate<User>(userRepository, { username: staff.username }, {
+        username: staff.username,
+        userTypeId: staffTypes[staff.role as Role.MESERO | Role.CAJERO].userTypeId,
+        password,
+        email: staff.email,
+        active: true,
+      });
+    }
 
     const coffee = await findOrCreate<Consumable>(consumableRepository, { name: "Café en grano" }, {
       supplierId: supplier.supplierId,
@@ -183,7 +207,9 @@ const seed = async () => {
     }
 
     console.log("Seeder ejecutado correctamente");
-    console.log("Usuario demo: admin.demo / AdminDemo123!");
+    console.log(
+      `Usuarios demo (contraseña ${DEMO_PASSWORD}): ${[DEMO_USERNAME, ...DEMO_STAFF.map((u) => u.username)].join(", ")}`,
+    );
   } finally {
     await AppDataSource.destroy();
   }
@@ -227,12 +253,16 @@ const revert = async () => {
       { name: "Leche entera" },
     ]);
     await userRepository.delete({ username: DEMO_USERNAME });
+    for (const staff of DEMO_STAFF) {
+      await userRepository.delete({ username: staff.username });
+    }
     await tableRepository.delete([{ tableId: "M1" }, { tableId: "M2" }]);
     await supplierRepository.delete({ email: "proveedor.demo@estacioncafe.test" });
     await productTypeRepository.delete([{ name: "Bebidas" }, { name: "Panadería" }]);
     await consumableTypeRepository.delete([{ name: "Café" }, { name: "Lácteos" }]);
     await userTypeRepository.delete({ name: "Administrador" });
     await userTypeRepository.delete({ name: "Cajero" });
+    await userTypeRepository.delete({ name: "Mesero" });
 
     console.log("Datos demo eliminados correctamente");
   } finally {
