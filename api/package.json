@@ -22,7 +22,9 @@
     "migration:generate": "npm run typeorm -- migration:generate",
     "seed:run": "ts-node --transpile-only infrastructure/db/seeders/runSeeder.ts",
     "seed:revert": "ts-node --transpile-only infrastructure/db/seeders/runSeeder.ts revert",
-    "test:int": "jest -c jest.integration.config.js"
+    "test:int": "jest -c jest.integration.config.js",
+    "migration:run:prod": "typeorm migration:run -d dist/infrastructure/db/Connection.js",
+    "start:prod": "npm run migration:run:prod && node dist/main.js"
   },
   "author": "EstacionCafé",
   "license": "ISC",

@@ -8,7 +8,7 @@ import {
 import { AppError } from "../application/errors/AppError";
 import { TOKEN_TTL_MS } from "../infrastructure/security/TokenService";
 import { env } from "../infrastructure/config/env";
-import { loginUser, SaveUserDTO } from "../application/DTOs/UserDTO";
+import { SaveUserDTO } from "../application/DTOs/UserDTO";
 import { ITokenService } from "../core/interfaces/ITokenService";
 
 let service: IService | null = null;

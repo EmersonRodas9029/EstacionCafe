@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: estacioncafe-api
+    runtime: docker
+    rootDir: api
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3484
+      - key: CORS_ORIGIN
+        sync: false # URL del frontend
+      - key: DATABASE_URL
+        sync: false # cadena de conexión de Supabase
+      - key: DB_SSL
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN_HOURS
+        value: 12

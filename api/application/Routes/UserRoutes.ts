@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as userController from "../../controller/UserController";
-import { adminOnly, anyRole, staff } from "../../infrastructure/security/rbacMiddleware";
+import { adminOnly, anyRole } from "../../infrastructure/security/rbacMiddleware";
 
 export const userRouter = Router();
 

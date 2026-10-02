@@ -58,6 +58,8 @@ export default [
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-require-imports": "off",
       "no-console": "off",
+      // TypeScript ya valida identificadores no definidos
+      "no-undef": "off",
     },
   },
 ];
