@@ -1,5 +1,8 @@
 import type { Bill } from '@/api/generated/model/bill'
 import type { CashRegister } from '@/api/generated/model/cashRegister'
+import type { ConsumableListItem } from '@/api/generated/model/consumableListItem'
+import type { Ingredient } from '@/api/generated/model/ingredient'
+import type { Product } from '@/api/generated/model/product'
 import type { ProductType } from '@/api/generated/model/productType'
 import type { Table } from '@/api/generated/model/table'
 import { products, users } from './data'
@@ -13,7 +16,58 @@ type DetailRow = {
 }
 
 /** Estado en memoria que imita la API (reglas principales de cuentas y mesas). */
+const consumable = (
+  consumableId: number,
+  name: string,
+  unitMeasurement: ConsumableListItem['unitMeasurement'],
+  cost: number,
+  quantity: number,
+): ConsumableListItem => ({
+  consumableId,
+  name,
+  unitMeasurement,
+  cost,
+  quantity,
+  minStock: 0,
+  lowStock: false,
+  supplierId: 1,
+  consumableTypeId: 1,
+  active: true,
+})
+
 const seed = () => ({
+  products: structuredClone(products) as Product[],
+  consumables: [
+    consumable(1, 'Café en grano', 'g', 0.02, 5000),
+    consumable(2, 'Leche entera', 'ml', 0.002, 10000),
+    consumable(3, 'Caramelo', 'ml', 0.01, 800),
+  ],
+  ingredients: [
+    {
+      ingredientId: 1,
+      name: 'Espresso - Café en grano',
+      quantity: 18,
+      productId: 1,
+      consumableId: 1,
+    },
+    {
+      ingredientId: 2,
+      name: 'Cappuccino - Café en grano',
+      quantity: 18,
+      productId: 2,
+      consumableId: 1,
+    },
+    {
+      ingredientId: 3,
+      name: 'Cappuccino - Leche entera',
+      quantity: 150,
+      productId: 2,
+      consumableId: 2,
+    },
+  ] as Ingredient[],
+  nextProductId: 5,
+  nextProductTypeId: 4,
+  nextIngredientId: 4,
   tables: [
     { tableId: 'A1', zone: 'Interior', status: 'ocupada' },
     { tableId: 'A2', zone: 'Interior', status: 'disponible' },
@@ -107,7 +161,7 @@ export const linesOf = (billId: number) =>
     .map((d) => ({
       billDetailId: d.billDetailId,
       productId: d.productId,
-      name: products.find((p) => p.productId === d.productId)?.name ?? '',
+      name: db.products.find((p) => p.productId === d.productId)?.name ?? '',
       quantity: d.quantity,
       price: d.unitPrice,
       subTotal: d.quantity * d.unitPrice,

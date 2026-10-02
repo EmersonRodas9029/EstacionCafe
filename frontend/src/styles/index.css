@@ -78,6 +78,15 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
   }
+  /* Sin flechas en inputs numéricos: chocan con el sufijo de unidad y en táctil no se usan */
+  input[type='number'] {
+    appearance: textfield;
+  }
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
 }
 
 /* Panel de marca del login: vías de tren en diagonal + grano sutil */

@@ -315,7 +315,7 @@ Swagger ──orval──▶ tipos + hooks + Zod ──▶ features/*/hooks ─�
 - [x] Fase 2 — Design system (base; se amplía por vista)
 - [x] Fase 3 — Mesero: núcleo
 - [x] Fase 4 — Mesero: para llevar y cobro
-- [ ] Fase 5 — Admin: catálogo
+- [x] Fase 5 — Admin: catálogo
 - [ ] Fase 6 — Admin: operación y accesos
 - [ ] Fase 7 — Admin: inventario y compras
 - [ ] Fase 8 — Dashboard y reportes

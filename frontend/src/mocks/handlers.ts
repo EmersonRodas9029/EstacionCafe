@@ -1,6 +1,12 @@
 import { http, HttpResponse } from 'msw'
 import type { Bill } from '@/api/generated/model/bill'
-import { DEMO_PASSWORD, products, users } from './data'
+import type { Ingredient } from '@/api/generated/model/ingredient'
+import type { IngredientInput } from '@/api/generated/model/ingredientInput'
+import type { IngredientUpdate } from '@/api/generated/model/ingredientUpdate'
+import type { Product } from '@/api/generated/model/product'
+import type { ProductInput } from '@/api/generated/model/productInput'
+import type { ProductUpdate } from '@/api/generated/model/productUpdate'
+import { DEMO_PASSWORD, users } from './data'
 import { db, isActive, linesOf, recalcTotal, syncTable, withWaiter } from './db'
 
 const ok = <T>(data: T, message = 'OK', status = 200) =>
@@ -13,6 +19,9 @@ const userFromRequest = (request: Request) => {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '')
   return users.find((u) => token === `mock-${u.userId}`)
 }
+
+const findProduct = (id: string | readonly string[] | undefined) =>
+  db.products.find((p) => p.productId === Number(id))
 
 const findBill = (id: string | readonly string[] | undefined) =>
   db.bills.find((b) => b.billId === Number(id))
@@ -32,9 +41,114 @@ export const handlers = [
   }),
 
   // ---------- Catálogo ----------
-  http.get('*/api/products', () => ok(products)),
-  http.get('*/api/products/active', () => ok(products.filter((p) => p.active))),
+  http.get('*/api/products', () => ok(db.products)),
+  http.get('*/api/products/active', () => ok(db.products.filter((p) => p.active))),
+  http.get('*/api/products/:id', ({ params }) => {
+    const product = findProduct(params.id)
+    return product ? ok(product) : fail(404, `Producto con ID ${params.id} no encontrado`)
+  }),
+  http.post('*/api/products', async ({ request }) => {
+    const body = (await request.json()) as ProductInput
+    const product: Product = {
+      productId: db.nextProductId++,
+      name: body.name,
+      description: body.description,
+      price: Number(body.price),
+      cost: Number(body.cost),
+      productTypeId: Number(body.productTypeId),
+      active: true,
+    }
+    if (product.price <= product.cost) return fail(400, 'El precio debe ser mayor al costo')
+    db.products.push(product)
+    return ok(product, 'El producto se guardó correctamente', 201)
+  }),
+  http.put('*/api/products/:id', async ({ params, request }) => {
+    const product = findProduct(params.id)
+    if (!product) return fail(404, `Producto con ID ${params.id} no encontrado`)
+    const body = (await request.json()) as ProductUpdate
+    const next = {
+      ...product,
+      ...body,
+      price: Number(body.price ?? product.price),
+      cost: Number(body.cost ?? product.cost),
+      productTypeId: Number(body.productTypeId ?? product.productTypeId),
+    }
+    if (next.price <= next.cost) return fail(400, 'El precio debe ser mayor al costo')
+    Object.assign(product, next)
+    return ok(product, 'Producto actualizado correctamente')
+  }),
+  http.delete('*/api/products/:id', ({ params }) => {
+    const product = findProduct(params.id)
+    if (!product) return fail(404, `Producto con ID ${params.id} no encontrado`)
+    product.active = false
+    return ok({ message: 'Producto desactivado correctamente', id: product.productId })
+  }),
+
   http.get('*/api/product-type', () => ok(db.productTypes)),
+  http.post('*/api/product-type', async ({ request }) => {
+    const { name } = (await request.json()) as { name: string }
+    const productType = { productTypeId: db.nextProductTypeId++, name }
+    db.productTypes.push(productType)
+    return ok(productType, 'El tipo de producto se guardó correctamente', 201)
+  }),
+  http.put('*/api/product-type/:id', async ({ params, request }) => {
+    const productType = db.productTypes.find((t) => t.productTypeId === Number(params.id))
+    if (!productType) return fail(404, 'Tipo de producto no encontrado')
+    Object.assign(productType, (await request.json()) as { name: string })
+    return ok(productType)
+  }),
+  http.delete('*/api/product-type/:id', ({ params }) => {
+    const id = Number(params.id)
+    const count = db.products.filter((p) => p.productTypeId === id).length
+    if (count > 0)
+      return fail(409, `La categoría tiene ${count} productos asociados y no se puede eliminar`)
+    db.productTypes = db.productTypes.filter((t) => t.productTypeId !== id)
+    return ok({ message: 'Tipo de producto eliminado correctamente', id })
+  }),
+
+  // ---------- Recetas ----------
+  http.get('*/api/consumable', () => ok(db.consumables)),
+  http.get('*/api/ingredient/product/:productId', ({ params }) =>
+    ok(
+      db.ingredients
+        .filter((i) => i.productId === Number(params.productId))
+        .map((i) => ({
+          ...i,
+          consumable: db.consumables.find((c) => c.consumableId === i.consumableId),
+        })),
+    ),
+  ),
+  http.post('*/api/ingredient', async ({ request }) => {
+    const body = (await request.json()) as IngredientInput
+    const ingredient: Ingredient = {
+      ingredientId: db.nextIngredientId++,
+      name: body.name,
+      quantity: Number(body.quantity),
+      productId: Number(body.productId),
+      consumableId: Number(body.consumableId),
+    }
+    db.ingredients.push(ingredient)
+    return ok(ingredient, 'Ingrediente guardado correctamente', 201)
+  }),
+  http.put('*/api/ingredient/:id', async ({ params, request }) => {
+    const ingredient = db.ingredients.find((i) => i.ingredientId === Number(params.id))
+    if (!ingredient) return fail(404, `Ingrediente con ID ${params.id} no encontrado`)
+    const body = (await request.json()) as IngredientUpdate
+    Object.assign(
+      ingredient,
+      body,
+      body.quantity !== undefined && { quantity: Number(body.quantity) },
+    )
+    return ok(ingredient)
+  }),
+  http.delete('*/api/ingredient/:id', ({ params }) => {
+    const id = Number(params.id)
+    if (!db.ingredients.some((i) => i.ingredientId === id))
+      return fail(404, `Ingrediente con ID ${id} no encontrado`)
+    db.ingredients = db.ingredients.filter((i) => i.ingredientId !== id)
+    return ok({ message: 'Ingrediente eliminado correctamente', id })
+  }),
+
   http.get('*/api/cash-registers/active', () => ok(db.cashRegisters.filter((c) => c.active))),
 
   // ---------- Mesas ----------
@@ -130,7 +244,7 @@ export const handlers = [
     for (const item of billDetails) {
       const available = db.stock[item.productId]
       if (available !== undefined && available < item.quantity) {
-        const name = products.find((p) => p.productId === item.productId)?.name
+        const name = db.products.find((p) => p.productId === item.productId)?.name
         return fail(400, `Stock insuficiente para "${name}"`, 'stock_error')
       }
     }
@@ -144,7 +258,7 @@ export const handlers = [
           billId,
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: products.find((p) => p.productId === item.productId)!.price,
+          unitPrice: db.products.find((p) => p.productId === item.productId)!.price,
         })
     }
     recalcTotal(billId)

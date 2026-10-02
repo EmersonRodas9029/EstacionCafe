@@ -119,7 +119,27 @@ export const routes: RouteObject[] = [
                   { index: true, element: <ComingSoonPage title="Dashboard" phase={8} /> },
                   soon('facturas', 'Facturas', 6),
                   soon('reportes', 'Reportes', 8),
-                  soon('productos', 'Productos', 5),
+                  {
+                    path: 'productos',
+                    lazy: async () => ({
+                      Component: (await import('@/features/products/pages/products-page'))
+                        .ProductsPage,
+                    }),
+                  },
+                  {
+                    path: 'productos/nuevo',
+                    lazy: async () => ({
+                      Component: (await import('@/features/products/pages/product-form-page'))
+                        .ProductFormPage,
+                    }),
+                  },
+                  {
+                    path: 'productos/:productId',
+                    lazy: async () => ({
+                      Component: (await import('@/features/products/pages/product-form-page'))
+                        .ProductFormPage,
+                    }),
+                  },
                   soon('inventario', 'Consumibles', 7),
                   soon('proveedores', 'Proveedores', 7),
                   soon('compras', 'Compras', 7),
