@@ -316,12 +316,12 @@ describe("BillController", () => {
   describe("closeBillsByTable", () => {
     it("cierra las cuentas de la mesa en la caja indicada", async () => {
       mockReq.params = { tableId: "M1" };
-      mockReq.body = { cashRegisterId: 1 };
+      mockReq.body = { cashRegisterId: 1, paymentMethod: "card" };
       mockService.closeBillsByTable.mockResolvedValue({ updated: 2 });
 
       await billController.closeBillsByTable(mockReq, mockRes);
 
-      expect(mockService.closeBillsByTable).toHaveBeenCalledWith("M1", 1, ACTOR);
+      expect(mockService.closeBillsByTable).toHaveBeenCalledWith("M1", 1, ACTOR, "card");
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         status: "success",

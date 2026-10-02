@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { Status } from "../../core/enums/Status";
 import { OrderType } from "../../core/enums/OrderType";
+import { PaymentMethod } from "../../core/enums/PaymentMethod";
+
+const paymentMethodField = z.nativeEnum(PaymentMethod, "El método de pago debe ser cash o card");
 
 const positiveInt = (message: string) =>
   z.coerce.number<number>().int(message).positive(message);
@@ -67,6 +70,7 @@ export const updateBillSchema = z
     cashRegisterId: positiveInt(
       "La caja registradora debe ser un número positivo",
     ).optional(),
+    paymentMethod: paymentMethodField.optional(),
     date: dateField.optional(),
   })
   .strict();
@@ -83,6 +87,7 @@ export const closeTableBillsSchema = z.object({
   cashRegisterId: positiveInt(
     "La caja registradora debe ser un número positivo",
   ),
+  paymentMethod: paymentMethodField,
 });
 
 /** Filtros de GET /bills. page/limit activan la paginación. */

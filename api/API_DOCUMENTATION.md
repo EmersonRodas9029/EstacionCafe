@@ -100,7 +100,7 @@ Usuarios demo del seeder (`npm run seed:run`): `admin.demo`, `mesero.demo`, `caj
 | Enum | Valores |
 |---|---|
 | Rol | `admin`, `mesero`, `cajero` |
-| Estado de cuenta | `draft` (en edición), `open` (activa), `finished` (para llevar entregada), `closed` (cobrada), `void` (anulada por un admin) |
+| Estado de cuenta | `draft` (en edición), `open` (activa), `pending_payment` (cerrada por el mesero, por cobrar), `closed` (cobrada), `finished` (para llevar entregada), `void` (anulada por un admin) |
 | Tipo de orden | `dine_in` (en mesa, requiere `tableId`), `takeaway` (sin mesa) |
 | Estado de mesa | `disponible`, `ocupada`, `reservada` |
 | Unidad | `g`, `kg`, `l`, `ml`, `oz`, `lb`, `unit`, `tbsp`, `tsp`, `cup`, `piece` |
@@ -144,17 +144,20 @@ Usuarios demo del seeder (`npm run seed:run`): `admin.demo`, `mesero.demo`, `caj
 - `PATCH /bill-details/{id}` con `{ "quantity": 3 }` → ajusta stock por la diferencia.
 - `DELETE /bill-details/{id}` → devuelve stock (respuesta 202).
 
-### 5. Cobrar
+### 5. Cerrar (mesero) y cobrar (cajero)
 
-- Una cuenta: `PUT /bills/{id}` con `{ "status": "closed", "cashRegisterId": 1 }`. Cerrar sin caja → 400.
-- Toda la mesa: `POST /bills/table/{tableId}/close` con `{ "cashRegisterId": 1 }` → `data: { updated }`.
-- Cajas disponibles: `GET /cash-registers/active`.
+- **Cerrar** (cualquier rol, cuenta propia): `PUT /bills/{id}` con `{ "status": "pending_payment" }`. La cuenta deja de admitir productos (409) y aparece en `GET /bills?status=pending_payment`; la mesa sigue ocupada. Si la cuenta está vacía → 400.
+- **Reabrir** (mientras no esté cobrada): `{ "status": "open" }`.
+- **Cobrar** (**solo cajero y admin**; mesero → 403): `PUT /bills/{id}` con `{ "status": "closed", "cashRegisterId": 1, "paymentMethod": "cash" | "card" }`. Faltan caja o método → 400. Se puede cobrar desde `open`, `draft` o `pending_payment`.
+- Toda la mesa (cajero y admin): `POST /bills/table/{tableId}/close` con `{ "cashRegisterId": 1, "paymentMethod": "card" }` → `data: { updated }`.
+- Una cuenta cobrada no se reabre (409). Una cuenta no puede crearse ya cobrada (`POST /bills` solo acepta `status` `open` o `draft`).
+- Cajas disponibles: `GET /cash-registers/active`. El reporte incluye `byPaymentMethod` para cuadrar caja.
 
 ### 6. Otras operaciones
 
 - Mover de mesa: `PUT /bills/{id}` con `{ "tableId": "M2" }`.
-- `PUT /bills/{id}` es estricto: solo acepta `customer`, `tableId`, `status`, `cashRegisterId`, `date`. **No acepta `total`.**
-- Para llevar: `POST /bills` con `{ "customer": "Ana" }` y al entregar `PUT` con `status: "finished"`.
+- `PUT /bills/{id}` es estricto: solo acepta `customer`, `tableId`, `status`, `cashRegisterId`, `paymentMethod`, `date`. **No acepta `total`.**
+- Para llevar: `POST /bills` con `{ "customer": "Ana" }`; se cierra y cobra igual que en mesa, y al entregar `PUT` con `status: "finished"` (solo desde `closed`).
 
 ### Listado de cuentas
 

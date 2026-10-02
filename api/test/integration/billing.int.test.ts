@@ -18,6 +18,7 @@ import { OrderType } from "../../core/enums/OrderType";
 import { Role } from "../../core/enums/Role";
 import { Status } from "../../core/enums/Status";
 import { UnitMeasurement } from "../../core/enums/UnitMeasurement";
+import { PaymentMethod } from "../../core/enums/PaymentMethod";
 
 let ds: DataSource;
 let bills: BillService;
@@ -163,6 +164,7 @@ describe("Cuentas (BillService)", () => {
       billId: a.billId,
       status: Status.CLOSED,
       cashRegisterId: register.cashRegisterId,
+      paymentMethod: PaymentMethod.CASH,
     });
 
     expect(await tableStatus("M1")).toBe(TableStatus.OCUPADA);
@@ -380,6 +382,7 @@ describe("Detalles (BillDetailsService)", () => {
       billId: bill.billId,
       status: Status.CLOSED,
       cashRegisterId: register.cashRegisterId,
+      paymentMethod: PaymentMethod.CASH,
     });
 
     await expect(

@@ -11,14 +11,14 @@ import {
   closeBillsByTable,
   voidBill,
 } from "../../controller/BillController";
-import { adminOnly, anyRole, staff } from "../../infrastructure/security/rbacMiddleware";
+import { adminOnly, anyRole, cashierOrAdmin, staff } from "../../infrastructure/security/rbacMiddleware";
 
 export const billRouter = Router();
 
 billRouter.get("/bills", anyRole, getBills);
 billRouter.get("/bills/customer/:customer", anyRole, getBillsByCustomer);
 billRouter.get("/bills/table/:tableId", anyRole, getBillsByTable);
-billRouter.post("/bills/table/:tableId/close", staff, closeBillsByTable);
+billRouter.post("/bills/table/:tableId/close", cashierOrAdmin, closeBillsByTable);
 billRouter.get("/bills/date-range", anyRole, getBillsByDateRange);
 billRouter.get("/bills/:id", anyRole, getBillById);
 billRouter.post("/bills", staff, saveBill);

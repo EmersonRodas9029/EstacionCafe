@@ -17,6 +17,7 @@ import { UserType } from "../../../core/entities/UserType";
 import { OrderType } from "../../../core/enums/OrderType";
 import { Role } from "../../../core/enums/Role";
 import { Status } from "../../../core/enums/Status";
+import { PaymentMethod } from "../../../core/enums/PaymentMethod";
 import { hashPin } from "../../security/pin";
 import {
   CASH_REGISTERS,
@@ -91,6 +92,7 @@ type DraftBill = {
   date: Date;
   status: Status;
   cashRegisterId: number | null;
+  paymentMethod?: PaymentMethod | null;
   lines: { productId: number; quantity: number; unitPrice: number }[];
 };
 
@@ -275,6 +277,8 @@ export async function runDemoSeed(ds: DataSource, now = new Date()): Promise<Dem
           date: at(day, minutes),
           status: voided ? Status.VOID : takeaway ? Status.FINISHED : Status.CLOSED,
           cashRegisterId: rnd.pick(activeRegisters).cashRegisterId,
+          // 60 % efectivo, 40 % tarjeta
+          paymentMethod: rnd.next() < 0.6 ? PaymentMethod.CASH : PaymentMethod.CARD,
           lines: lines(),
         });
       }
@@ -290,6 +294,9 @@ export async function runDemoSeed(ds: DataSource, now = new Date()): Promise<Dem
       { waiterId: userId("luis.martinez"), tableId: "T3", customer: "Reunión de equipo", date: recent(40), status: Status.OPEN },
       { waiterId: userId("sofia.ramirez"), tableId: "B1", customer: "Jorge", date: recent(12), status: Status.OPEN },
       { waiterId: userId("diego.hernandez"), tableId: "I4", customer: "Cuenta 1", date: recent(6), status: Status.DRAFT },
+      // Cerradas por el mesero, esperando al cajero
+      { waiterId: userId("luis.martinez"), tableId: "T2", customer: "Andrea", date: recent(55), status: Status.PENDING_PAYMENT },
+      { waiterId: userId("sofia.ramirez"), tableId: "B2", customer: "Cuenta 1", date: recent(42), status: Status.PENDING_PAYMENT },
     ];
     for (const bill of live) {
       drafts.push({ ...bill, orderType: OrderType.DINE_IN, cashRegisterId: null, lines: lines() });
@@ -298,6 +305,7 @@ export async function runDemoSeed(ds: DataSource, now = new Date()): Promise<Dem
       [Status.DRAFT, "Valeria", 4, null],
       [Status.OPEN, "Andrés", 9, null],
       [Status.OPEN, "Lucía", 15, null],
+      [Status.PENDING_PAYMENT, "Esteban", 5, null],
       [Status.CLOSED, "Ricardo", 7, activeRegisters[0]!.cashRegisterId],
       [Status.CLOSED, "Camila", 3, activeRegisters[1]!.cashRegisterId],
     ];
@@ -310,6 +318,7 @@ export async function runDemoSeed(ds: DataSource, now = new Date()): Promise<Dem
         date: recent(minutesAgo),
         status,
         cashRegisterId: registerId,
+        paymentMethod: registerId ? (rnd.next() < 0.5 ? PaymentMethod.CASH : PaymentMethod.CARD) : null,
         lines: lines(),
       });
     }
@@ -321,7 +330,9 @@ export async function runDemoSeed(ds: DataSource, now = new Date()): Promise<Dem
 
     // Mesas ocupadas según sus cuentas activas; una reservada para la noche
     const occupied = new Set(
-      drafts.filter((b) => b.tableId && (b.status === Status.OPEN || b.status === Status.DRAFT)).map((b) => b.tableId!),
+      drafts
+        .filter((b) => b.tableId && [Status.OPEN, Status.DRAFT, Status.PENDING_PAYMENT].includes(b.status))
+        .map((b) => b.tableId!),
     );
     for (const tableId of occupied) await em.update(Table, { tableId }, { status: TableStatus.OCUPADA });
     await em.update(Table, { tableId: "T5" }, { status: TableStatus.RESERVADA });
@@ -464,6 +475,7 @@ async function insertBills(em: EntityManager, drafts: DraftBill[]) {
         date: b.date,
         status: b.status,
         cashRegisterId: b.cashRegisterId,
+        paymentMethod: b.paymentMethod ?? null,
         total: round2(b.lines.reduce((acc, l) => acc + l.quantity * l.unitPrice, 0)),
       })),
     );

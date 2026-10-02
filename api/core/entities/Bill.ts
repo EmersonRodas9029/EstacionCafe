@@ -1,3 +1,4 @@
+import { PaymentMethod } from "../enums/PaymentMethod";
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -57,6 +58,10 @@ export class Bill {
 
   @Column({ type: "varchar", length: 20, default: Status.DRAFT })
   status!: Status;
+
+  /** Cómo se cobró (efectivo o tarjeta); null mientras no esté cobrada. */
+  @Column({ name: "payment_method", type: "varchar", length: 10, nullable: true })
+  paymentMethod?: PaymentMethod | null;
 
   @CreateDateColumn({
     name: "created_at",

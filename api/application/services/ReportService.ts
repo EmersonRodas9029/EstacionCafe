@@ -31,6 +31,8 @@ export interface SalesReport {
   }[];
   byWaiter: { waiterId: number; username: string; bills: number; total: number }[];
   byOrderType: { orderType: string; bills: number; total: number }[];
+  /** Para cuadrar caja; `null` = ventas anteriores a registrar el método */
+  byPaymentMethod: { paymentMethod: string | null; bills: number; total: number }[];
 }
 
 /**
@@ -113,6 +115,13 @@ export class ReportService {
         GROUP BY b.order_type`,
     );
 
+    const byPaymentMethod = await q(
+      `SELECT b.payment_method AS "paymentMethod", COUNT(*) AS bills, SUM(b.total) AS total
+         FROM bills b WHERE ${billFilter}
+        GROUP BY b.payment_method
+        ORDER BY total DESC`,
+    );
+
     const totalSales = num(summary.total);
     const billsCount = Number(summary.bills);
     const costOfGoods = num(cost.cost);
@@ -152,6 +161,11 @@ export class ReportService {
       })),
       byOrderType: byOrderType.map((r: any) => ({
         orderType: r.orderType,
+        bills: Number(r.bills),
+        total: num(r.total),
+      })),
+      byPaymentMethod: byPaymentMethod.map((r: any) => ({
+        paymentMethod: r.paymentMethod,
         bills: Number(r.bills),
         total: num(r.total),
       })),

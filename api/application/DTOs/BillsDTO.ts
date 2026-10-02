@@ -1,3 +1,4 @@
+import { PaymentMethod } from "../../core/enums/PaymentMethod";
 import { Status } from "../../core/enums/Status";
 import { OrderType } from "../../core/enums/OrderType";
 
@@ -17,6 +18,7 @@ export interface UpdateBillDTO {
   tableId?: string;
   total?: number;
   status?: Status;
+  paymentMethod?: PaymentMethod;
   date?: Date;
 }
 

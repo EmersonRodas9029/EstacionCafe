@@ -90,10 +90,11 @@ const deleteResult = {
   },
 };
 
-type RoleGuard = "admin" | "staff" | "any" | "public";
+type RoleGuard = "admin" | "cashier" | "staff" | "any" | "public";
 
 const ROLE_TEXT: Record<RoleGuard, string> = {
   admin: "Roles: admin.",
+  cashier: "Roles: admin, cajero.",
   staff: "Roles: admin, mesero, cajero.",
   any: "Roles: cualquier usuario autenticado.",
   public: "Pública (sin token).",
@@ -101,6 +102,7 @@ const ROLE_TEXT: Record<RoleGuard, string> = {
 
 const ROLE_LIST: Record<RoleGuard, string[]> = {
   admin: ["admin"],
+  cashier: ["admin", "cajero"],
   staff: ["admin", "mesero", "cajero"],
   any: ["admin", "mesero", "cajero"],
   public: [],
@@ -458,9 +460,14 @@ const swaggerDocument: any = {
       // ---------- Cuentas ----------
       BillStatus: {
         type: "string",
-        enum: ["open", "closed", "draft", "finished", "void"],
+        enum: ["open", "closed", "draft", "finished", "void", "pending_payment"],
         description:
-          "draft = orden en edición, open = cuenta activa, finished = para llevar entregada, closed = cobrada, void = anulada por un admin",
+          "draft = orden en edición, open = cuenta activa, pending_payment = cerrada por el mesero y esperando cobro, closed = cobrada, finished = para llevar entregada, void = anulada por un admin",
+      },
+      PaymentMethod: {
+        type: "string",
+        enum: ["cash", "card"],
+        description: "cash = efectivo, card = tarjeta",
       },
       OrderType: {
         type: "string",
@@ -489,6 +496,11 @@ const swaggerDocument: any = {
             description: "Calculado desde los detalles",
           },
           status: ref("BillStatus"),
+          paymentMethod: {
+            allOf: [ref("PaymentMethod")],
+            nullable: true,
+            description: "Cómo se cobró; null mientras no esté cobrada",
+          },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },
           waiter: ref("User"),
@@ -519,8 +531,11 @@ const swaggerDocument: any = {
           customer: { type: "string", minLength: 1, maxLength: 100 },
           tableId: { type: "string", minLength: 1, maxLength: 10 },
           orderType: ref("OrderType"),
-          status: { allOf: [ref("BillStatus")], description: "Por defecto: open" },
-          cashRegisterId: integerish(),
+          status: {
+            type: "string",
+            enum: ["open", "draft"],
+            description: "Por defecto: open. Una cuenta no puede nacer cobrada",
+          },
           date: {
             type: "string",
             format: "date-time",
@@ -533,19 +548,20 @@ const swaggerDocument: any = {
         type: "object",
         additionalProperties: false,
         description:
-          "Para status=closed la cuenta debe tener cashRegisterId (en el body o ya asignado). Cambiar tableId mueve la cuenta de mesa.",
+          "Transiciones: open/draft → pending_payment (cerrar; requiere productos), pending_payment → open (reabrir), open/draft/pending_payment → closed (cobrar), closed → finished (entregar; solo para llevar). Cobrar y fijar cashRegisterId/paymentMethod es solo de cajero y admin (403 para el mesero) y exige ambos. Cambiar tableId mueve la cuenta de mesa.",
         properties: {
           customer: { type: "string", minLength: 1, maxLength: 100 },
           tableId: { type: "string", minLength: 1, maxLength: 10 },
           status: ref("BillStatus"),
           cashRegisterId: integerish(),
+          paymentMethod: ref("PaymentMethod"),
           date: { type: "string", format: "date-time" },
         },
       },
       CloseTableBillsInput: {
         type: "object",
-        properties: { cashRegisterId: integerish() },
-        required: ["cashRegisterId"],
+        properties: { cashRegisterId: integerish(), paymentMethod: ref("PaymentMethod") },
+        required: ["cashRegisterId", "paymentMethod"],
       },
       CloseBillsResult: {
         type: "object",
@@ -1071,6 +1087,19 @@ const swaggerDocument: any = {
               required: ["orderType", "bills", "total"],
             },
           },
+          byPaymentMethod: {
+            type: "array",
+            description: "Para cuadrar caja; paymentMethod null = ventas sin método registrado",
+            items: {
+              type: "object",
+              properties: {
+                paymentMethod: { allOf: [ref("PaymentMethod")], nullable: true },
+                bills: { type: "integer" },
+                total: { type: "number" },
+              },
+              required: ["paymentMethod", "bills", "total"],
+            },
+          },
         },
         required: [
           "range",
@@ -1080,6 +1109,7 @@ const swaggerDocument: any = {
           "byProductType",
           "byWaiter",
           "byOrderType",
+          "byPaymentMethod",
         ],
       },
     },
@@ -1557,8 +1587,8 @@ const swaggerDocument: any = {
         tag: "Bills",
         summary: "Cobrar todas las cuentas activas de la mesa",
         description:
-          "Marca como closed las cuentas open/draft de la mesa con la caja indicada y libera la mesa.",
-        roles: "staff",
+          "Marca como closed las cuentas open/draft/pending_payment de la mesa con la caja y el método de pago indicados, y libera la mesa.",
+        roles: "cashier",
         parameters: [strPathParam("tableId", "ID de la mesa", { type: "string", maxLength: 10 })],
         body: "CloseTableBillsInput",
         ok: { description: "Facturas cerradas", schema: ref("CloseBillsResult") },

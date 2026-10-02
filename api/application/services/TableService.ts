@@ -5,7 +5,7 @@ import { SaveTableDTO, UpdateTableDTO } from "../DTOs/TableDTO";
 import { Bill } from "../../core/entities/Bill";
 import { AppError } from "../errors/AppError";
 import { plural } from "../utils/plural";
-import { Status } from "../../core/enums/Status";
+import { ACTIVE_STATUSES } from "../../core/enums/Status";
 import { Actor, ownerScope } from "./billAccess";
 
 export interface BoardSummary {
@@ -115,7 +115,7 @@ export class TableService implements IService {
         .addSelect("COUNT(*)", "bills")
         .addSelect("COALESCE(SUM(b.total), 0)", "total")
         .where("b.table_id IS NOT NULL")
-        .andWhere("b.status IN (:...statuses)", { statuses: [Status.OPEN, Status.DRAFT] })
+        .andWhere("b.status IN (:...statuses)", { statuses: ACTIVE_STATUSES })
         .groupBy("b.table_id")
         .addGroupBy("b.waiter_id")
         .addGroupBy("w.username")

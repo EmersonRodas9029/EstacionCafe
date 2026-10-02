@@ -5,13 +5,38 @@ import { BillDetails } from "../../core/entities/BillDetails";
 import { Table, TableStatus } from "../../core/entities/Table";
 import { CashRegister } from "../../core/entities/CashRegister";
 import { BillFiltersDTO, SaveBillDTO, UpdateBillDTO } from "../DTOs/BillsDTO";
-import { Status } from "../../core/enums/Status";
+import { ACTIVE_STATUSES, Status } from "../../core/enums/Status";
+import { PaymentMethod } from "../../core/enums/PaymentMethod";
+import { Role } from "../../core/enums/Role";
 import { OrderType } from "../../core/enums/OrderType";
 import { AppError } from "../errors/AppError";
 import { adjustStockForProducts } from "./StockService";
 import { Actor, assertBillAccess, ownerScope } from "./billAccess";
 
-const ACTIVE_STATUSES = [Status.OPEN, Status.DRAFT];
+/**
+ * Transiciones permitidas. Cobrar (→ closed) es solo de cajero y admin; el
+ * mesero cierra (→ pending_payment) y puede reabrir mientras no esté cobrada.
+ */
+const TRANSITIONS: Record<Status, Status[]> = {
+  [Status.DRAFT]: [Status.OPEN, Status.PENDING_PAYMENT, Status.CLOSED],
+  [Status.OPEN]: [Status.PENDING_PAYMENT, Status.CLOSED],
+  [Status.PENDING_PAYMENT]: [Status.OPEN, Status.CLOSED],
+  [Status.CLOSED]: [Status.FINISHED],
+  [Status.FINISHED]: [],
+  [Status.VOID]: [],
+};
+
+const STATUS_LABEL: Record<Status, string> = {
+  [Status.DRAFT]: "en edición",
+  [Status.OPEN]: "abierta",
+  [Status.PENDING_PAYMENT]: "por cobrar",
+  [Status.CLOSED]: "cobrada",
+  [Status.FINISHED]: "entregada",
+  [Status.VOID]: "anulada",
+};
+
+/** Sin actor = uso interno (seed, jobs): puede todo. */
+const canCharge = (actor?: Actor) => !actor || actor.role === Role.ADMIN || actor.role === Role.CAJERO;
 const BILL_RELATIONS = ["waiter", "table", "cashRegister"];
 
 export class BillService implements IService {
@@ -30,8 +55,9 @@ export class BillService implements IService {
       if (data.orderType === OrderType.DINE_IN) {
         await this.occupyTable(manager, data.tableId!);
       }
-      if (data.cashRegisterId) {
-        await this.ensureActiveCashRegister(manager, data.cashRegisterId);
+      // Una cuenta nace en curso: cobrarla es un paso aparte (y solo del cajero)
+      if (data.status && ![Status.OPEN, Status.DRAFT].includes(data.status)) {
+        throw AppError.badRequest("Una cuenta nueva solo puede crearse abierta o en edición");
       }
 
       const bill = new Bill();
@@ -39,7 +65,7 @@ export class BillService implements IService {
       bill.customer = data.customer;
       bill.orderType = data.orderType;
       bill.tableId = data.orderType === OrderType.DINE_IN ? data.tableId : null;
-      bill.cashRegisterId = data.cashRegisterId ?? null;
+      bill.cashRegisterId = null;
       bill.status = data.status ?? Status.OPEN;
       bill.total = 0;
       bill.date = data.date ?? new Date();
@@ -125,6 +151,26 @@ export class BillService implements IService {
       }
 
       const previousTable = bill.tableId ?? null;
+      const charging = data.status === Status.CLOSED && bill.status !== Status.CLOSED;
+      const touchesPayment = data.cashRegisterId !== undefined || data.paymentMethod !== undefined;
+
+      if ((charging || touchesPayment) && !canCharge(actor)) {
+        throw AppError.forbidden("Solo el cajero o el administrador pueden cobrar");
+      }
+      if (data.status !== undefined && data.status !== bill.status) {
+        if (!TRANSITIONS[bill.status].includes(data.status)) {
+          throw AppError.conflict(
+            `Una cuenta ${STATUS_LABEL[bill.status]} no puede pasar a ${STATUS_LABEL[data.status]}`,
+          );
+        }
+        if (data.status === Status.FINISHED && bill.orderType !== OrderType.TAKEAWAY) {
+          throw AppError.badRequest("Solo las órdenes para llevar se marcan como entregadas");
+        }
+        if (data.status === Status.PENDING_PAYMENT) {
+          const lines = await manager.count(BillDetails, { where: { billId } });
+          if (lines === 0) throw AppError.badRequest("La cuenta no tiene productos");
+        }
+      }
 
       if (data.tableId !== undefined && data.tableId !== bill.tableId) {
         if (bill.orderType === OrderType.TAKEAWAY) {
@@ -139,10 +185,12 @@ export class BillService implements IService {
         bill.cashRegisterId = data.cashRegisterId;
       }
 
-      if (data.status === Status.CLOSED && !bill.cashRegisterId) {
-        throw AppError.badRequest(
-          "Se requiere cashRegisterId para cerrar la cuenta",
-        );
+      if (data.paymentMethod !== undefined) bill.paymentMethod = data.paymentMethod;
+      if (charging && !bill.cashRegisterId) {
+        throw AppError.badRequest("Se requiere cashRegisterId para cobrar la cuenta");
+      }
+      if (charging && !bill.paymentMethod) {
+        throw AppError.badRequest("Indica el método de pago (efectivo o tarjeta)");
       }
 
       if (data.customer !== undefined) bill.customer = data.customer;
@@ -248,7 +296,9 @@ export class BillService implements IService {
     tableId: string,
     cashRegisterId: number,
     actor?: Actor,
+    paymentMethod: PaymentMethod = PaymentMethod.CASH,
   ): Promise<{ updated: number }> {
+    if (!canCharge(actor)) throw AppError.forbidden("Solo el cajero o el administrador pueden cobrar");
     return this.billRepository.manager.transaction(async (manager) => {
       await this.ensureActiveCashRegister(manager, cashRegisterId);
 
@@ -264,6 +314,7 @@ export class BillService implements IService {
       for (const bill of openBills) {
         bill.status = Status.CLOSED;
         bill.cashRegisterId = cashRegisterId;
+        bill.paymentMethod = paymentMethod;
       }
       if (openBills.length > 0) await manager.save(openBills);
 

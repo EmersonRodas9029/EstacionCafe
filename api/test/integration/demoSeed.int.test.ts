@@ -20,7 +20,18 @@ describe("seed:demo", () => {
     const summary = await runDemoSeed(ds, NOW);
 
     expect(summary.days).toBe(30);
-    expect(Object.keys(summary.byStatus).sort()).toEqual(["closed", "draft", "finished", "open", "void"]);
+    expect(Object.keys(summary.byStatus).sort()).toEqual([
+      "closed",
+      "draft",
+      "finished",
+      "open",
+      "pending_payment",
+      "void",
+    ]);
+    const [{ unpaid }] = await ds.query(
+      `SELECT count(*)::int AS unpaid FROM bills WHERE status IN ('closed', 'finished') AND payment_method IS NULL`,
+    );
+    expect(unpaid).toBe(0);
     expect(summary.bills).toBeGreaterThan(1000);
     expect(summary.lowStock).toEqual(
       expect.arrayContaining(["Leche de almendra", "Jarabe de caramelo", "Fresas"]),

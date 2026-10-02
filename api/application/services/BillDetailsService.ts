@@ -3,13 +3,12 @@ import { IService } from "../../core/interfaces/IService";
 import { BillDetails } from "../../core/entities/BillDetails";
 import { Bill } from "../../core/entities/Bill";
 import { Product } from "../../core/entities/Producto";
-import { Status } from "../../core/enums/Status";
+import { EDITABLE_STATUSES } from "../../core/enums/Status";
 import { SaveBillDetailDTO } from "../DTOs/BillsDTO";
 import { AppError } from "../errors/AppError";
 import { Actor, assertBillAccess } from "./billAccess";
 import { adjustStockForProducts } from "./StockService";
 
-const EDITABLE_STATUSES = [Status.OPEN, Status.DRAFT];
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 

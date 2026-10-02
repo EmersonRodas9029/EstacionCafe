@@ -308,10 +308,10 @@ export const getBillsByTable = async (req: any, res: any) => {
 export const closeBillsByTable = async (req: any, res: any) => {
   try {
     const { tableId } = tableIdSchema.parse(req.params);
-    const { cashRegisterId } = closeTableBillsSchema.parse(req.body ?? {});
+    const { cashRegisterId, paymentMethod } = closeTableBillsSchema.parse(req.body ?? {});
 
     const billService = getService() as any;
-    const result = await billService.closeBillsByTable(tableId, cashRegisterId, req.user);
+    const result = await billService.closeBillsByTable(tableId, cashRegisterId, req.user, paymentMethod);
 
     return res.status(200).send({
       status: "success",
