@@ -13,6 +13,7 @@ import { purchaseRouter } from "./PurchaseRoute";
 import { cashRegisterRouter } from "./CashRegisterRoutes";
 import { tableRouter } from "./TableRoute";
 import { productTypeRouter } from "./ProductTypeRoute";
+import { reportRouter } from "./ReportRoute";
 import { verifyToken } from "../../infrastructure/security/authMiddleware";
 
 const mainRouter = express.Router();
@@ -36,5 +37,6 @@ mainRouter.use("/", purchaseRouter);
 mainRouter.use("/", cashRegisterRouter);
 mainRouter.use("/", tableRouter);
 mainRouter.use("/", productTypeRouter);
+mainRouter.use("/", reportRouter);
 
 export default mainRouter;

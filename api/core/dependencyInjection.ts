@@ -37,6 +37,8 @@ import { TokenService } from "../infrastructure/security/TokenService";
 import { TableService } from "../application/services/TableService";
 import { ProductTypeService } from "../application/services/ProductTypeService";
 import { CashRegisterService } from "../application/services/CashRegisterService";
+import { ReportService } from "../application/services/ReportService";
+import { setService as setReportService } from "../controller/ReportController";
 
 //Entitys
 import { Bill } from "./entities/Bill";
@@ -119,6 +121,7 @@ export const initializeDependencies = async () => {
     setTableService(tableService);
     setProductTypeService(productTypeService);
     setCashRegisterService(cashRegisterService);
+    setReportService(new ReportService(AppDataSource));
 
     // Inicializar middleware con el servicio de tokens
     initializeAuthMiddleware(tokenService);
