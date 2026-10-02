@@ -60,3 +60,14 @@ src/
 - `Dockerfile` + `deploy/nginx.conf.template`: build estático servido por nginx con proxy `/api`, caché y headers de seguridad. Ver [Despliegue](../api/DEPLOYMENT.md#frontend-docker).
 - PWA (`vite-plugin-pwa`): instalable, shell disponible sin red, la API nunca se cachea y las actualizaciones se aplican cuando el usuario acepta el aviso.
 - Fuentes empaquetadas (`@fontsource-variable`), sin dependencias de CDN.
+
+## Acceso y sesión
+
+- **Sesión:** cookie httpOnly que maneja el navegador. El frontend nunca ve el token: el store guarda solo el usuario y cada petición lleva `X-Requested-With: EstacionCafe` (anti-CSRF).
+- **PIN:** en los equipos autorizados (_Admin → Dispositivos → Autorizar este equipo_) el login muestra un teclado. Los meseros y cajeros entran con un PIN de 4 dígitos que el admin asigna en _Usuarios_. En cualquier otro equipo se entra con usuario y contraseña.
+- **Inactividad:** el panel de mesas cierra la sesión a los **15 s** sin tocar la pantalla, con aviso en los últimos 5 s; el panel admin, a los 15 min. El mismo usuario vuelve a la página donde estaba.
+- **Privacidad:** el mesero solo ve sus cuentas. Las mesas de otros aparecen como «Atiende Ana», sin montos. Lo impone la API; el frontend solo lo refleja.
+
+## Modo oscuro
+
+_Sistema / Claro / Oscuro_ por dispositivo (en Perfil, o con el botón de la barra). Los colores son tokens CSS (`:root` y `.dark` en `src/styles/index.css`). `public/theme-init.js` aplica el tema antes de pintar.

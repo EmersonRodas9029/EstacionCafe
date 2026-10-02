@@ -125,6 +125,8 @@ Plan previo al desarrollo. Las decisiones de la sección 1 se tomaron con el equ
 
 ## 4. Fases
 
+**Estado:** F1–F7 completadas.
+
 | Fase                                                           | Contenido                                                                                                                                                                                                                 | Hecho cuando                                                                                                                      |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | **F1. Sesiones seguras + PIN (API)**                           | Tablas `sessions`, `devices` y `users.pin_hash` (migración); `TokenService` con `jti`; middleware con sesión, usuario activo y CSRF; `POST /auth/pin`; endpoints de dispositivos; freno silencioso; revocaciones; OpenAPI | Integración: PIN solo en dispositivo autorizado, PIN único, usuario desactivado → 401 inmediato, logout revoca, freno sin bloqueo |

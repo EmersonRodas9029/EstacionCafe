@@ -52,7 +52,7 @@ docker run -p 8080:8080 -e API_UPSTREAM=https://estacioncafe-api.onrender.com es
 - nginx sirve la SPA (cualquier ruta → `index.html`) y hace de proxy de `/api/` hacia `API_UPSTREAM`: el navegador ve un solo origen.
 - Caché: `/assets/*` un año (nombres con hash); `index.html`, `sw.js` y el manifiesto siempre se revalidan.
 - Headers: CSP (`connect-src` configurable con `CSP_CONNECT_SRC`, por defecto `'self'`), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`.
-- Para llamar a la API directo sin proxy: build con `--build-arg VITE_API_URL=https://api.example.com/api` y `CSP_CONNECT_SRC="'self' https://api.example.com"`.
+- **El proxy es obligatorio:** la sesión es una cookie `SameSite=Strict` de la API, y el navegador no la envía a un dominio distinto al de la página. El frontend debe llamar a `/api` en su propio origen (el nginx de la imagen lo resuelve con `API_UPSTREAM`).
 - Es una PWA: se puede instalar en tabletas; el shell carga sin red y la API nunca se cachea. Las versiones nuevas se ofrecen con un aviso "Actualizar".
 
 ## Supabase
